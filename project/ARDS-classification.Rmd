@@ -1,0 +1,56 @@
+---
+title: "Classification of Acute Respiratory Distress Syndrome"
+author: "Robert Edwards"
+output:
+  pdf_document:
+    latex_engine: pdflatex
+    number_sections: no
+    fig_caption: yes
+    
+  word_document: default
+  
+  html_document:
+    code_folding: hide
+    df_print: paged
+    fig_caption: yes
+    
+geometry: "left=3cm,right=3cm,top=3cm,bottom=3cm"
+header-includes: 
+  \usepackage[bottom]{footmisc}
+  \usepackage{float}
+  \floatplacement{figure}{H}
+  \usepackage{color}
+  \usepackage{xcolor}
+---
+
+```{r setup, include=FALSE, echo = FALSE, eval = TRUE}
+knitr::opts_chunk$set(echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, comment = NA)
+options()
+```
+
+```{r libraries, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+library(ggplot2)
+library(dplyr)
+library(moderndive)
+library(skimr)
+library(tidyr)
+library(kableExtra)
+library(gridExtra)
+library(xtable)
+library(knitr)
+library(GGally)
+library(broom)
+```
+
+```{r data, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+data.raw.df <- read.csv(file = "data/ARDSdata.csv", header = TRUE)
+head(data.raw.df)
+```
+
+
+
+
+
+
+
+
