@@ -12,8 +12,10 @@ library(xtable)
 library(knitr)
 library(GGally)
 library(broom)
+library(ggcorrplot)
+library(Hmisc)
 
-ARDSdata.df <- read.csv(file = "data/ARDSdata.csv", header = TRUE)
+ARDSdata.df <- read.csv(file = "../data/ARDSdata.csv", header = TRUE)
 
 Day1_vars <- c("Day1ECMO_RR", 
                "Day1ECMO_Vt", 
@@ -46,10 +48,31 @@ Day1_vars <- c("Day1ECMO_RR",
                "Day1ECMO_siIL2")
 data <- data.raw.df[, -which(names(data.raw.df) %in% Day1_vars)]
 
-data %>%
+data <- data %>%
+#  select(Indication, ECMO_Survival, Hospital_Survival)
+  mutate(Indication = factor(Indication)) %>% 
+  mutate(ECMO_Survival = factor(ECMO_Survival)) %>%
+  mutate(Hospital_Survival = factor(Hospital_Survival)) %>%
+  mutate(Gender = factor(Gender))
   
 
+data %>%
+  ggpairs(
+    mapping = ggplot2::aes(color = ECMO_Survival),
+    upper = list(continuous = wrap("density", alpha = 0.5), combo = "box"),
+    lower = list(continuous = wrap("points", alpha = 0.4, size=0.1), 
+                 combo = wrap("dot", alpha = 0.4, size=0.2)),
+    diag = list(continuous = wrap("densityDiag"))
+  )
 
 
+corr <- data %>%
+  select(-Pt_ID, -ECMO_Survival, -Hospital_Survival, -Gender) %>% 
+  glimpse()
+  #  as.matrix() %>%
+  rcorr(type = "spearman") %>% 
+  ggcorrplot()
+
+ggcorrplot(corr)
 
 

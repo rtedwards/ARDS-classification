@@ -1,0 +1,71 @@
+---
+title: "SAP for Classification of Acute Respiratory Distress Syndrome"
+author: "Robert Edwards"
+output:
+  pdf_document:
+    latex_engine: pdflatex
+    number_sections: no
+    fig_caption: yes
+    
+  word_document: default
+  
+  html_document:
+    code_folding: hide
+    df_print: paged
+    fig_caption: yes
+    
+geometry: "left=3cm,right=3cm,top=3cm,bottom=3cm"
+header-includes: 
+  \usepackage[bottom]{footmisc}
+  \usepackage{float}
+  \floatplacement{figure}{H}
+  \usepackage{color}
+  \usepackage{xcolor}
+---
+
+```{r setup, include=FALSE, echo = FALSE, eval = TRUE}
+knitr::opts_chunk$set(echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, comment = NA)
+options()
+```
+
+#Population
+
+
+#Primary Objective
+
+
+#Secondary Objective
+
+
+#Data Collection
+
+
+#Variables Under Consideration
+
+
+#Missing Data Procedures
+
+
+#Summaries to be Presented:
+
+
+#Models to be Fitted
+
+
+#Advanced Models to be Fitted
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
