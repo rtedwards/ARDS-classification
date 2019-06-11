@@ -40,7 +40,8 @@ library(xtable)
 library(knitr)
 library(GGally)
 library(broom)
-library(naniar) # missing data
+library(naniar) # missing data eda
+library(VIM) # data imputation
 ```
 
 ```{r import_data, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
@@ -151,6 +152,84 @@ This plot shows the cumulative sum of missing values, reading columns from the l
 ```{r cum_var_missing, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 gg_miss_var_cumsum(data.df)
 ```
+
+#Exploratory Data Analysis
+```{r boxplot, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+feature_names <- colnames(data.df[,7:36])
+data_standard.df <- data.df %>%
+  select(7:36) %>%
+  mutate_each_(funs(scale), vars=feature_names) %>%
+  glimpse()
+
+data_standard.df %>% 
+#  select(-loudness, -popularity) %>% 
+  gather(key = Feature, value = Value) %>% 
+  ggplot(aes(x = Feature, y = Value, fill = Feature)) +
+#  ggplot(stack(track_features.df), aes(x = ind, y = values)) +
+    geom_boxplot() +
+    xlab("Features") + 
+    ylab("Average") + 
+    theme_bw() +
+    theme(plot.title = element_text(hjust = 0.5),
+          legend.position="none",
+          axis.text.x = element_text(angle = 60, hjust = 1)) + 
+    scale_fill_brewer(palette="Spectral")
+```
+
+
+#Imputation
+Here I will try various methods for data imputation.
+
+##I. KNN Imputation
+
+```{r knn_imputation, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+data_impute.df <- kNN(data.df)
+
+data_impute.df %>%
+  glimpse()
+```
+
+```{r standardizing, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+feature_names <- colnames(data_impute.df[,7:36])
+data_standard.df <- data_impute.df %>%
+  select(7:36) %>%
+  mutate_each_(funs(scale), vars=feature_names) %>%
+  mutate_each_(funs(log), vars=feature_names) %>%
+  glimpse()
+
+data_standard.df %>% 
+  gather(key = Feature, value = Value) %>% 
+  ggplot(aes(x = Feature, y = Value, fill = Feature)) +
+#  ggplot(stack(track_features.df), aes(x = ind, y = values)) +
+    geom_boxplot() +
+    xlab("Features") + 
+    ylab("Average") + 
+    theme_bw() +
+    theme(plot.title = element_text(hjust = 0.5),
+          legend.position="none",
+          axis.text.x = element_text(angle = 60, hjust = 1)) + 
+    scale_fill_brewer(palette="Spectral")
+```
+
+
+```{r, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+data_standard.df %>% 
+#  select(-loudness, -popularity) %>% 
+  gather(key = Feature, value = Value) %>% 
+  ggplot(aes(x=Value, color=Feature)) +
+      geom_density(alpha=0.5) +
+      geom_vline(aes(xintercept=0)) +
+      theme_bw() +
+      scale_fill_brewer(palette="Spectral") 
+```
+
+
+
+
+
+
+
+
 
 
 
