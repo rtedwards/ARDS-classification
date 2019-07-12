@@ -1,0 +1,229 @@
+---
+title: "Classification of Acute Respiratory Distress Syndrome"
+subtitle: "Imputation"
+author: "Robert Edwards"
+output:
+  pdf_document:
+    latex_engine: pdflatex
+    number_sections: no
+    fig_caption: yes
+    
+  word_document: default
+  
+  html_document:
+    code_folding: hide
+    df_print: paged
+    fig_caption: yes
+    
+geometry: "left=3cm,right=3cm,top=3cm,bottom=3cm"
+header-includes: 
+  \usepackage[bottom]{footmisc}
+  \usepackage{float}
+  \floatplacement{figure}{H}
+  \usepackage{color}
+  \usepackage{xcolor}
+---
+
+```{r setup, include=FALSE, echo = FALSE, eval = TRUE}
+knitr::opts_chunk$set(echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, comment = NA)
+options()
+```
+
+```{r libraries, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+library(ggplot2)
+library(dplyr)
+library(moderndive)
+library(skimr)
+library(tidyr)
+library(kableExtra)
+library(gridExtra)
+library(xtable)
+library(knitr)
+library(GGally)
+library(broom)
+library(naniar) # missing data eda
+library(VIM) # data imputation
+```
+
+```{r import_data, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+data.raw.df <- read.csv(file = "../data/ARDSdata.csv", header = TRUE)
+```
+
+
+#Training/Test Data
+```{r, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, results = "hide"}
+#feature_names <- colnames(data.df[,7:36])
+#data_standard <- data.df %>%
+#  select(7:36) %>%
+#  mutate_each_(funs(scale), vars=feature_names) %>%
+#  mutate_each_(funs(log), vars=feature_names) %>%
+#  glimpse()
+
+# Reordering columns
+data_standard <- cbind(data.df[,c(1,5,2,4,3)], data.df[6:ncol(data.df)]) 
+
+standardized <- apply(data_standard[, 5:ncol(data_standard)], 2, scale)  # scale the features
+data_standard <- cbind(data_standard[,1:4], standardized)  # rebind variables
+
+data_standard <- data_standard %>% 
+  mutate(Gender = ifelse(data_standard$Gender == "m" , 0, 1)) %>% # male = 0, female = 1
+  mutate(ECMO_Survival = ifelse(data_standard$ECMO_Survival == "Y" , 1, 0)) # Yes = 1, No = 0
+#  mutate(Hospital_Survival = ifelse(data_standard$Hospital_Survival == "Y" , 1, 0)) # Yes = 1, No = 0
+
+data_standard <- data_standard %>%
+  mutate(Indication = factor(Indication)) %>% 
+  mutate(ECMO_Survival = factor(ECMO_Survival)) %>%
+#  mutate(Hospital_Survival = factor(Hospital_Survival)) %>%
+  mutate(Gender = factor(Gender)) %>%
+  suppressMessages()  # suppress output
+
+data_standard %>%
+  glimpse()
+```
+
+##Dropping NAs from dataset
+```{r, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+data_standard_drop <- data_standard %>% 
+  select(-PreECMO_Albumin) %>%  # Drop variable missing >50% data
+  drop_na()  # Drop rows missing data
+
+data_standard_drop %>%
+  nrow()
+```
+
+```{r, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+set.seed(123)
+data.ARDS <- data_standard_drop
+
+n <- nrow(data.ARDS)
+ind1 <- sample(c(1:n), round(n / 2))
+ind2 <- sample(c(1:n)[-ind1], round(n / 4))
+ind3 <- setdiff(c(1:n), c(ind1, ind2))
+train.ARDS <- data.ARDS[ind1, ]
+valid.ARDS <- data.ARDS[ind2, ]
+test.ARDS <- data.ARDS[ind3, ]
+```
+
+
+```{r model1, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+model_logit <- glm(ECMO_Survival ~ . -Pt_ID, data=train.ARDS, family=binomial(link="logit"))
+
+model_logit %>%
+  summary()
+```
+
+A quick note about the plogis function: The `glm()` procedure with `family="binomial"` will build the logistic regression model on the given formula. When we use the `predict` function on this model, it will predict the log(odds) of the Y variable. This is not what we ultimately want because, the predicted values may not lie within the 0 and 1 range as expected. So, to convert it into prediction probability scores that is bound between 0 and 1, we use the `plogis()`.  For more info see (blog on logisitic regression)[http://r-statistics.co/Logistic-Regression-With-R.html].  Or set `type = "response"` in the predict function.
+
+```{r predict1, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+## Using the predict function to predict for the validation data.
+pred.valid <- predict(model_logit, valid.ARDS, type = "response")  # predicted scores
+```
+
+###Optimal Prediction Probability Cutoff for the Model
+The default cutoff prediction probability score is 0.5 or the ratio of 1’s and 0’s in the training data. But sometimes, tuning the probability cutoff can improve the accuracy in both the development and validation samples. The `InformationValue::optimalCutoff` function provides ways to find the optimal cutoff to improve the prediction of 1’s, 0’s, both 1’s and 0’s and o reduce the misclassification error. Lets compute the optimal score that minimizes the misclassification error for the above model.
+
+```{r cutoff1, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+# Find the optimal cutoff value to use (default = 0.5)
+library(InformationValue)
+opt_cutoff <- optimalCutoff(test.ARDS$ECMO_Survival , pred.valid)[1] 
+
+## Changing the predictions to predited labels.
+pred.valid.label <- ifelse(round(pred.valid) <= 0.5, 0, 1)
+
+## Changing the predictions to predited labels.
+pred.valid.label.opt <- ifelse(round(pred.valid) <= opt_cutoff, 0, 1)
+
+```
+
+##Model Diagnostics
+```{r xtab, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+## Cross-classification table.
+logit.table <- table(valid.ARDS$ECMO_Survival, pred.valid.label)
+## Correct classification rate (CCR).
+sum(pred.valid.label == valid.ARDS$ECMO_Survival) / length(pred.valid.label)
+## Class-specific CCRs.
+diag(logit.table) / rowSums(logit.table)
+
+## Cross-classification table.
+logit.table.opt <- table(valid.ARDS$ECMO_Survival, pred.valid.label.opt)
+## Correct classification rate (CCR).
+sum(pred.valid.label == valid.ARDS$ECMO_Survival) / length(pred.valid.label.opt)
+## Class-specific CCRs.
+diag(logit.table) / rowSums(logit.table)
+```
+
+
+##Imputed Dataset
+```{r , echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+data_standard_drop <- data_standard %>%
+  select(-PreECMO_Albumin) # Drop variable missing >50% data
+
+data_impute <- kNN(data_standard_drop)
+
+data_impute <- data_impute %>%
+  select(1:33)
+```
+
+```{r, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+set.seed(123)
+
+data.ARDS <- data_impute
+
+n <- nrow(data.ARDS)
+ind1 <- sample(c(1:n), round(n / 2))
+ind2 <- sample(c(1:n)[-ind1], round(n / 4))
+ind3 <- setdiff(c(1:n), c(ind1, ind2))
+train.ARDS <- data.ARDS[ind1, ]
+valid.ARDS <- data.ARDS[ind2, ]
+test.ARDS <- data.ARDS[ind3, ]
+```
+
+```{r model2, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+
+model_logit <- glm(ECMO_Survival ~ . -Pt_ID, data=train.ARDS, family=binomial(link="logit"))
+
+model_logit %>%
+  summary()
+```
+
+```{r predict2, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+## Using the predict function to predict for the validation data.
+pred.valid <- predict(model_logit, valid.ARDS, type = "response")  # predicted scores
+```
+
+```{r cutoff1, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+# Find the optimal cutoff value to use (default = 0.5)
+library(InformationValue)
+opt_cutoff <- optimalCutoff(test.ARDS$ECMO_Survival , pred.valid)[1] 
+
+## Changing the predictions to predited labels.
+pred.valid.label <- ifelse(round(pred.valid) <= 0.5, 0, 1)
+
+## Changing the predictions to predited labels.
+pred.valid.label.opt <- ifelse(round(pred.valid) <= opt_cutoff, 0, 1)
+
+```
+
+##Model Diagnostics
+
+```{r xtab, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+## Cross-classification table.
+logit.table <- table(valid.ARDS$ECMO_Survival, pred.valid.label)
+## Correct classification rate (CCR).
+sum(pred.valid.label == valid.ARDS$ECMO_Survival) / length(pred.valid.label)
+## Class-specific CCRs.
+diag(logit.table) / rowSums(logit.table)
+
+## Cross-classification table.
+logit.table.opt <- table(valid.ARDS$ECMO_Survival, pred.valid.label.opt)
+## Correct classification rate (CCR).
+sum(pred.valid.label == valid.ARDS$ECMO_Survival) / length(pred.valid.label.opt)
+## Class-specific CCRs.
+diag(logit.table) / rowSums(logit.table)
+```
+
+
+
+
+
+
