@@ -2,18 +2,18 @@
 title: "Classification of Acute Respiratory Distress Syndrome"
 author: "Robert Edwards"
 output:
+  
   pdf_document:
+    
     latex_engine: pdflatex
     number_sections: no
     fig_caption: yes
-    
   word_document: default
-  
   html_document:
+    
     code_folding: hide
     df_print: paged
     fig_caption: yes
-    
 geometry: "left=3cm,right=3cm,top=3cm,bottom=3cm"
 header-includes: 
   \usepackage[bottom]{footmisc}
@@ -46,8 +46,6 @@ library(VIM) # data imputation
 
 ```{r import_data, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 data.raw.df <- read.csv(file = "../data/ARDSdata.csv", header = TRUE)
-<<<<<<< HEAD
-=======
 ```
 
 
@@ -87,7 +85,7 @@ data.df <- data.raw.df[, -which(names(data.raw.df) %in% Day1_vars)]
 ```
 
 
-```{r factor, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE, results="hide"}
+```{r slicing, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE, results="hide"}
 # Select the first 450 rows.  The others are blank
 data.df <- data.df %>%
   slice(1:450) 
@@ -151,28 +149,81 @@ gg_miss_var_cumsum(data.df)
 
 
 #Exploratory Data Analysis
+We first visually explore the data to get a sense of the features and distributions of the data.  Then we will conduct hypothesis tests for each feature based on `ECMO_Survival` as a rough idea how relevant each feature will be.  
+
+##Boxplot
+
+All continuous features are normally scaled to be comparable. 
+
 ```{r boxplot, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 n <- ncol(data.df)
-feature_names <- colnames(data.df[,7:n])
-data_standard.df <- data.df %>%
-  select(7:n) %>%
+feature_names <- colnames(data.df[,6:n])
+data_continuous_standard.df <- data.df %>%
+  select(6:n) %>%
   mutate_each_(funs(scale), vars=feature_names) %>%
   glimpse()
 
-data_standard.df %>% 
-#  select(-loudness, -popularity) %>% 
+data_continuous_standard.df %>% 
   gather(key = Feature, value = Value) %>% 
   ggplot(aes(x = Feature, y = Value, fill = Feature)) +
-#  ggplot(stack(track_features.df), aes(x = ind, y = values)) +
     geom_boxplot() +
     xlab("Features") + 
-    ylab("Average") + 
+    ylab("Standardised Values") + 
     theme_bw() +
     theme(plot.title = element_text(hjust = 0.5),
           legend.position="none",
           axis.text.x = element_text(angle = 60, hjust = 1)) + 
     scale_fill_brewer(palette="Spectral")
 ```
+
+The boxplot shows many highly skewed variables indicating that these likely need to be transformed in some fashion (likely log transformation).  For **logistic regression**, first a model will be fit without transformations and then the not significant variables will be transformed and model fit will be evaluated.  
+
+
+To get an idea of the distribution of the data, the following summary statistics were obtained for the categorical variable `ECMO_Survival` (Table \ref{tab:sum1}) and for the continuous variables (Table \ref{tab:sum2}).
+
+```{r summary1, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+data_standard.df <- cbind(data.df[1:5], data_continuous_standard.df)
+data_standard.df %>%
+  group_by(ECMO_Survival) %>%
+  summarise(n()) %>%
+  kable(col.names = c("ECMO_Survival", "n"),
+        caption = '\\label{tab:sum1} Numbers of smokers and nonsmokers.', booktabs = TRUE, format = "latex") %>%
+  kable_styling(font_size = 10, latex_options = "hold_position")
+```
+
+Table \ref{tab:sum1} shows that out of the `r nrow(data_standard.df)` individuals, only `r round(100*sum(data_standard.df$ECMO_Survival==1)/nrow(data_standard.df))`% of the individuals in the study sample smoke (`r sum(data_standard.df$ECMO_Survival==1)` survivors vs `r sum(data_standard.df$ECMO_Survival==1)` non-survivors).  
+
+```{r summary2, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+
+#insur$age <- as.numeric(insur$age)
+
+for (i in 1:ncol(data_continuous_standard.df)) {
+  data_continuous_standard.df[,i] <- as.numeric(data_continuous_standard.df[,i])
+}
+
+is.numeric(data_continuous_standard.df$PreECMO_Vt)
+
+skim_with(numeric = list(hist = NULL, missing = NULL, complete = NULL))
+data_continuous_standard.df %>%
+  skim_to_list() %>%
+  .$numeric %>%
+  kable(col.names = c("Variable", "n", "Mean", "SD", "Minimum", "1st quartile", "Median", "3rd quartile", "Maximum"),
+        caption = '\\label{tab:sum2} Summary statistics on insurance charges, age and bmi.', booktabs = TRUE, format = "latex") %>%
+  kable_styling(font_size = 10, latex_options = "hold_position")
+```
+
+Looking at Table \ref{tab:sum2}
+
+
+
+
+
+
+
+
+
+
+
 
 
 #Imputation
@@ -279,7 +330,7 @@ test.ARDS <- data.ARDS[ind3, ]
 
 
 ```{r model1, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
-model_logit <- glm(ECMO_Survival ~ . -Pt_ID, data=train.ARDS, family=binomial(link="logit"))
+model_logit <- glm(ECMO_Survival ~ . , data=train.ARDS, family=binomial(link="logit"))
 
 model_logit %>%
   summary()
@@ -293,7 +344,7 @@ pred.valid <- plogis(predict(model_logit, valid.ARDS))  # predicted scores
 ```
 
 ###Optimal Prediction Probability Cutoff for the Model
-The default cutoff prediction probability score is 0.5 or the ratio of 1’s and 0’s in the training data. But sometimes, tuning the probability cutoff can improve the accuracy in both the development and validation samples. The `InformationValue::optimalCutoff` function provides ways to find the optimal cutoff to improve the prediction of 1’s, 0’s, both 1’s and 0’s and o reduce the misclassification error. Lets compute the optimal score that minimizes the misclassification error for the above model.
+The default cutoff prediction probability score is 0.5 or the ratio of ---- in the training data. But sometimes, tuning the probability cutoff can improve the accuracy in both the development and validation samples. The `InformationValue::optimalCutoff` function provides ways to find the optimal cutoff to improve the prediction of ----, ----, both ---- and ---- and o reduce the misclassification error. Let's compute the optimal score that minimizes the misclassification error for the above model.
 
 ```{r cutoff1, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 # Find the optimal cutoff value to use (default = 0.5)
@@ -309,7 +360,7 @@ pred.valid.label.opt <- ifelse(round(pred.valid) <= opt_cutoff, 0, 1)
 ```
 
 ##Model Diagnostics
-```{r xtab, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+```{r xtab1, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 ## Cross-classification table.
 logit.table <- table(valid.ARDS$ECMO_Survival, pred.valid.label)
 ## Correct classification rate (CCR).
@@ -353,7 +404,7 @@ test.ARDS <- data.ARDS[ind3, ]
 
 ```{r model2, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 
-model_logit <- glm(ECMO_Survival ~ . -Pt_ID, data=train.ARDS, family=binomial(link="logit"))
+model_logit <- glm(ECMO_Survival ~ . , data=train.ARDS, family=binomial(link="logit"))
 
 model_logit %>%
   summary()
@@ -364,7 +415,7 @@ model_logit %>%
 pred.valid <- plogis(predict(model_logit, valid.ARDS))  # predicted scores
 ```
 
-```{r cutoff1, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+```{r cutoff2, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 # Find the optimal cutoff value to use (default = 0.5)
 library(InformationValue)
 opt_cutoff <- optimalCutoff(test.ARDS$ECMO_Survival , pred.valid)[1] 
@@ -379,7 +430,7 @@ pred.valid.label.opt <- ifelse(round(pred.valid) <= opt_cutoff, 0, 1)
 
 ##Model Diagnostics
 
-```{r xtab, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+```{r xtab2, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 ## Cross-classification table.
 logit.table <- table(valid.ARDS$ECMO_Survival, pred.valid.label)
 ## Correct classification rate (CCR).
@@ -393,184 +444,7 @@ logit.table.opt <- table(valid.ARDS$ECMO_Survival, pred.valid.label.opt)
 sum(pred.valid.label == valid.ARDS$ECMO_Survival) / length(pred.valid.label.opt)
 ## Class-specific CCRs.
 diag(logit.table) / rowSums(logit.table)
->>>>>>> 2dc25d0532988985e227a57325f906fa7bef4484
 ```
-
-
-```{r reduce, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
-Day1_vars <- c("Day1ECMO_RR", 
-               "Day1ECMO_Vt", 
-               "Day1ECMO_FiO2", 
-               "Day1ECMO_Ppeak", 
-               "Day1ECMO_Pmean", 
-               "Day1ECMO_PEEP", 
-               "Day1ECMO_PF", 
-               "Day1ECMO_SpO2", 
-               "Day1ECMO_PaCO2", 
-               "Day1ECMO_pH", 
-               "Day1ECMO_BE", 
-               "Day1ECMO_Lactate", 
-               "Day1ECMO_NAdose", 
-               "Day1ECMO_MAP", 
-               "Day1ECMO_Creatinine", 
-               "Day1ECMO_Urea", 
-               "Day1ECMO_CK", 
-               "Day1ECMO_Bilirubin", 
-               "Day1ECMO_Albumin", 
-               "Day1ECMO_CRP", 
-               "Day1ECMO_Fibrinogen", 
-               "Day1ECMO_Ddimer", 
-               "Day1ECMO_ATIII", 
-               "Day1ECMO_Leukocytes", 
-               "Day1ECMO_Platelets", 
-               "Day1ECMO_TNFa", 
-               "Day1ECMO_IL6", 
-               "Day1ECMO_IL8", 
-               "Day1ECMO_siIL2")
-data.df <- data.raw.df[, -which(names(data.raw.df) %in% Day1_vars)]
-```
-
-```{r factor, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, results="hide"}
-data.df %>%
-  mutate(Indication = factor(Indication)) %>% 
-  mutate(ECMO_Survival = factor(ECMO_Survival)) %>%
-  mutate(Hospital_Survival = factor(Hospital_Survival)) %>%
-  mutate(Gender = factor(Gender))
-```
-
-
-
-#Missing Data
-
-```{r data, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE}
-missing <- as.data.frame(colSums(is.na(data.df)))
-
-missing %>% 
-    ggplot() +
-      aes() +
-      geom_bar(stat = "count") + 
-      xlab("Variables") + 
-      ylab("Total NAs") + 
-      ggtitle("Missing Data") + 
-      theme_bw() +
-      theme(plot.title = element_text(hjust = 0.5),
-            axis.text.x = element_text(angle = 60, hjust = 1)) +
-      scale_fill_brewer(palette="Spectral") 
-```
-
-```{r missing_data, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
-vis_miss(data.df)
-```
-
-An upset plot from the `UpSetR` package can be used to visualise the patterns of missingness, or rather the combinations of missingness across cases. To see combinations of missingness and intersections of missingness amongst variables, use the `gg_miss_upset` function:
-
-```{r missing_data_patterns, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
-gg_miss_upset(data.df)
-```
-
-If there are 40 intersections, there will be up to 40 combinations of variables explored. The number of sets and intersections can be changed by passing arguments `nsets = 10` to look at 10 sets of variables, and nintersects = 50 to look at 50 intersections.
-
-```{r num_missing, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
-#n_var_miss(data.df)
-gg_miss_upset(data.df, nsets = n_var_miss(data.df)/3)
-```
-
-This plot shows the number of missing values in each variable in a dataset. It is powered by the `miss_var_summary()` function.  
-```{r var_missing, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
-gg_miss_var(data.df, show_pct = TRUE) +
-  labs("% Data Missing in Biomarker Data")
-```
-
-This plot shows the number of missings in each column, broken down by a categorical variable from the dataset. It is powered by a `dplyr::group_by` statement followed by `miss_var_summary()`.
-
-```{r missing_fct, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
-gg_miss_fct(x = data.df, fct = Age) + 
-  labs("NAs in Biomarkers by Age")
-```
-
-This plot shows the cumulative sum of missing values, reading the rows of the dataset from the top to bottom. It is powered by the `miss_case_cumsum()` function.
-
-```{r cum_missing, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
-gg_miss_case_cumsum(data.df)
-```
-
-
-This plot shows the cumulative sum of missing values, reading columns from the left to the right of your dataframe. It is powered by the `miss_var_cumsum()` function.
-
-```{r cum_var_missing, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
-gg_miss_var_cumsum(data.df)
-```
-
-#Exploratory Data Analysis
-```{r boxplot, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
-feature_names <- colnames(data.df[,7:36])
-data_standard.df <- data.df %>%
-  select(7:36) %>%
-  mutate_each_(funs(scale), vars=feature_names) %>%
-  glimpse()
-
-data_standard.df %>% 
-#  select(-loudness, -popularity) %>% 
-  gather(key = Feature, value = Value) %>% 
-  ggplot(aes(x = Feature, y = Value, fill = Feature)) +
-#  ggplot(stack(track_features.df), aes(x = ind, y = values)) +
-    geom_boxplot() +
-    xlab("Features") + 
-    ylab("Average") + 
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5),
-          legend.position="none",
-          axis.text.x = element_text(angle = 60, hjust = 1)) + 
-    scale_fill_brewer(palette="Spectral")
-```
-
-
-#Imputation
-Here I will try various methods for data imputation.
-
-##I. KNN Imputation
-
-```{r knn_imputation, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
-data_impute.df <- kNN(data.df)
-
-data_impute.df %>%
-  glimpse()
-```
-
-```{r standardizing, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
-feature_names <- colnames(data_impute.df[,7:36])
-data_standard.df <- data_impute.df %>%
-  select(7:36) %>%
-  mutate_each_(funs(scale), vars=feature_names) %>%
-  mutate_each_(funs(log), vars=feature_names) %>%
-  glimpse()
-
-data_standard.df %>% 
-  gather(key = Feature, value = Value) %>% 
-  ggplot(aes(x = Feature, y = Value, fill = Feature)) +
-#  ggplot(stack(track_features.df), aes(x = ind, y = values)) +
-    geom_boxplot() +
-    xlab("Features") + 
-    ylab("Average") + 
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5),
-          legend.position="none",
-          axis.text.x = element_text(angle = 60, hjust = 1)) + 
-    scale_fill_brewer(palette="Spectral")
-```
-
-
-```{r, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
-data_standard.df %>% 
-#  select(-loudness, -popularity) %>% 
-  gather(key = Feature, value = Value) %>% 
-  ggplot(aes(x=Value, color=Feature)) +
-      geom_density(alpha=0.5) +
-      geom_vline(aes(xintercept=0)) +
-      theme_bw() +
-      scale_fill_brewer(palette="Spectral") 
-```
-
 
 
 
