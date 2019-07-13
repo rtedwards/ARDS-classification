@@ -2,18 +2,18 @@
 title: "Classification of Acute Respiratory Distress Syndrome"
 author: "Robert Edwards"
 output:
+  
   pdf_document:
+    
     latex_engine: pdflatex
     number_sections: no
     fig_caption: yes
-    
   word_document: default
-  
   html_document:
+    
     code_folding: hide
     df_print: paged
     fig_caption: yes
-    
 geometry: "left=3cm,right=3cm,top=3cm,bottom=3cm"
 header-includes: 
   \usepackage[bottom]{footmisc}
@@ -85,7 +85,7 @@ data.df <- data.raw.df[, -which(names(data.raw.df) %in% Day1_vars)]
 ```
 
 
-```{r factor, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE, results="hide"}
+```{r slicing, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE, results="hide"}
 # Select the first 450 rows.  The others are blank
 data.df <- data.df %>%
   slice(1:450) 
@@ -149,28 +149,81 @@ gg_miss_var_cumsum(data.df)
 
 
 #Exploratory Data Analysis
+We first visually explore the data to get a sense of the features and distributions of the data.  Then we will conduct hypothesis tests for each feature based on `ECMO_Survival` as a rough idea how relevant each feature will be.  
+
+##Boxplot
+
+All continuous features are normally scaled to be comparable. 
+
 ```{r boxplot, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 n <- ncol(data.df)
-feature_names <- colnames(data.df[,7:n])
-data_standard.df <- data.df %>%
-  select(7:n) %>%
+feature_names <- colnames(data.df[,6:n])
+data_continuous_standard.df <- data.df %>%
+  select(6:n) %>%
   mutate_each_(funs(scale), vars=feature_names) %>%
   glimpse()
 
-data_standard.df %>% 
-#  select(-loudness, -popularity) %>% 
+data_continuous_standard.df %>% 
   gather(key = Feature, value = Value) %>% 
   ggplot(aes(x = Feature, y = Value, fill = Feature)) +
-#  ggplot(stack(track_features.df), aes(x = ind, y = values)) +
     geom_boxplot() +
     xlab("Features") + 
-    ylab("Average") + 
+    ylab("Standardised Values") + 
     theme_bw() +
     theme(plot.title = element_text(hjust = 0.5),
           legend.position="none",
           axis.text.x = element_text(angle = 60, hjust = 1)) + 
     scale_fill_brewer(palette="Spectral")
 ```
+
+The boxplot shows many highly skewed variables indicating that these likely need to be transformed in some fashion (likely log transformation).  For **logistic regression**, first a model will be fit without transformations and then the not significant variables will be transformed and model fit will be evaluated.  
+
+
+To get an idea of the distribution of the data, the following summary statistics were obtained for the categorical variable `ECMO_Survival` (Table \ref{tab:sum1}) and for the continuous variables (Table \ref{tab:sum2}).
+
+```{r summary1, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+data_standard.df <- cbind(data.df[1:5], data_continuous_standard.df)
+data_standard.df %>%
+  group_by(ECMO_Survival) %>%
+  summarise(n()) %>%
+  kable(col.names = c("ECMO_Survival", "n"),
+        caption = '\\label{tab:sum1} Numbers of smokers and nonsmokers.', booktabs = TRUE, format = "latex") %>%
+  kable_styling(font_size = 10, latex_options = "hold_position")
+```
+
+Table \ref{tab:sum1} shows that out of the `r nrow(data_standard.df)` individuals, only `r round(100*sum(data_standard.df$ECMO_Survival==1)/nrow(data_standard.df))`% of the individuals in the study sample smoke (`r sum(data_standard.df$ECMO_Survival==1)` survivors vs `r sum(data_standard.df$ECMO_Survival==1)` non-survivors).  
+
+```{r summary2, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+
+#insur$age <- as.numeric(insur$age)
+
+for (i in 1:ncol(data_continuous_standard.df)) {
+  data_continuous_standard.df[,i] <- as.numeric(data_continuous_standard.df[,i])
+}
+
+is.numeric(data_continuous_standard.df$PreECMO_Vt)
+
+skim_with(numeric = list(hist = NULL, missing = NULL, complete = NULL))
+data_continuous_standard.df %>%
+  skim_to_list() %>%
+  .$numeric %>%
+  kable(col.names = c("Variable", "n", "Mean", "SD", "Minimum", "1st quartile", "Median", "3rd quartile", "Maximum"),
+        caption = '\\label{tab:sum2} Summary statistics on insurance charges, age and bmi.', booktabs = TRUE, format = "latex") %>%
+  kable_styling(font_size = 10, latex_options = "hold_position")
+```
+
+Looking at Table \ref{tab:sum2}
+
+
+
+
+
+
+
+
+
+
+
 
 
 #Imputation
@@ -277,7 +330,7 @@ test.ARDS <- data.ARDS[ind3, ]
 
 
 ```{r model1, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
-model_logit <- glm(ECMO_Survival ~ . -Pt_ID, data=train.ARDS, family=binomial(link="logit"))
+model_logit <- glm(ECMO_Survival ~ . , data=train.ARDS, family=binomial(link="logit"))
 
 model_logit %>%
   summary()
@@ -291,7 +344,7 @@ pred.valid <- plogis(predict(model_logit, valid.ARDS))  # predicted scores
 ```
 
 ###Optimal Prediction Probability Cutoff for the Model
-The default cutoff prediction probability score is 0.5 or the ratio of 1’s and 0’s in the training data. But sometimes, tuning the probability cutoff can improve the accuracy in both the development and validation samples. The `InformationValue::optimalCutoff` function provides ways to find the optimal cutoff to improve the prediction of 1’s, 0’s, both 1’s and 0’s and o reduce the misclassification error. Lets compute the optimal score that minimizes the misclassification error for the above model.
+The default cutoff prediction probability score is 0.5 or the ratio of ---- in the training data. But sometimes, tuning the probability cutoff can improve the accuracy in both the development and validation samples. The `InformationValue::optimalCutoff` function provides ways to find the optimal cutoff to improve the prediction of ----, ----, both ---- and ---- and o reduce the misclassification error. Let's compute the optimal score that minimizes the misclassification error for the above model.
 
 ```{r cutoff1, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 # Find the optimal cutoff value to use (default = 0.5)
@@ -307,7 +360,7 @@ pred.valid.label.opt <- ifelse(round(pred.valid) <= opt_cutoff, 0, 1)
 ```
 
 ##Model Diagnostics
-```{r xtab, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+```{r xtab1, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 ## Cross-classification table.
 logit.table <- table(valid.ARDS$ECMO_Survival, pred.valid.label)
 ## Correct classification rate (CCR).
@@ -351,7 +404,7 @@ test.ARDS <- data.ARDS[ind3, ]
 
 ```{r model2, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 
-model_logit <- glm(ECMO_Survival ~ . -Pt_ID, data=train.ARDS, family=binomial(link="logit"))
+model_logit <- glm(ECMO_Survival ~ . , data=train.ARDS, family=binomial(link="logit"))
 
 model_logit %>%
   summary()
@@ -362,7 +415,7 @@ model_logit %>%
 pred.valid <- plogis(predict(model_logit, valid.ARDS))  # predicted scores
 ```
 
-```{r cutoff1, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+```{r cutoff2, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 # Find the optimal cutoff value to use (default = 0.5)
 library(InformationValue)
 opt_cutoff <- optimalCutoff(test.ARDS$ECMO_Survival , pred.valid)[1] 
@@ -377,7 +430,7 @@ pred.valid.label.opt <- ifelse(round(pred.valid) <= opt_cutoff, 0, 1)
 
 ##Model Diagnostics
 
-```{r xtab, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+```{r xtab2, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 ## Cross-classification table.
 logit.table <- table(valid.ARDS$ECMO_Survival, pred.valid.label)
 ## Correct classification rate (CCR).
@@ -392,6 +445,15 @@ sum(pred.valid.label == valid.ARDS$ECMO_Survival) / length(pred.valid.label.opt)
 ## Class-specific CCRs.
 diag(logit.table) / rowSums(logit.table)
 ```
+
+
+
+
+
+
+
+
+
 
 
 

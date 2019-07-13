@@ -1,5 +1,9 @@
 ---
+<<<<<<< HEAD
+title: "SAP for Classification of Acute Respiratory Distress Syndrome"
+=======
 title: "SAP for Classification of ARDS Data"
+>>>>>>> 2dc25d0532988985e227a57325f906fa7bef4484
 author: "Robert Edwards"
 output:
   pdf_document:
@@ -28,6 +32,41 @@ knitr::opts_chunk$set(echo = FALSE, eval = TRUE, warning = FALSE, message = FALS
 options()
 ```
 
+<<<<<<< HEAD
+#Population
+
+
+#Primary Objective
+
++ What is the core initial question?
++ EDA
+
+#Secondary Objective
+
++ 
+
+#Data Collection
+
+
+#Variables Under Consideration
+
+
+#Missing Data Procedures
+
+
+#Summaries to be Presented:
+
+
+#Models to be Fitted
+
+
+#Advanced Models to be Fitted
+
+
+
+
+
+=======
 #I. Population
 
 + Patients with Acute Respiratory Disease Syndrome.
@@ -187,6 +226,7 @@ In addition the following tables/plots will be reported:
 
 + Confusion matrix
 + ROC curve
+>>>>>>> 2dc25d0532988985e227a57325f906fa7bef4484
 
 
 
