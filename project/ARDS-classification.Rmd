@@ -97,7 +97,6 @@ data.df <- data.df %>%
 data.df <- data.df %>%
   mutate(Indication = factor(Indication)) %>% 
   mutate(ECMO_Survival = factor(ECMO_Survival)) %>%
-#  mutate(Hospital_Survival = factor(Hospital_Survival)) %>%
   mutate(Gender = factor(Gender)) %>%
   suppressMessages()  # suppress output
 ```
@@ -145,77 +144,6 @@ This plot shows the cumulative sum of missing values, reading columns from the l
 ```{r cum_var_missing, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 gg_miss_var_cumsum(data.df)
 ```
-
-
-
-#Exploratory Data Analysis
-We first visually explore the data to get a sense of the features and distributions of the data.  Then we will conduct hypothesis tests for each feature based on `ECMO_Survival` as a rough idea how relevant each feature will be.  
-
-##Boxplot
-
-All continuous features are normally scaled to be comparable. 
-
-```{r boxplot, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
-n <- ncol(data.df)
-feature_names <- colnames(data.df[,6:n])
-data_continuous_standard.df <- data.df %>%
-  select(6:n) %>%
-  mutate_each_(funs(scale), vars=feature_names) %>%
-  glimpse()
-
-data_continuous_standard.df %>% 
-  gather(key = Feature, value = Value) %>% 
-  ggplot(aes(x = Feature, y = Value, fill = Feature)) +
-    geom_boxplot() +
-    xlab("Features") + 
-    ylab("Standardised Values") + 
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5),
-          legend.position="none",
-          axis.text.x = element_text(angle = 60, hjust = 1)) + 
-    scale_fill_brewer(palette="Spectral")
-```
-
-The boxplot shows many highly skewed variables indicating that these likely need to be transformed in some fashion (likely log transformation).  For **logistic regression**, first a model will be fit without transformations and then the not significant variables will be transformed and model fit will be evaluated.  
-
-
-To get an idea of the distribution of the data, the following summary statistics were obtained for the categorical variable `ECMO_Survival` (Table \ref{tab:sum1}) and for the continuous variables (Table \ref{tab:sum2}).
-
-```{r summary1, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
-data_standard.df <- cbind(data.df[1:5], data_continuous_standard.df)
-data_standard.df %>%
-  group_by(ECMO_Survival) %>%
-  summarise(n()) %>%
-  kable(col.names = c("ECMO_Survival", "n"),
-        caption = '\\label{tab:sum1} Numbers of smokers and nonsmokers.', booktabs = TRUE, format = "latex") %>%
-  kable_styling(font_size = 10, latex_options = "hold_position")
-```
-
-Table \ref{tab:sum1} shows that out of the `r nrow(data_standard.df)` individuals, only `r round(100*sum(data_standard.df$ECMO_Survival==1)/nrow(data_standard.df))`% of the individuals in the study sample smoke (`r sum(data_standard.df$ECMO_Survival==1)` survivors vs `r sum(data_standard.df$ECMO_Survival==1)` non-survivors).  
-
-```{r summary2, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
-
-#insur$age <- as.numeric(insur$age)
-
-for (i in 1:ncol(data_continuous_standard.df)) {
-  data_continuous_standard.df[,i] <- as.numeric(data_continuous_standard.df[,i])
-}
-
-is.numeric(data_continuous_standard.df$PreECMO_Vt)
-
-skim_with(numeric = list(hist = NULL, missing = NULL, complete = NULL))
-data_continuous_standard.df %>%
-  skim_to_list() %>%
-  .$numeric %>%
-  kable(col.names = c("Variable", "n", "Mean", "SD", "Minimum", "1st quartile", "Median", "3rd quartile", "Maximum"),
-        caption = '\\label{tab:sum2} Summary statistics on insurance charges, age and bmi.', booktabs = TRUE, format = "latex") %>%
-  kable_styling(font_size = 10, latex_options = "hold_position")
-```
-
-Looking at Table \ref{tab:sum2}
-
-
-
 
 
 

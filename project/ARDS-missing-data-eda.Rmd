@@ -2,18 +2,18 @@
 title: "Classification of Acute Respiratory Distress Syndrome"
 author: "Robert Edwards"
 output:
+  
   pdf_document:
+    
     latex_engine: pdflatex
     number_sections: no
     fig_caption: yes
-    
   word_document: default
-  
   html_document:
+    
     code_folding: hide
     df_print: paged
     fig_caption: yes
-    
 geometry: "left=3cm,right=3cm,top=3cm,bottom=3cm"
 header-includes: 
   \usepackage[bottom]{footmisc}
@@ -40,17 +40,25 @@ library(xtable)
 library(knitr)
 library(GGally)
 library(broom)
+library(purrr)
 library(naniar) # missing data eda
 library(VIM) # data imputation
 ```
 
+
 ```{r import_data, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
-data.raw.df <- read.csv(file = "../data/ARDSdata.csv", header = TRUE)
+data.raw.df <- read.csv(file = "../data/ARDSdata_reorder.csv", header = TRUE)
 ```
 
+```{r rename, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE, results="hide"}
+# Renaming first feature because it read in wrong
+colnames(data.raw.df)[1] <- c("Pt_ID")
+```
 
+Removing features that are not relevant to this analysis
 ```{r reduce, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
-Day1_vars <- c("Hospital_Survival", 
+Day1_vars <- c("Pt_ID",
+               "Hospital_Survival", 
                "Duration_ECMO",
                "Day1ECMO_RR", 
                "Day1ECMO_Vt", 
@@ -81,23 +89,25 @@ Day1_vars <- c("Hospital_Survival",
                "Day1ECMO_IL6", 
                "Day1ECMO_IL8", 
                "Day1ECMO_siIL2")
-data.df <- data.raw.df[, -which(names(data.raw.df) %in% Day1_vars)]
+
+data.raw.df <- data.raw.df %>%
+  select(-Day1_vars)
 ```
 
 
-```{r factor, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE, results="hide"}
+Selecting only rows with data. 
+```{r slice, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, results="hide"}
 # Select the first 450 rows.  The others are blank
-data.df <- data.df %>%
+data.raw.df <- data.raw.df %>%
   slice(1:450) 
-#  suppressMessages()  # suppress output
 ```
 
-```{r factor, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE, results="hide"}
+
+```{r factor, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, results="hide"}
 # Make categorical variables factors
-data.df <- data.df %>%
+data.df <- data.raw.df %>%
   mutate(Indication = factor(Indication)) %>% 
   mutate(ECMO_Survival = factor(ECMO_Survival)) %>%
-#  mutate(Hospital_Survival = factor(Hospital_Survival)) %>%
   mutate(Gender = factor(Gender)) %>%
   suppressMessages()  # suppress output
 ```
@@ -105,6 +115,13 @@ data.df <- data.df %>%
 
 ```{r missing_data, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 vis_miss(data.df)
+```
+
+We see that `PreECMO_Albumin` is missing in 46% of observations.  In listwise deletion, this will cause it to drop the entire row if a single observation has missing data.  So we drop this feature.   
+```{r drop PreECMO_Albumin, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE, results="hide"}
+data.df <- data.raw.df %>% 
+  select(-"PreECMO_Albumin")
+vis_miss(data.df)  
 ```
 
 An upset plot from the `UpSetR` package can be used to visualise the patterns of missingness, or rather the combinations of missingness across cases. To see combinations of missingness and intersections of missingness amongst variables, use the `gg_miss_upset` function:
@@ -129,8 +146,8 @@ gg_miss_var(data.df, show_pct = TRUE) +
 This plot shows the number of missings in each column, broken down by a categorical variable from the dataset. It is powered by a `dplyr::group_by` statement followed by `miss_var_summary()`.
 
 ```{r missing_fct, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
-gg_miss_fct(x = data.df, fct = Indication) + 
-  labs("NAs in Biomarkers by Age")
+gg_miss_fct(x = data.df, fct = ECMO_Survival) + 
+  labs("NAs in Biomarkers by ECMO_Survival")
 ```
 
 This plot shows the cumulative sum of missing values, reading the rows of the dataset from the top to bottom. It is powered by the `miss_case_cumsum()` function.
@@ -149,19 +166,84 @@ gg_miss_var_cumsum(data.df)
 
 
 #Exploratory Data Analysis
+We first visually explore the data to get a sense of the features and distributions of the data.  Then we will conduct hypothesis tests for each feature based on `ECMO_Survival` as a rough idea how relevant each feature will be.  
+
+
+The boxplot shows many highly skewed variables indicating that these likely need to be transformed in some fashion (likely log transformation).  For **logistic regression**, first a model will be fit without transformations and then the not significant variables will be transformed and model fit will be evaluated.  
+
+
+To get an idea of the distribution of the data, the following summary statistics were obtained for the categorical variable `ECMO_Survival` (Table \ref{tab:sum1}) and for the continuous variables (Table \ref{tab:sum2}).
+
+```{r summary1, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+data.df %>%
+  group_by(ECMO_Survival) %>%
+  summarise(n(), round(100*n()/nrow(data.df), 2)) %>%
+  kable(col.names = c("ECMO_Survival", "n", "Percent %"),
+        caption = '\\label{tab:sum1} Numbers of survivors and nonsurvivors of ECMO treatment.', booktabs = TRUE, format = "latex") %>%
+  kable_styling(font_size = 10, latex_options = "hold_position")
+```
+
+Table \ref{tab:sum1} shows that out of the `r nrow(data.df)` individuals, only `r round(100*sum(data.df$ECMO_Survival=="Y")/nrow(data.df), 2)`% of the individuals in the study sample (`r sum(data.df$ECMO_Survival=="Y")` survived vs `r sum(data.df$ECMO_Survival=="N")` did not survive).  
+
+
+```{r summary2, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+data.df %>%
+  group_by(Gender) %>%
+  summarise(n(), round(100*n()/nrow(data.df), 2)) %>%
+  kable(col.names = c("Gender", "n", "Percent %"),
+        caption = '\\label{tab:sum2} Number of males and females.', booktabs = TRUE, format = "latex") %>%
+  kable_styling(font_size = 10, latex_options = "hold_position")
+```
+
+Table \ref{tab:sum2} shows that out of the `r nrow(data.df)` individuals, only `r round(100*sum(data.df$Gender == "m")/nrow(data.df), 2)`% of the individuals in the study sample (`r sum(data.df$Gender == "m")` are male vs `r sum(data.df$Gender == "f")` are female).  
+
+```{r summary3, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+data.df %>%
+  group_by(Indication) %>%
+  summarise(n(), round(100*n()/nrow(data.df), 2)) %>%
+  kable(col.names = c("Indication", "n", "Percent %"),
+        caption = '\\label{tab:sum3} Number of each disease type indication.', booktabs = TRUE, format = "latex") %>%
+  kable_styling(font_size = 10, latex_options = "hold_position")
+```
+
+
+```{r summary4, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+
+for (i in 4:ncol(data.df)) {
+  data.df[,i] <- as.numeric(data.df[,i])
+}
+
+skim_with(numeric = list(hist = NULL, missing = NULL, complete = NULL))
+data.df %>%
+  skim_to_list() %>%
+  .$numeric %>%
+  kable(col.names = c("Variable", "n", "Mean", "SD", "Min", "1st quartile", "Median", "3rd quartile", "Max"),
+        caption = '\\label{tab:sum4} Summary statistics on ARDS data continuous variables.', booktabs = TRUE, format = "latex") %>%
+  kable_styling(font_size = 10, latex_options = "hold_position")
+```
+
+Looking at Table \ref{tab:sum4}
+
+
+
+
+
+
+##Boxplot
+
+All continuous features are normally scaled to be comparable. 
+
 ```{r boxplot, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 n <- ncol(data.df)
-feature_names <- colnames(data.df[,7:n])
+feature_names <- colnames(data.df[,4:n])
 data_standard.df <- data.df %>%
-  select(7:n) %>%
+  select(4:n) %>%
   mutate_each_(funs(scale), vars=feature_names) %>%
   glimpse()
 
 data_standard.df %>% 
-#  select(-loudness, -popularity) %>% 
   gather(key = Feature, value = Value) %>% 
   ggplot(aes(x = Feature, y = Value, fill = Feature)) +
-#  ggplot(stack(track_features.df), aes(x = ind, y = values)) +
     geom_boxplot() +
     xlab("Features") + 
     ylab("Average") + 
@@ -173,52 +255,84 @@ data_standard.df %>%
 ```
 
 
-#Imputation
-Here I will try various methods for data imputation.
+##Pairs Plot
 
-##I. KNN Imputation
+```{r pairsplot, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:cor}Pairs plot of contnuous variables."}
 
-```{r knn_imputation, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
-data_impute.df <- kNN(data.df)
 
-data_impute.df %>%
-  glimpse()
-```
+# Matrix of plots
+#p1 <- ggpairs( data_standard.df[,4:ncol(data.df)] )
 
-```{r standardizing, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
-# Scaling the data and logging it
-feature_names <- colnames(data_impute.df[,7:36])
-data_standard.df <- data_impute.df %>%
-  select(7:36) %>%
-  mutate_each_(funs(scale), vars=feature_names) %>%
-  mutate_each_(funs(log), vars=feature_names) %>%
-  glimpse()
 
-data_standard.df %>% 
-  gather(key = Feature, value = Value) %>% 
-  ggplot(aes(x = Feature, y = Value, fill = Feature)) +
-#  ggplot(stack(track_features.df), aes(x = ind, y = values)) +
-    geom_boxplot() +
-    xlab("Features") + 
-    ylab("Average") + 
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5),
-          legend.position="none",
-          axis.text.x = element_text(angle = 60, hjust = 1)) + 
-    scale_fill_brewer(palette="Spectral")
+# Correlation matrix plot
+ggcorr(data_standard.df[,4:ncol(data_standard.df)], hjust = 0.9, size = 2, label = TRUE, label_size = 2, label_alpha = TRUE, layout.exp = 3, legend.position = "bottom", legend.size = 8) +
+  guides(fill = guide_colorbar(barwidth = 10, barheight = 0.5, title.vjust = 
+                                 0.75)) 
 ```
 
 
-```{r, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
-data_standard.df %>% 
-  gather(key = Feature, value = Value) %>% 
-  ggplot(aes(x=Value, color=Feature)) +
-      geom_density(alpha=0.5) +
-      geom_vline(aes(xintercept=0)) +
-      theme_bw() +
-      scale_fill_brewer(palette="Spectral") 
+##Hypothesis Testing
+
+From the boxplot we see many variables are not normally distributed, or at the least highly skewed.  To run a hypothesis test we should take note that a t-test assumes the data is normally distributed.  For the skewed or non-normal variables we should use an appropriate hypothesis test such as Wilcoxon test that tests for differences in the medians of two samples.  
+
+```{r summary5, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+t_tests <- map(
+  select(data.df, -ECMO_Survival, -Gender, -Indication),
+  ~ t.test(.x ~ ECMO_Survival, data = data.df)
+)
+
+w_tests <- map(
+  select(data.df, -ECMO_Survival, -Gender, -Indication),
+  ~ wilcox.test(.x ~ ECMO_Survival, data = data.df)
+)
+
+hyp_tests <- data.frame(matrix(vector(), 0, 6,
+                dimnames=list(c(), c("Variable", "Test", "df", "p.value", "Lower", "Upper"))),
+                stringsAsFactors=F)
+for (i in 1:length(t_tests)) {
+  hyp_tests[i,1] <- names(t_tests[i])
+  hyp_tests[i,2] <- t_tests[[1]]$method
+  hyp_tests[i,3] <- round(t_tests[[i]]$parameter, 3) # df
+  hyp_tests[i,4] <- round(t_tests[[i]]$conf.int[1], 3) # lower
+  hyp_tests[i,5] <- round(t_tests[[i]]$conf.int[2], 3) # upper
+  hyp_tests[i,6] <- round(t_tests[[i]]$p.value, 3) # p-value
+}
+```
+
+```{r t-tests, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+hyp_tests %>%
+  kable(col.names = c("Variable", "Test", "df", "p.value", "Lower", "Upper"), 
+        caption = '\\label{tab:sum5} Hypothesis tests for variables.',
+        booktabs = TRUE, 
+        format = "latex") %>%
+  kable_styling(font_size = 10, 
+                latex_options = "hold_position")
 ```
 
 
+```{r summary6, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+w_tests <- map(
+  select(data.df, -ECMO_Survival, -Gender, -Indication),
+  ~ wilcox.test(.x ~ ECMO_Survival, data = data.df)
+)
 
+hyp_tests <- data.frame(matrix(vector(), 0, 3,
+                dimnames=list(c(), c("Variable", "Test", "p.value"))),
+                stringsAsFactors=F)
+for (i in 1:length(w_tests)) {
+  hyp_tests[i,1] <- names(w_tests[i])
+  hyp_tests[i,2] <- w_tests[[i]]$method
+  hyp_tests[i,3] <- round(w_tests[[i]]$p.value, 3) # p-value
+}
+```
+
+```{r wilcoxon, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+hyp_tests %>%
+  kable(col.names = c("Variable", "Test", "p.value"), 
+        caption = '\\label{tab:sum6} Hypothesis tests for variables.',
+        booktabs = TRUE, 
+        format = "latex") %>%
+  kable_styling(font_size = 10, 
+                latex_options = "hold_position")
+```
 
