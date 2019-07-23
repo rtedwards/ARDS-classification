@@ -59,7 +59,7 @@ Removing features that are not relevant to this analysis
 ```{r reduce, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 Day1_vars <- c("Pt_ID",
                "Hospital_Survival", 
-               "Duration_ECMO",
+#               "Duration_ECMO",
                "Day1ECMO_RR", 
                "Day1ECMO_Vt", 
                "Day1ECMO_FiO2", 
@@ -169,12 +169,9 @@ gg_miss_var_cumsum(data.df)
 We first visually explore the data to get a sense of the features and distributions of the data.  Then we will conduct hypothesis tests for each feature based on `ECMO_Survival` as a rough idea how relevant each feature will be.  
 
 
-The boxplot shows many highly skewed variables indicating that these likely need to be transformed in some fashion (likely log transformation).  For **logistic regression**, first a model will be fit without transformations and then the not significant variables will be transformed and model fit will be evaluated.  
-
-
 To get an idea of the distribution of the data, the following summary statistics were obtained for the categorical variable `ECMO_Survival` (Table \ref{tab:sum1}) and for the continuous variables (Table \ref{tab:sum2}).
 
-```{r summary1, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+```{r summary1, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, fig.align="center", fig.pos="H"}
 data.df %>%
   group_by(ECMO_Survival) %>%
   summarise(n(), round(100*n()/nrow(data.df), 2)) %>%
@@ -183,10 +180,10 @@ data.df %>%
   kable_styling(font_size = 10, latex_options = "hold_position")
 ```
 
-Table \ref{tab:sum1} shows that out of the `r nrow(data.df)` individuals, only `r round(100*sum(data.df$ECMO_Survival=="Y")/nrow(data.df), 2)`% of the individuals in the study sample (`r sum(data.df$ECMO_Survival=="Y")` survived vs `r sum(data.df$ECMO_Survival=="N")` did not survive).  
+Table \ref{tab:sum1} shows that out of the `r nrow(data.df)` individuals, only `r round(100*sum(data.df$ECMO_Survival=="Y")/nrow(data.df), 2)`% of the individuals in the study sample survived ECMO treatment (`r sum(data.df$ECMO_Survival=="Y")` survived vs `r sum(data.df$ECMO_Survival=="N")` did not survive).  
 
 
-```{r summary2, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+```{r summary2, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, fig.align="center", fig.pos="H"}
 data.df %>%
   group_by(Gender) %>%
   summarise(n(), round(100*n()/nrow(data.df), 2)) %>%
@@ -195,9 +192,9 @@ data.df %>%
   kable_styling(font_size = 10, latex_options = "hold_position")
 ```
 
-Table \ref{tab:sum2} shows that out of the `r nrow(data.df)` individuals, only `r round(100*sum(data.df$Gender == "m")/nrow(data.df), 2)`% of the individuals in the study sample (`r sum(data.df$Gender == "m")` are male vs `r sum(data.df$Gender == "f")` are female).  
+Table \ref{tab:sum2} shows that out of the `r nrow(data.df)` individuals, only `r round(100*sum(data.df$Gender == "m")/nrow(data.df), 2)`% of the individuals in the study sample are male (`r sum(data.df$Gender == "m")` male vs `r sum(data.df$Gender == "w")` female).  
 
-```{r summary3, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+```{r summary3, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, fig.align="center", fig.pos="H"}
 data.df %>%
   group_by(Indication) %>%
   summarise(n(), round(100*n()/nrow(data.df), 2)) %>%
@@ -206,8 +203,19 @@ data.df %>%
   kable_styling(font_size = 10, latex_options = "hold_position")
 ```
 
+Table \ref{tab:sum3} shows the distribution of each disease type indication:
 
-```{r summary4, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
++ ALF - Acute Lung Failure - `r round( sum(data.df$Indication == "ALF")/nrow(data.df)*100, 2 )`%
++ 1 - Viral Pneumonia - `r round( sum(data.df$Indication == 1)/nrow(data.df)*100, 2 )`%
++ 2 - Bacterial Pneumonia - `r round( sum(data.df$Indication == 2)/nrow(data.df)*100, 2 )`%
++ 3 - Aspiration Pneumonitis - `r round( sum(data.df$Indication == 3)/nrow(data.df)*100, 2 )`%
++ 4 - ARDS Trauma - `r round( sum(data.df$Indication == 4)/nrow(data.df)*100, 2 )`%
++ 5 - ARDS Surgery - `r round( sum(data.df$Indication == 5)/nrow(data.df)*100, 2 )`%
++ 6 - Chemo - `r round( sum(data.df$Indication == 6)/nrow(data.df)*100, 2 )`%
++ 7 - Other - `r round( sum(data.df$Indication == 7)/nrow(data.df)*100, 2 )`%
+
+
+```{r summary4, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, fig.align="center", fig.pos="H"}
 
 for (i in 4:ncol(data.df)) {
   data.df[,i] <- as.numeric(data.df[,i])
@@ -233,7 +241,7 @@ Looking at Table \ref{tab:sum4}
 
 All continuous features are normally scaled to be comparable. 
 
-```{r boxplot, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+```{r boxplot, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:cor}Pairs plot of contnuous variables."}
 n <- ncol(data.df)
 feature_names <- colnames(data.df[,4:n])
 data_standard.df <- data.df %>%
@@ -254,6 +262,8 @@ data_standard.df %>%
     scale_fill_brewer(palette="Spectral")
 ```
 
+The boxplot shows many highly skewed variables indicating that these likely need to be transformed in some fashion (likely log transformation).  For **logistic regression**, first a model will be fit without transformations and then the not significant variables will be transformed and model fit will be evaluated.  
+
 
 ##Pairs Plot
 
@@ -271,9 +281,11 @@ ggcorr(data_standard.df[,4:ncol(data_standard.df)], hjust = 0.9, size = 2, label
 ```
 
 
-##Hypothesis Testing
+#Hypothesis Testing
 
 From the boxplot we see many variables are not normally distributed, or at the least highly skewed.  To run a hypothesis test we should take note that a t-test assumes the data is normally distributed.  For the skewed or non-normal variables we should use an appropriate hypothesis test such as Wilcoxon test that tests for differences in the medians of two samples.  
+
+## Student's t-Tests
 
 ```{r summary5, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 t_tests <- map(
@@ -310,6 +322,8 @@ hyp_tests %>%
 ```
 
 
+
+##Wilcoxon Signed-Rank Tests
 ```{r summary6, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 w_tests <- map(
   select(data.df, -ECMO_Survival, -Gender, -Indication),
@@ -335,4 +349,57 @@ hyp_tests %>%
   kable_styling(font_size = 10, 
                 latex_options = "hold_position")
 ```
+
+
+##$\chi^2$ Tests
+
+Need to convert `chars` to numeric factors in the categorical variables
+
+```{r summary7, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE}
+data.chi.df <- 
+chi_tests <- map(
+  select(data.df, ECMO_Survival, Gender, Indication),
+  ~ chisq.test(.x ~ ECMO_Survival)
+)
+
+hyp_tests <- data.frame(matrix(vector(), 0, 3,
+                dimnames=list(c(), c("Variable", "Test", "p.value"))),
+                stringsAsFactors=F)
+for (i in 1:length(chi_tests)) {
+  hyp_tests[i,1] <- names(chi_tests[i])
+  hyp_tests[i,2] <- chi_tests[[i]]$method
+  hyp_tests[i,3] <- round(chi_tests[[i]]$p.value, 3) # p-value
+}
+```
+
+```{r chi-sqaure, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE}
+hyp_tests %>%
+  kable(col.names = c("Variable", "Test", "p.value"), 
+        caption = '\\label{tab:sum6} Hypothesis tests for variables.',
+        booktabs = TRUE, 
+        format = "latex") %>%
+  kable_styling(font_size = 10, 
+                latex_options = "hold_position")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
