@@ -57,8 +57,7 @@ colnames(data.raw.df)[1] <- c("Pt_ID")
 
 Removing features that are not relevant to this analysis
 ```{r reduce, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
-Day1_vars <- c("Pt_ID",
-               "Hospital_Survival", 
+Day1_vars <- c("Hospital_Survival", 
 #               "Duration_ECMO",
                "Day1ECMO_RR", 
                "Day1ECMO_Vt", 
@@ -105,61 +104,81 @@ data.raw.df <- data.raw.df %>%
 
 ```{r factor, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, results="hide"}
 # Make categorical variables factors
-data.df <- data.raw.df %>%
+data.raw.df <- data.raw.df %>%
   mutate(Indication = factor(Indication)) %>% 
   mutate(ECMO_Survival = factor(ECMO_Survival)) %>%
   mutate(Gender = factor(Gender)) %>%
   suppressMessages()  # suppress output
 ```
 
+```{r missing_data_PDF, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE}
+pdf(file="../viva/images/missing_data_visualization.pdf", height=8, width=10)
+vis_miss(data.raw.df, sort_miss = TRUE)  +
+  theme(  plot.margin = margin(0.125, 2, 0.5, 1, "cm") ) #top, right, bottom, left
+dev.off()
+```
+
 
 ```{r missing_data, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
-vis_miss(data.df)
+vis_miss(data.raw.df, sort_miss = TRUE) +
+  theme(  plot.margin = margin(0.125, 2, 0.5, 1, "cm") ) #top, right, bottom, left
 ```
 
 We see that `PreECMO_Albumin` is missing in 46% of observations.  In listwise deletion, this will cause it to drop the entire row if a single observation has missing data.  So we drop this feature.   
 ```{r drop PreECMO_Albumin, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE, results="hide"}
+pdf(file="../viva/images/missing_data_visualization_var_dropped.pdf", height=8, width=10)
+
 data.df <- data.raw.df %>% 
   select(-"PreECMO_Albumin")
-vis_miss(data.df)  
+vis_miss(data.df, sort_miss = TRUE) +
+  theme(  plot.margin = margin(0.125, 2, 0.5, 1, "cm") ) #top, right, bottom, left
+
+dev.off
+```
+
+```{r drop PreECMO_Albumin_PDF, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE, results="hide"}
+data.df <- data.raw.df %>% 
+  select(-"PreECMO_Albumin")
+vis_miss(data.df, sort_miss = TRUE) +
+  theme(  plot.margin = margin(0.125, 2, 0.5, 1, "cm") ) #top, right, bottom, left
 ```
 
 An upset plot from the `UpSetR` package can be used to visualise the patterns of missingness, or rather the combinations of missingness across cases. To see combinations of missingness and intersections of missingness amongst variables, use the `gg_miss_upset` function:
 
-```{r missing_data_patterns, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+```{r missing_data_patterns, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE}
 gg_miss_upset(data.df)
 ```
 
 If there are 40 intersections, there will be up to 40 combinations of variables explored. The number of sets and intersections can be changed by passing arguments `nsets = 10` to look at 10 sets of variables, and nintersects = 50 to look at 50 intersections.
 
-```{r num_missing, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+```{r num_missing, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE}
 #n_var_miss(data.df)
 gg_miss_upset(data.df, nsets = n_var_miss(data.df)/3)
 ```
 
 This plot shows the number of missing values in each variable in a dataset. It is powered by the `miss_var_summary()` function.  
-```{r var_missing, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+```{r var_missing, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE}
 gg_miss_var(data.df, show_pct = TRUE) +
   labs("% Data Missing in Biomarker Data")
 ```
 
 This plot shows the number of missings in each column, broken down by a categorical variable from the dataset. It is powered by a `dplyr::group_by` statement followed by `miss_var_summary()`.
 
-```{r missing_fct, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+```{r missing_fct, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE}
 gg_miss_fct(x = data.df, fct = ECMO_Survival) + 
   labs("NAs in Biomarkers by ECMO_Survival")
 ```
 
 This plot shows the cumulative sum of missing values, reading the rows of the dataset from the top to bottom. It is powered by the `miss_case_cumsum()` function.
 
-```{r cum_missing, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+```{r cum_missing, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE}
 gg_miss_case_cumsum(data.df)
 ```
 
 
 This plot shows the cumulative sum of missing values, reading columns from the left to the right of your dataframe. It is powered by the `miss_var_cumsum()` function.
 
-```{r cum_var_missing, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+```{r cum_var_missing, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE}
 gg_miss_var_cumsum(data.df)
 ```
 
@@ -172,6 +191,7 @@ We first visually explore the data to get a sense of the features and distributi
 To get an idea of the distribution of the data, the following summary statistics were obtained for the categorical variable `ECMO_Survival` (Table \ref{tab:sum1}) and for the continuous variables (Table \ref{tab:sum2}).
 
 ```{r summary1, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, fig.align="center", fig.pos="H"}
+data.df <- data.raw.df
 data.df %>%
   group_by(ECMO_Survival) %>%
   summarise(n(), round(100*n()/nrow(data.df), 2)) %>%
@@ -265,22 +285,59 @@ data_standard.df %>%
 The boxplot shows many highly skewed variables indicating that these likely need to be transformed in some fashion (likely log transformation).  For **logistic regression**, first a model will be fit without transformations and then the not significant variables will be transformed and model fit will be evaluated.  
 
 
-##Pairs Plot
+##Correlation Plot
 
-```{r pairsplot, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:cor}Pairs plot of contnuous variables."}
-
-
-# Matrix of plots
-#p1 <- ggpairs( data_standard.df[,4:ncol(data.df)] )
-
+```{r heatmap, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:cor}Pairs plot of contnuous variables."}
+pdf(file="../viva/images/missing_data_visualization_var_dropped.pdf", height=8, width=10)
 
 # Correlation matrix plot
-ggcorr(data_standard.df[,4:ncol(data_standard.df)], hjust = 0.9, size = 2, label = TRUE, label_size = 2, label_alpha = TRUE, layout.exp = 3, legend.position = "bottom", legend.size = 8) +
-  guides(fill = guide_colorbar(barwidth = 10, barheight = 0.5, title.vjust = 
-                                 0.75)) 
+ggcorr(data_standard.df[, 4:ncol(data_standard.df)], 
+       hjust = 0.95, 
+       size = 2, 
+       label = TRUE, 
+       label_size = 2, 
+       label_alpha = TRUE, 
+       layout.exp = 5, 
+       legend.position = "bottom", 
+       legend.size = 8) +
+  guides(fill = guide_colorbar(barwidth = 10, 
+                               barheight = 0.5, 
+                               title.vjust = 0.75)) +
+  theme(  plot.margin = margin(1, 1, 1, 1, "cm") ) #top, right, bottom, left
+```
+
+```{r heatmap_PDF, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:cor}Pairs plot of contnuous variables."}
+pdf(file="../viva/images/heatmap.pdf", height=8, width=10)
+
+# Correlation matrix plot
+ggcorr(data_standard.df[, 4:ncol(data_standard.df)], 
+       hjust = 0.95, 
+       size = 2, 
+       label = TRUE, 
+       label_size = 2, 
+       label_alpha = TRUE, 
+       layout.exp = 2, 
+       legend.position = "bottom", 
+       legend.size = 8) +
+  guides(fill = guide_colorbar(barwidth = 10, 
+                               barheight = 0.5, 
+                               title.vjust = 0.75)) +
+  theme(  plot.margin = margin(1, 1, 1, 1, "cm") ) #top, right, bottom, left
+
+dev.off
 ```
 
 
+
+##Pairs Plot
+
+```{r pairsplot, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:cor}Pairs plot of contnuous variables."}
+# Matrix of plots
+#p1 <- ggpairs( data_standard.df[,4:ncol(data.df)] )
+```
+
+
+\newpage
 #Hypothesis Testing
 
 From the boxplot we see many variables are not normally distributed, or at the least highly skewed.  To run a hypothesis test we should take note that a t-test assumes the data is normally distributed.  For the skewed or non-normal variables we should use an appropriate hypothesis test such as Wilcoxon test that tests for differences in the medians of two samples.  
@@ -289,7 +346,7 @@ From the boxplot we see many variables are not normally distributed, or at the l
 
 ```{r summary5, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 t_tests <- map(
-  select(data.df, -ECMO_Survival, -Gender, -Indication),
+  select(data.df, -Pt_ID, -ECMO_Survival, -Gender, -Indication),
   ~ t.test(.x ~ ECMO_Survival, data = data.df)
 )
 
@@ -322,11 +379,11 @@ hyp_tests %>%
 ```
 
 
-
+\newpage
 ##Wilcoxon Signed-Rank Tests
 ```{r summary6, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 w_tests <- map(
-  select(data.df, -ECMO_Survival, -Gender, -Indication),
+  select(data.df, -Pt_ID, -ECMO_Survival, -Gender, -Indication),
   ~ wilcox.test(.x ~ ECMO_Survival, data = data.df)
 )
 
@@ -351,30 +408,99 @@ hyp_tests %>%
 ```
 
 
+\newpage
 ##$\chi^2$ Tests
 
 Need to convert `chars` to numeric factors in the categorical variables
-
-```{r summary7, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE}
-data.chi.df <- 
-chi_tests <- map(
-  select(data.df, ECMO_Survival, Gender, Indication),
-  ~ chisq.test(.x ~ ECMO_Survival)
-)
-
-hyp_tests <- data.frame(matrix(vector(), 0, 3,
-                dimnames=list(c(), c("Variable", "Test", "p.value"))),
-                stringsAsFactors=F)
-for (i in 1:length(chi_tests)) {
-  hyp_tests[i,1] <- names(chi_tests[i])
-  hyp_tests[i,2] <- chi_tests[[i]]$method
-  hyp_tests[i,3] <- round(chi_tests[[i]]$p.value, 3) # p-value
-}
+```{r factoring, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE}
+## Converting categorical variables to factors
+data.df <- data.df %>% 
+  mutate( Gender = ifelse( Gender == "m", 1, 0 )) %>% 
+  mutate( ECMO_Survival = ifelse( ECMO_Survival == "Y", 1, 0 ))
 ```
 
-```{r chi-sqaure, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE}
+
+Two random variables x and y are called independent if the probability distribution of one variable is not affected by the presence of another.
+
+Assume $f_{ij}$ is the observed frequency count of events belonging to both $i$-th category of $x$ and $j$-th category of $y$. Also assume $e_{ij}$ to be the corresponding expected count if $x$ and $y$ are independent. The null hypothesis of the independence assumption is to be rejected if the p-value of the following Chi-squared test statistics is less than a given significance level $\alpha$.
+
+$$
+\chi^2 = \sum_{ij} \frac{ (o_{ij} - e_{ij})^2 }{e_{ij}}
+$$
+
+###Hypothesis 1
+Test the hypothesis whether the `ECMO_Survival` is independent of `Gender` at .05 significance level.
+
+```{r summary7, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H"}
+tbl1 = table(data.df$ECMO_Survival, data.df$Gender)
+kable(tbl1,
+      booktabs = TRUE, 
+      format = "latex") %>%
+  kable_styling(font_size = 10, 
+                latex_options = "hold_position")
+
+chisq_test1 <- chisq.test(tbl1)
+```
+
+###Hypothesis 2
+Test the hypothesis whether the `ECMO_Survival` is independent of disease `Indication` at .05 significance level.
+```{r summary8, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H"}
+tbl2 = table(data.df$ECMO_Survival, data.df$Indication)
+kable(tbl2,
+      booktabs = TRUE, 
+      format = "latex") %>%
+  kable_styling(font_size = 10, 
+                latex_options = "hold_position")
+
+chisq_test2 <- chisq.test(tbl2)
+```
+
+###Hypothesis 3
+Test the hypothesis whether the `Gender` is independent of disease `Indication` at .05 significance level.
+```{r summary9, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H"}
+tbl3 = table(data.df$Gender, data.df$Indication)
+kable(tbl3,
+      booktabs = TRUE, 
+      format = "latex") %>%
+  kable_styling(font_size = 10, 
+                latex_options = "hold_position")
+
+chisq_test3 <- chisq.test(tbl3)
+```
+
+
+```{r summary10, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+
+#chi_tests <- map(
+#  select(data.df, ECMO_Survival, Gender, Indication),
+#  ~ chisq.test(.x ~ ECMO_Survival)
+#)
+
+hyp_tests <- data.frame(matrix(vector(), 0, 4,
+                dimnames=list(c(), c("Variables", "Test", "df", "p.value"))),
+                stringsAsFactors=F)
+
+hyp_tests[1,1] <- "ECMO_Survival / Gender"
+hyp_tests[1,2] <- chisq_test1$method # method name
+hyp_tests[1,3] <- chisq_test1$parameter # df
+hyp_tests[1,4] <- round(chisq_test1$p.value, 3) # p-value
+
+hyp_tests[2,1] <- "ECMO_Survival / Indication"
+hyp_tests[2,2] <- chisq_test2$method # method name
+hyp_tests[2,3] <- chisq_test2$parameter # df
+hyp_tests[2,4] <- round(chisq_test2$p.value, 3) # p-value
+
+hyp_tests[3,1] <- "Gender / Indication"
+hyp_tests[3,2] <- chisq_test3$method # method name
+hyp_tests[3,3] <- chisq_test3$parameter # df
+hyp_tests[3,4] <- round(chisq_test3$p.value, 3) # p-value
+
+```
+
+
+```{r chi-sqaure, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H"}
 hyp_tests %>%
-  kable(col.names = c("Variable", "Test", "p.value"), 
+  kable(col.names = c("Variables", "Test", "df", "p.value"), 
         caption = '\\label{tab:sum6} Hypothesis tests for variables.',
         booktabs = TRUE, 
         format = "latex") %>%
