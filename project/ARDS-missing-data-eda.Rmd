@@ -266,8 +266,7 @@ n <- ncol(data.df)
 feature_names <- colnames(data.df[,4:n])
 data_standard.df <- data.df %>%
   select(4:n) %>%
-  mutate_each_(funs(scale), vars=feature_names) %>%
-  glimpse()
+  mutate_each_(funs(scale), vars=feature_names)
 
 data_standard.df %>% 
   gather(key = Feature, value = Value) %>% 
@@ -287,9 +286,7 @@ The boxplot shows many highly skewed variables indicating that these likely need
 
 ##Correlation Plot
 
-```{r heatmap, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:cor}Pairs plot of contnuous variables."}
-pdf(file="../viva/images/missing_data_visualization_var_dropped.pdf", height=8, width=10)
-
+```{r heatmap, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:cor}Correlation heatmap of contnuous variables."}
 # Correlation matrix plot
 ggcorr(data_standard.df[, 4:ncol(data_standard.df)], 
        hjust = 0.95, 
@@ -509,7 +506,10 @@ hyp_tests %>%
 ```
 
 
-
+```{r save_dataframe}
+write.csv(data.df, "../data/ARDS_data_clean.csv",
+          row.names=FALSE)
+```
 
 
 
