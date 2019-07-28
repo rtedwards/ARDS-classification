@@ -31,17 +31,13 @@ options()
 ```{r libraries, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 library(ggplot2)
 library(dplyr)
-library(moderndive)
 library(skimr)
 library(tidyr)
 library(kableExtra)
 library(gridExtra)
 library(xtable)
 library(knitr)
-library(GGally)
-library(broom)
-library(naniar) # missing data eda
-library(VIM) # data imputation
+library(glmnet)
 ```
 
 ```{r import_data, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
@@ -55,7 +51,10 @@ data.df <- read.csv(file = "../data/ARDS_data_clean.csv", header = TRUE)
 ```{r, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, results = "hide"}
 #feature_names <- colnames(data.df)[5:35]
 data_standard.df <- data.df %>%
-  select(5:ncol(data.df)) %>%
+  select(-"Pt_ID",
+         -"ECMO_Survival",
+         -"Gender",
+         -"Indication") %>%
   mutate_all(funs(scale))
 #  mutate_each_(funs(log), vars=feature_names) %>%
 #  glimpse()
@@ -86,7 +85,8 @@ data_standard.df <- cbind(data.df[,1:4], data_standard.df)
 Dropping variables with >40% NAs (`PreECMO_Albumin`)
 ```{r, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 data_standard.df <- data_standard.df %>% 
-  select(-PreECMO_Albumin)# Drop variable missing >40% data
+  select(-PreECMO_Albumin) %>% # Drop variable missing >40% data
+  drop_na()
 
 #data_standard.df <- data_standard.df %>%
 #  drop_na()  # Drop rows missing data
@@ -125,25 +125,28 @@ pred.valid <- plogis(predict(model_logit, valid.ARDS))  # predicted scores
 ###Optimal Prediction Probability Cutoff for the Model
 The default cutoff prediction probability score is 0.5 or the ratio of ---- in the training data. But sometimes, tuning the probability cutoff can improve the accuracy in both the development and validation samples. The `InformationValue::optimalCutoff` function provides ways to find the optimal cutoff to improve the prediction of ----, ----, both ---- and ---- and o reduce the misclassification error. Let's compute the optimal score that minimizes the misclassification error for the above model.
 
-```{r cutoff1, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE}
+```{r cutoff1, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 # Find the optimal cutoff value to use (default = 0.5)
 library(InformationValue)
-opt_cutoff <- optimalCutoff(test.ARDS$ECMO_Survival , pred.valid)[1] 
+#opt_cutoff <- optimalCutoff(test.ARDS$ECMO_Survival , pred.valid)[1] 
 
 ## Changing the predictions to predited labels.
 pred.valid.label <- ifelse(round(pred.valid) <= 0.5, 0, 1)
 
 ## Changing the predictions to predited labels.
-pred.valid.label.opt <- ifelse(round(pred.valid) <= opt_cutoff, 0, 1)
+#pred.valid.label.opt <- ifelse(round(pred.valid) <= opt_cutoff, 0, 1)
 
 ```
 
 ##Model Diagnostics
 ```{r xtab1, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 ## Cross-classification table.
-logit.table <- table(valid.ARDS$ECMO_Survival, pred.valid.label)
+xtab.logit <- table(valid.ARDS$ECMO_Survival, pred.valid.label)
+
 ## Correct classification rate (CCR).
-sum(pred.valid.label == valid.ARDS$ECMO_Survival) / length(pred.valid.label)
+ccr.logit <- sum(diag(xtab.logit)) / sum(xtab.logit)
+err.logit <- 1 - ccr.logit
+
 ## Class-specific CCRs.
 diag(logit.table) / rowSums(logit.table)
 
@@ -162,19 +165,376 @@ diag(logit.table) / rowSums(logit.table)
 \newpage
 #Logistic Regression LASSO
 
+```{r lasso_regression, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+
+# Note alpha=1 for lasso only and can blend with ridge penalty down to
+# alpha=0 ridge only.
+x.train <- model.matrix( ~ . -ECMO_Survival -Pt_ID, data=train.ARDS) # glmnet expects a matrix not dataframe
+y.train <- as.factor(train.ARDS$ECMO_Survival)
+
+x.valid <- model.matrix( ~ . -ECMO_Survival -Pt_ID, data=valid.ARDS) # glmnet expects a matrix not dataframe
+y.valid <- valid.ARDS$ECMO_Survival
+
+n.train <- length(y.train)
+n.valid <- length(y.valid)
+
+###################################
+### Implement ridge regression (alpha=0), Lasso regression (alpha=1) and elastic net (alpha=0.5)
+###################################
+
+model.ridge <- glmnet(x.train, y.train, family="binomial", alpha=0)
+model.lasso <- glmnet(x.train, y.train, family="binomial", alpha=1)
+model.net <- glmnet(x.train, y.train, family="binomial", alpha=.5)
+
+###################################
+### Choosing between ridge regression, Lasso regression and elastic nets using glmnet()
+###################################
+nets.a <- seq(0, 1, by=0.1)
+n.a <- length(nets.a)
+
+nets.model <- vector(mode="list", length=n.a)
+nets.prediction <- vector(mode="list", length=n.a)
+nets.mse <- vector(mode="numeric", length=n.a)
+
+for (i in 1:n.a) {
+  print(paste("Iteration", i, "of", n.a))
+  
+  nets.model[[i]] <- cv.glmnet(x.train, y.train, type.measure="class", alpha=nets.a[i], family="binomial")
+  nets.prediction[[i]] <- predict(nets.model[[i]], s=nets.model[[i]]$lambda.1se, newx=x.valid)
+#  nets.mse[i] <- sum((nets.prediction[[i]]-y.valid)^2)/n.valid
+}
+cbind(nets.a, nets.mse)
+```
+
+
+```{r plot elastic net, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:cor}Lasso, Ridge, Elastic Net shrinkage and lambda cross-validation."}
+
+# Plot variable coefficients vs. shrinkage parameter lambda.
+###################################
+### Display coefficient estimates and MSE, each as a function of the logarithm of parameter lambda
+###################################
+
+oldpar <- par(no.readonly=TRUE)
+par(mfrow=c(3, 2))
+
+plot(model.lasso, xvar="lambda")
+plot(nets.model[[11]], main="LASSO") # alpha = 1
+
+plot(model.ridge, xvar="lambda")
+plot(nets.model[[1]], main="Ridge") # alpha = 0
+
+plot(model.net, xvar="lambda")
+plot(nets.model[[6]], main="Elastic Net") # alpha = .5
+
+par(oldpar)
+
+```
+
+
+
+```{r lasso_prediction, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+lasso.prediction <- predict(nets.model[[11]], s="lambda.min", newx=x.valid)
+
+## Changing the predictions to predited labels.
+lasso.prediction.label <- ifelse(round(lasso.prediction) <= 0.5, 0, 1)
+
+coef(nets.model[[11]], s = "lambda.min")
+
+```
+
+
+##Model Diagnostics
+```{r xtab2, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+## Cross-classification table.
+xtab.lasso <- table(valid.ARDS$ECMO_Survival, lasso.prediction.label)
+
+## Correct classification rate (CCR).
+ccr.lasso <- sum(diag(xtab.lasso)) / sum(xtab.lasso)
+err.lasso <- 1 - ccr.lasso
+
+## Class-specific CCRs.
+diag(xtab.lasso) / rowSums(xtab.lasso)
+```
 
 
 \newpage
 #K-Nearest Neighbors
 
+```{r KNN, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE}
+library(kknn)
+
+n.valid <- nrow(x.valid)
+
+knn.train <- kknn(formula=formula(ECMO_Survival~.), train=train.ARDS, test=valid.ARDS, k=5, dist=2, ker="rectangular")
+knn.valid <- kknn(formula=formula(ECMO_Survival~.), train=train.ARDS, test=valid.ARDS, k=5, dist=2, ker="rectangular")
+
+## Class-specific CCRs.
+xtab.knn <- table(knn.valid$fitted.values, valid.ARDS$ECMO_Survival) 
+ccr.class <- diag(xtab.knn) / rowSums(xtab.knn)
+
+## Calculate and store the test set correct classification rate
+ccr.knn <- sum(knn.valid$fitted.values == valid.ARDS$ECMO_Survival) / n.valid
+err.knn <- 1 - ccr.knn
+
+errors <- list(err.knn, 1-ccr.class)
+```
+
+
+```{r KNN2, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+## Removing categorical variables because KNN can only handle continuous data
+train.data <- train.ARDS %>% 
+  select(-"Pt_ID",
+         -"ECMO_Survival",
+         -"Gender",
+         -"Indication")
+train.data <- data.matrix(train.data)
+
+train.class <- train.ARDS %>% 
+  select("ECMO_Survival")
+train.class <- data.matrix(train.class)
+
+
+valid.data <- valid.ARDS %>% 
+  select(-"Pt_ID",
+         -"ECMO_Survival",
+         -"Gender",
+         -"Indication")
+valid.data <- data.matrix(valid.data)
+
+valid.class <- valid.ARDS %>% 
+  select("ECMO_Survival")
+valid.class <- data.matrix(valid.class)
+
+
+library(class) ## knn function
+set.seed(1)
+## K-Nearest Neighbours.
+n <- 15
+k_to_try <- seq(1, n, 2) ## try 10 values of k
+n.valid <- nrow(valid.data)
+correct.class <- rep(NA, length(k_to_try)) ## vector to store the correct classification rates for different values of k.
+
+count <- 0
+for (i in k_to_try) {
+  knn.pred <- knn(train.data, valid.data, train.class, k=i)
+  ## Calculate and store the test set correct classification rate for k=1.
+  correct.class[count] <- sum(knn.pred == valid.class) / n.valid
+  count <- count + 1
+}
+
+xtab.knn <- table(knn.pred, data.matrix(valid.class))
+xtab.knn
+
+## Misclassification rate =  1 - correct classifcation rate
+ccr.knn <- sum(diag(xtab.knn)) / sum(xtab.knn)
+err.knn <- 1 - ccr.knn
+
+plot(x = k_to_try, y = correct.class, type = "l")
+```
+
+
 
 \newpage
-#LDA/QDA
+#CVA
+
+```{r CVA, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+
+model.cva <- MASS::lda(train.data, train.class, prior = c(0.5, 0.5)) 
+model.cva
+plot(model.cva) 
+
+## Now we predict the labels based on the model.
+pred.valid.cva <- predict(model.cva, newdata = valid.data) 
+
+## predict produces a list, one element of which is called "class", which equals to predicted classes of the obs., the others are "posterior", which equals to estimated posterior probabilities of each observation belonging to each class and finally "x", which equals to canonical variate scores.
+## Note that the linear discriminant is the same as the canonical variates scores here.
+names(pred.valid.cva) #[1] "class" "posterior" "x" 
+
+## Creating a cross-classification table comparing the true labels to the predicted labels.
+xtab.cva <- table(valid.class, pred.valid.cva$class) 
+xtab.cva
+
+## Misclassification rate =  1 - correct classifcation rate
+ccr.cva <- sum(diag(xtab.cva)) / sum(xtab.cva)
+err.cva <- 1 - ccr.cva
+
+## Our canonical vector is given by the coefficients of the linear discriminant.
+coef(model.cva)
+```
+
+
+\newpage
+#LDA
+```{r LDA, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+
+model.lda <- MASS::lda(train.data, train.class) 
+model.lda
+plot(model.lda) 
+
+## Now we predict the labels based on the model.
+pred.valid.lda <- predict(model.lda, newdata = valid.data) 
+
+## predict produces a list, one element of which is called "class", which equals to predicted classes of the obs., the others are "posterior", which equals to estimated posterior probabilities of each observation belonging to each class and finally "x", which equals to canonical variate scores.
+## Note that the linear discriminant is the same as the canonical variates scores here.
+names(pred.valid.lda) #[1] "class" "posterior" "x" 
+
+## Creating a cross-classification table comparing the true labels to the predicted labels.
+xtab.lda <- table(valid.class, pred.valid.lda$class) 
+xtab.lda
+
+## Misclassification rate =  1 - correct classifcation rate
+ccr.lda <- sum(diag(xtab.lda)) / sum(xtab.lda)
+err.lda <- 1 - ccr.lda
+
+## Our canonical vector is given by the coefficients of the linear discriminant.
+coef(model.lda)
+```
+
+\newpage
+#QDA
+```{r QDA, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+
+model.qda <- MASS::qda(train.data, train.class) 
+model.qda
+#plot(model.qda) 
+
+## Now we predict the labels based on the model.
+pred.valid.qda <- predict(model.qda, newdata = valid.data) 
+
+## predict produces a list, one element of which is called "class", which equals to predicted classes of the obs., the others are "posterior", which equals to estimated posterior probabilities of each observation belonging to each class and finally "x", which equals to canonical variate scores.
+## Note that the linear discriminant is the same as the canonical variates scores here.
+names(pred.valid.qda) #[1] "class" "posterior" "x" 
+
+## Creating a cross-classification table comparing the true labels to the predicted labels.
+xtab.qda <- table(valid.class, pred.valid.qda$class) 
+xtab.qda
+
+## Taking a look at the posterior probabilities for the observations we got the prediction wrong for.
+pred.valid.qda$posterior[valid.class != pred.valid.qda$class, ]
+
+## Misclassification rate =  1 - correct classifcation rate
+ccr.qda <- sum(diag(xtab.qda)) / sum(xtab.qda)
+err.qda <- 1 - ccr.qda
+
+## Our canonical vector is given by the coefficients of the linear discriminant.
+coef(model.qda)
+```
+
+
+\newpage
+#Trees
+
+```{r Tree, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+set.seed(126)
+library(rpart)
+
+## Here we need to set the argument method to "class" to ensure we get a classification rather than regression tree (since the labels in this case are numbers rather than text so could be interpreted either way).
+model.tree <- rpart(ECMO_Survival ~ . , data=train.ARDS[, -1], 
+                    method = "class",
+                    control = rpart.control(minsplit = 1, 
+                                            minbucket = 1, 
+                                            cp = 0.1))
+
+## Printing the text version of the tree.
+model.tree
+
+## Looking at the graphical version of the tree.
+plot(model.tree, margin=0.1)
+text(model.tree, cex = 0.5, use.n = TRUE, xpd = TRUE)
+
+## Recall that at each split if the answer to the statement is TRUE we go LEFT, if it is FALSE we go RIGHT.
+
+## We check the complexity parameter versus cross-validated error (xerror) to see if we need to prune the tree.
+## We can initially look at a plot of these, if the lowest point is not the farthest right then the tree needs pruning.
+plotcp(model.tree)
+## Looking at the xerror column in the table we see that the lowest value is at the last line, indicating no need for pruning.
+printcp(model.tree)
+
+## We predict the classifications based on the fitted tree using the predict command with the argument type set to "class", otherwise it returns a matrix of posterior probabilities of each obseration belonging to each class.
+pred.valid.tree <- predict(model.tree, valid.ARDS, type="class")
+
+## Constructing a cross-classification table of the real versus predicted classifications.
+xtab.tree <- table(valid.class, pred.valid.tree)
+xtab.tree
+
+## Taking a look at the posterior probabilities for the observations we got the prediction wrong for.
+#prob.valid.tree <- predict(model.tree, valid.ARDS)
+#prob.valid.tree[valid.class != pred.valid.tree, ]
+
+## Calculating the misclassification rate.
+ccr.tree <- sum(diag(xtab.tree)) / sum(xtab.tree)
+err.tree <- 1 - ccr.tree
+```
+
+
+\newpage
+#Random Forest
+
+```{r Random Forest, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+set.seed(126)
+library(randomForest)
+
+## Here we need to set the argument method to "class" to ensure we get a classification rather than regression tree (since the labels in this case are numbers rather than text so could be interpreted either way).
+model.rf <- randomForest(ECMO_Survival ~ . , data=train.ARDS[, -1])
+
+## Printing the text version of the tree.
+model.rf
+
+## Looking at the graphical version of the tree.
+plot(model.rf, margin=0.1)
+
+## Prediction
+pred.valid.rf <- predict(model.rf, valid.ARDS, type="class")
+
+## Cross classification
+xtab.rf <- table(valid.class, pred.valid.rf)
+xtab.rf
+
+## Class-specific CCRs.
+ccr.class.rf <- diag(xtab.rf) / rowSums(xtab.rf)
+
+## Calculating the misclassification rate.
+ccr.rf <- sum(diag(xtab.rf)) / sum(xtab.rf)
+err.rf <- 1 - ccr.rf
+```
 
 
 \newpage
 #Support Vector Machines
 
+```{r SVM, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+library(e1071)
+set.seed(126)
+
+model.svm <- svm(ECMO_Survival ~ . , data=train.ARDS[, -1],
+                 kernel = "polynomial",
+                 cost = 10,
+                 scale = FALSE)
+model.svm
+
+## Prediction
+pred.valid.svm <- predict(model.svm, valid.ARDS, type = "class")
+
+## Cross classification
+xtab.svm <- table(valid.class, pred.valid.svm)
+xtab.svm
+
+## Class-specific CCRs.
+ccr.class.svm <- diag(xtab.svm) / rowSums(xtab.svm)
+
+## Calculating the misclassification rate.
+ccr.svm <- sum(diag(xtab.svm)) / sum(xtab.svm)
+err.svm <- 1 - ccr.svm
+```
+
+
+
+\newpage
+#Model Selection
+```{r table5, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+err <- cbind(err.logit, err.lasso, err.knn, err.cva, err.lda, err.qda, err.tree, err.rf, err.svm)
+err
+```
 
 
 
