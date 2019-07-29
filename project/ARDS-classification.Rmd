@@ -1,3 +1,4 @@
+
 ---
 title: "Classification of Acute Respiratory Distress Syndrome"
 author: "Robert Edwards"
@@ -86,11 +87,7 @@ Dropping variables with >40% NAs (`PreECMO_Albumin`)
 ```{r, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 data_standard.df <- data_standard.df %>% 
   select(-PreECMO_Albumin) %>% # Drop variable missing >40% data
-  drop_na()
-
-#data_standard.df <- data_standard.df %>%
-#  drop_na()  # Drop rows missing data
-
+  drop_na() # Drop rows missing data
 ```
 
 
@@ -148,7 +145,7 @@ ccr.logit <- sum(diag(xtab.logit)) / sum(xtab.logit)
 err.logit <- 1 - ccr.logit
 
 ## Class-specific CCRs.
-diag(logit.table) / rowSums(logit.table)
+diag(xtab.logit) / rowSums(xtab.logit)
 
 ## Cross-classification table.
 #logit.table.opt <- table(valid.ARDS$ECMO_Survival, pred.valid.label.opt)
@@ -537,9 +534,39 @@ err
 ```
 
 
+##ROC
+```{r ROC, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+library(ROCR)
+rocplot <- function( pred, truth, ...) {
+  predob <- prediction(pred, truth)
+  perf <- performance( predob, "tpr", "fpr" )
+  plot(perf, ...)
+}
 
+fitted <- attributes(predict(model.svm, valid.ARDS[, -1], decision.values = TRUE))$decision.values
 
+rocplot(fitted, valid.ARDS$ECMO_Survival, 
+        main = "Training Data",
+        add = T,
+        col = "red")
+```
 
+```{r ROC, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+library(pROC)
+ROC.svm <- roc(valid.class, pred.valid.svm)
+
+plot(ROC.svm, col = "blue")
+
+#par(new = TRUE)
+#plot(ROC2, col = "green", xaxt = "n", yaxt = "n")
+#legend("right", legend = c("RP1", "RP2"), col = c("blue", "green"), lty = 1)
+```
+
+```{r ROC, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+#library(caret)
+a <- confusionMatrix(valid.class, pred.valid.svm)
+
+```
 
 
 

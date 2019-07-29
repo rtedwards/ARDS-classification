@@ -120,8 +120,8 @@ dev.off()
 
 
 ```{r missing_data, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
-vis_miss(data.raw.df, sort_miss = TRUE) +
-  theme(  plot.margin = margin(0.125, 2, 0.5, 1, "cm") ) #top, right, bottom, left
+vis_miss(data.raw.df, sort_miss = TRUE) #+
+#  theme(  plot.margin = margin(0.125, 2, 0.5, 1, "cm") ) #top, right, bottom, left
 ```
 
 We see that `PreECMO_Albumin` is missing in 46% of observations.  In listwise deletion, this will cause it to drop the entire row if a single observation has missing data.  So we drop this feature.   
@@ -261,14 +261,13 @@ Looking at Table \ref{tab:sum4}
 
 All continuous features are normally scaled to be comparable. 
 ```{r scale, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
-n <- ncol(data.df)
 feature_names <- colnames(data.df[,5:n])
 data_standard.df <- data.df %>%
-  select(5:n) %>%
+  select(5:ncol(data.df)) %>%
   mutate_each_(funs(scale), vars=feature_names)
 ```
 
-```{r boxplot, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:cor}Pairs plot of contnuous variables."}
+```{r boxplot, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:cor}Boxplot of contnuous variables."}
 data_standard.df %>% 
   gather(key = Feature, value = Value) %>% 
   ggplot(aes(x = Feature, y = Value, fill = Feature)) +
@@ -307,7 +306,7 @@ data_standard.df %>%
 
 ```{r heatmap, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:cor}Correlation heatmap of contnuous variables."}
 # Correlation matrix plot
-ggcorr(data_standard.df[, 4:ncol(data_standard.df)], 
+ggcorr(data_standard.df[, 5:ncol(data_standard.df)], 
        hjust = 0.95, 
        size = 2, 
        label = TRUE, 
@@ -326,7 +325,7 @@ ggcorr(data_standard.df[, 4:ncol(data_standard.df)],
 pdf(file="../viva/images/heatmap.pdf", height=8, width=10)
 
 # Correlation matrix plot
-ggcorr(data_standard.df[, 4:ncol(data_standard.df)], 
+ggcorr(data_standard.df[, 5:ncol(data_standard.df)], 
        hjust = 0.95, 
        size = 2, 
        label = TRUE, 
@@ -342,6 +341,51 @@ ggcorr(data_standard.df[, 4:ncol(data_standard.df)],
 
 dev.off()
 ```
+
+
+##Pairs Plot
+
+```{r pairsplot1, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:pairs}Pairs plot of continuous variables."}
+pairs.df <- cbind(data.df$ECMO_Survival, data_standard.df)
+colnames(pairs.df)[1] <- "ECMO_Survival"
+pairs.df <- pairs.df %>% 
+  select(-PreECMO_Albumin) %>% # Drop variable missing >40% data
+  drop_na()  # Drop rows missing data
+
+ggpairs(
+  pairs.df,
+  mapping = ggplot2::aes(color = ECMO_Survival),
+  upper = list(continuous = wrap("density", alpha = 0.5), combo = "box"),
+  lower = list(continuous = wrap("points", alpha = 0.4), combo = wrap("dot", alpha = 0.4)),
+  diag = list(continuous = wrap("densityDiag"))
+  ) 
+
+```
+
+
+```{r pairsplot2, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:pairs}Pairs plot of continuous variables."}
+pdf(file="../viva/images/pairsplot.pdf", height=8, width=10)
+
+pairs.df <- cbind(data.df$ECMO_Survival, data_standard.df)
+colnames(pairs.df)[1] <- "ECMO_Survival"
+pairs.df <- pairs.df %>% 
+  select(-PreECMO_Albumin) %>% # Drop variable missing >40% data
+  drop_na()  # Drop rows missing data
+
+group <- NA
+group[pairs.df$ECMO_Survival == "Y"] <- 1
+group[pairs.df$ECMO_Survival == "N"] <- 2
+
+pairs(pairs.df[, 21:ncol(pairs.df)],
+      col = c("red", "cornflowerblue")[group],   # Change color by group
+      cex = 0.5,
+      pch = c(20, 20)[group],                            # Change points by group
+      labels = names(pairs.df[21:ncol(pairs.df)]),
+      main = "This is an even nicer pairs plot in R")
+
+dev.off()
+```
+
 
 
 
