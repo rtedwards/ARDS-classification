@@ -52,7 +52,7 @@ data.df <- read.csv(file = "../data/ARDS_data_clean.csv", header = TRUE)
 ```{r, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, results = "hide"}
 #feature_names <- colnames(data.df)[5:35]
 data_standard.df <- data.df %>%
-  select(-"Pt_ID",
+  dplyr::select(-"Pt_ID",
          -"ECMO_Survival",
          -"Gender",
          -"Indication") %>%
@@ -86,7 +86,7 @@ data_standard.df <- cbind(data.df[,1:4], data_standard.df)
 Dropping variables with >40% NAs (`PreECMO_Albumin`)
 ```{r, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 data_standard.df <- data_standard.df %>% 
-  select(-PreECMO_Albumin) %>% # Drop variable missing >40% data
+  dplyr::select(-PreECMO_Albumin) %>% # Drop variable missing >40% data
   drop_na() # Drop rows missing data
 ```
 
@@ -106,9 +106,9 @@ test.ARDS <- data_standard.df[ind3, ]
 
 
 ```{r model1, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
-model_logit <- glm(ECMO_Survival ~ . -Pt_ID, data=train.ARDS, family=binomial(link="logit"))
+model.logit <- glm(ECMO_Survival ~ . -Pt_ID, data=train.ARDS, family=binomial(link="logit"))
 
-model_logit %>%
+model.logit %>%
   summary()
 ```
 
@@ -116,7 +116,7 @@ A quick note about the plogis function: The `glm()` procedure with `family="bino
 
 ```{r predict1, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 ## Using the predict function to predict for the validation data.
-pred.valid.logit <- plogis(predict(model_logit, valid.ARDS))  # predicted scores
+pred.valid.logit <- predict(model.logit, valid.ARDS, type = "response")  # predicted scores
 ```
 
 ###Optimal Prediction Probability Cutoff for the Model
@@ -214,13 +214,13 @@ cbind(nets.a, nets.mse)
 oldpar <- par(no.readonly=TRUE)
 par(mfrow=c(3, 2))
 
-plot(model.lasso, xvar="lambda")
+plot(model.lasso, xvar="lambda", label = TRUE)
 plot(nets.model[[11]], main="LASSO") # alpha = 1
 
-plot(model.ridge, xvar="lambda")
+plot(model.ridge, xvar="lambda", label = TRUE)
 plot(nets.model[[1]], main="Ridge") # alpha = 0
 
-plot(model.net, xvar="lambda")
+plot(model.net, xvar="lambda", label = TRUE)
 plot(nets.model[[6]], main="Elastic Net") # alpha = .5
 
 par(oldpar)
@@ -280,26 +280,26 @@ errors <- list(err.knn, 1-ccr.class)
 ```{r continuous, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 ## Removing categorical variables because KNN can only handle continuous data
 train.data <- train.ARDS %>% 
-  select(-"Pt_ID",
+  dplyr::select(-"Pt_ID",
          -"ECMO_Survival",
          -"Gender",
          -"Indication")
 #train.data <- data.matrix(train.data)
 
 train.class <- train.ARDS %>% 
-  select("ECMO_Survival")
+  dplyr::select("ECMO_Survival")
 #train.class <- data.matrix(train.class)
 
 
 valid.data <- valid.ARDS %>% 
-  select(-"Pt_ID",
+  dplyr::select(-"Pt_ID",
          -"ECMO_Survival",
          -"Gender",
          -"Indication")
 #valid.data <- data.matrix(valid.data)
 
 valid.class <- valid.ARDS %>% 
-  select("ECMO_Survival")
+  dplyr::select("ECMO_Survival")
 #valid.class <- data.matrix(valid.class)
 ```
 
@@ -368,19 +368,20 @@ coef(model.cva)
 #LDA
 ```{r LDA, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 
-model.lda <- MASS::lda(train.data, train.class) 
+#model.lda <- MASS::lda(train.data, train.class) 
+model.lda <- MASS::lda(ECMO_Survival ~ ., train.ARDS) 
 model.lda
 plot(model.lda) 
 
 ## Now we predict the labels based on the model.
-pred.valid.lda <- predict(model.lda, newdata = valid.data) 
-
+#pred.valid.lda <- predict(model.lda, newdata = valid.data) 
+pred.valid.lda <- predict(model.lda, newdata = valid.ARDS) 
 ## predict produces a list, one element of which is called "class", which equals to predicted classes of the obs., the others are "posterior", which equals to estimated posterior probabilities of each observation belonging to each class and finally "x", which equals to canonical variate scores.
 ## Note that the linear discriminant is the same as the canonical variates scores here.
 names(pred.valid.lda) #[1] "class" "posterior" "x" 
 
 ## Creating a cross-classification table comparing the true labels to the predicted labels.
-xtab.lda <- table(valid.class, pred.valid.lda$class) 
+xtab.lda <- table(valid.ARDS$ECMO_Survival, pred.valid.lda$class)
 xtab.lda
 
 ## Misclassification rate =  1 - correct classifcation rate
@@ -395,23 +396,24 @@ coef(model.lda)
 #QDA
 ```{r QDA, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 
-model.qda <- MASS::qda(train.data, train.class) 
+#model.qda <- MASS::qda(train.data, train.class) 
+model.qda <- MASS::qda(ECMO_Survival ~ ., train.ARDS) 
 model.qda
 #plot(model.qda) 
 
 ## Now we predict the labels based on the model.
-pred.valid.qda <- predict(model.qda, newdata = valid.data) 
+pred.valid.qda <- predict(model.qda, newdata = valid.ARDS) 
 
 ## predict produces a list, one element of which is called "class", which equals to predicted classes of the obs., the others are "posterior", which equals to estimated posterior probabilities of each observation belonging to each class and finally "x", which equals to canonical variate scores.
 ## Note that the linear discriminant is the same as the canonical variates scores here.
 names(pred.valid.qda) #[1] "class" "posterior" "x" 
 
 ## Creating a cross-classification table comparing the true labels to the predicted labels.
-xtab.qda <- table(valid.class, pred.valid.qda$class) 
+xtab.qda <- table(valid.ARDS$ECMO_Survival, pred.valid.qda$class) 
 xtab.qda
 
 ## Taking a look at the posterior probabilities for the observations we got the prediction wrong for.
-pred.valid.qda$posterior[valid.class != pred.valid.qda$class, ]
+pred.valid.qda$posterior[valid.ARDS$ECMO_Surviva != pred.valid.qda$class, ]
 
 ## Misclassification rate =  1 - correct classifcation rate
 ccr.qda <- sum(diag(xtab.qda)) / sum(xtab.qda)
@@ -579,12 +581,27 @@ data(ROCR.simple)
 df <- data.frame(ROCR.simple)
 pred <- prediction(df$predictions, df$labels)
 
-
 #pred <- prediction(as.numeric(pred.valid.cva$class), valid.class$ECMO_Survival)
-pred <- prediction(fitted.svm$decision.values, valid.class$ECMO_Survival)
+pred.logit <- prediction(pred.valid.logit, valid.class$ECMO_Survival)
+pred.cva <- prediction(pred.valid.cva$posterior[,2], valid.class$ECMO_Survival)
+pred.lda <- prediction(pred.valid.lda$posterior[,2], valid.class$ECMO_Survival)
+pred.qda <- prediction(pred.valid.qda$posterior[,1], valid.class$ECMO_Survival)
+pred.svm <- prediction(fitted.svm$decision.values, valid.class$ECMO_Survival)
 
-perf <- performance(pred,"tpr","fpr")
-plot(perf,colorize=TRUE)
+perf.logit <- performance(pred.logit,"tpr","fpr")
+perf.svm <- performance(pred.svm,"tpr","fpr")
+perf.cva <- performance(pred.cva,"tpr","fpr")
+perf.lda <- performance(pred.lda,"tpr","fpr")
+perf.qda <- performance(pred.qda,"tpr","fpr")
+
+
+
+plot(perf.logit, col = "green")
+plot(perf.cva, col = "orange", add = TRUE)
+plot(perf.lda, col = "red", add = TRUE)
+plot(perf.qda, col = "purple", add = TRUE)
+plot(perf.svm, col = "blue", add = TRUE)
+
 abline(a=0,b=1,lwd=2,lty=2,col="gray")
 ```
 

@@ -114,14 +114,14 @@ data.raw.df <- data.raw.df %>%
 ```{r missing_data_PDF, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE}
 pdf(file="../viva/images/missing_data_visualization.pdf", height=8, width=10)
 vis_miss(data.raw.df, sort_miss = TRUE)  +
-  theme(  plot.margin = margin(0.125, 2, 0.5, 1, "cm") ) #top, right, bottom, left
+  theme(  plot.margin = ggplot2::margin(0.125, 2, 0.5, 1, "cm") ) #top, right, bottom, left
 dev.off()
 ```
 
 
 ```{r missing_data, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
-vis_miss(data.raw.df, sort_miss = TRUE) #+
-#  theme(  plot.margin = margin(0.125, 2, 0.5, 1, "cm") ) #top, right, bottom, left
+vis_miss(data.raw.df, sort_miss = TRUE) +
+  theme(  plot.margin = ggplot2::margin(0.125, 2, 0.5, 1, "cm") ) #top, right, bottom, left
 ```
 
 We see that `PreECMO_Albumin` is missing in 46% of observations.  In listwise deletion, this will cause it to drop the entire row if a single observation has missing data.  So we drop this feature.   
@@ -294,11 +294,34 @@ data_standard.df %>%
     geom_boxplot(width = 0.2,
                  outlier.size = 0.5) +
     xlab("Features") + 
-    ylab("Average") +
+    ylab("Scaled Value") +
     theme_bw() +
     theme(plot.title = element_text(hjust = 0.5),
           legend.position = "none",
           axis.text.x = element_text(angle = 60, hjust = 1))  
+```
+
+```{r violinplot, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:violin}Violin plot of continuous variables."}
+pdf(file="../viva/images/violinplot.png", height=8, width=10)
+
+
+data_standard.df %>% 
+  gather(key = Feature, value = Value) %>% 
+  ggplot(aes(x = Feature, y = Value, fill = Feature)) +
+    geom_violin(scale = "width", 
+                draw_quantiles = TRUE,
+                trim = TRUE,
+                show.legend = FALSE) +
+    geom_boxplot(width = 0.2,
+                 outlier.size = 0.5) +
+    xlab("Features") + 
+    ylab("Scaled Value") +
+    theme_bw() +
+    theme(plot.title = element_text(hjust = 0.5),
+          legend.position = "none",
+          axis.text.x = element_text(angle = 60, hjust = 1))  
+
+dev.off()
 ```
 
 
@@ -376,12 +399,14 @@ group <- NA
 group[pairs.df$ECMO_Survival == "Y"] <- 1
 group[pairs.df$ECMO_Survival == "N"] <- 2
 
-pairs(pairs.df[, 1:ncol(pairs.df)],
-      col = c("red", "cornflowerblue")[group],   # Change color by group
-      cex = 0.25,
+pairs(pairs.df[, 5:ncol(pairs.df)],
+      col = c("red", "blue")[group],   # Change color by group
+      cex = 0.125,
       pch = c(20, 20)[group],                            # Change points by group
-      labels = names(pairs.df[1:ncol(pairs.df)]),
-      main = "This is an even nicer pairs plot in R")
+      labels = names(pairs.df[5:ncol(pairs.df)]),
+      alpha = 0.25,
+      cex.labels = 0.2,
+      main = "Pairs plot grouped by ECMO_Survival")
 
 dev.off()
 ```
