@@ -116,7 +116,7 @@ A quick note about the plogis function: The `glm()` procedure with `family="bino
 
 ```{r predict1, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 ## Using the predict function to predict for the validation data.
-pred.valid <- plogis(predict(model_logit, valid.ARDS))  # predicted scores
+pred.valid.logit <- plogis(predict(model_logit, valid.ARDS))  # predicted scores
 ```
 
 ###Optimal Prediction Probability Cutoff for the Model
@@ -128,7 +128,7 @@ library(InformationValue)
 #opt_cutoff <- optimalCutoff(test.ARDS$ECMO_Survival , pred.valid)[1] 
 
 ## Changing the predictions to predited labels.
-pred.valid.label <- ifelse(round(pred.valid) <= 0.5, 0, 1)
+pred.valid.logit <- ifelse(round(pred.valid) <= 0.5, 0, 1)
 
 ## Changing the predictions to predited labels.
 #pred.valid.label.opt <- ifelse(round(pred.valid) <= opt_cutoff, 0, 1)
@@ -230,10 +230,10 @@ par(oldpar)
 
 
 ```{r lasso_prediction, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
-lasso.prediction <- predict(nets.model[[11]], s="lambda.min", newx=x.valid)
+pred.valid.lasso <- predict(nets.model[[11]], s="lambda.min", newx=x.valid)
 
 ## Changing the predictions to predited labels.
-lasso.prediction.label <- ifelse(round(lasso.prediction) <= 0.5, 0, 1)
+pred.valid.lasso <- ifelse(round(pred.valid.lasso) <= 0.5, 0, 1)
 
 coef(nets.model[[11]], s = "lambda.min")
 
@@ -243,8 +243,8 @@ coef(nets.model[[11]], s = "lambda.min")
 ##Model Diagnostics
 ```{r xtab2, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 ## Cross-classification table.
-xtab.lasso <- table(valid.ARDS$ECMO_Survival, lasso.prediction.label)
-
+xtab.lasso <- table(valid.ARDS$ECMO_Survival, pred.valid.lasso)
+xtab.lasso
 ## Correct classification rate (CCR).
 ccr.lasso <- sum(diag(xtab.lasso)) / sum(xtab.lasso)
 err.lasso <- 1 - ccr.lasso
@@ -277,18 +277,18 @@ errors <- list(err.knn, 1-ccr.class)
 ```
 
 
-```{r KNN2, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+```{r continuous, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 ## Removing categorical variables because KNN can only handle continuous data
 train.data <- train.ARDS %>% 
   select(-"Pt_ID",
          -"ECMO_Survival",
          -"Gender",
          -"Indication")
-train.data <- data.matrix(train.data)
+#train.data <- data.matrix(train.data)
 
 train.class <- train.ARDS %>% 
   select("ECMO_Survival")
-train.class <- data.matrix(train.class)
+#train.class <- data.matrix(train.class)
 
 
 valid.data <- valid.ARDS %>% 
@@ -296,12 +296,14 @@ valid.data <- valid.ARDS %>%
          -"ECMO_Survival",
          -"Gender",
          -"Indication")
-valid.data <- data.matrix(valid.data)
+#valid.data <- data.matrix(valid.data)
 
 valid.class <- valid.ARDS %>% 
   select("ECMO_Survival")
-valid.class <- data.matrix(valid.class)
+#valid.class <- data.matrix(valid.class)
+```
 
+```{r KNN2, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 
 library(class) ## knn function
 set.seed(1)
@@ -313,13 +315,13 @@ correct.class <- rep(NA, length(k_to_try)) ## vector to store the correct classi
 
 count <- 0
 for (i in k_to_try) {
-  knn.pred <- knn(train.data, valid.data, train.class, k=i)
+  pred.valid.knn <- knn(train.data, valid.data, train.class, k=i)
   ## Calculate and store the test set correct classification rate for k=1.
-  correct.class[count] <- sum(knn.pred == valid.class) / n.valid
+  correct.class[count] <- sum(pred.valid.knn == valid.class) / n.valid
   count <- count + 1
 }
 
-xtab.knn <- table(knn.pred, data.matrix(valid.class))
+xtab.knn <- table(pred.valid.knn, data.matrix(valid.class))
 xtab.knn
 
 ## Misclassification rate =  1 - correct classifcation rate
@@ -336,19 +338,21 @@ plot(x = k_to_try, y = correct.class, type = "l")
 
 ```{r CVA, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 
-model.cva <- MASS::lda(train.data, train.class, prior = c(0.5, 0.5)) 
+#model.cva <- MASS::lda(train.data, train.class, prior = c(0.5, 0.5)) 
+model.cva <- MASS::lda(ECMO_Survival ~ ., train.ARDS, prior = c(0.5, 0.5)) 
 model.cva
 plot(model.cva) 
 
 ## Now we predict the labels based on the model.
-pred.valid.cva <- predict(model.cva, newdata = valid.data) 
+#pred.valid.cva <- predict(model.cva, newdata = valid.data) 
+pred.valid.cva <- predict(model.cva, valid.ARDS)
 
 ## predict produces a list, one element of which is called "class", which equals to predicted classes of the obs., the others are "posterior", which equals to estimated posterior probabilities of each observation belonging to each class and finally "x", which equals to canonical variate scores.
 ## Note that the linear discriminant is the same as the canonical variates scores here.
 names(pred.valid.cva) #[1] "class" "posterior" "x" 
 
 ## Creating a cross-classification table comparing the true labels to the predicted labels.
-xtab.cva <- table(valid.class, pred.valid.cva$class) 
+xtab.cva <- table(valid.ARDS$ECMO_Survival, pred.valid.cva$class) 
 xtab.cva
 
 ## Misclassification rate =  1 - correct classifcation rate
@@ -506,14 +510,15 @@ set.seed(126)
 model.svm <- svm(ECMO_Survival ~ . , data=train.ARDS[, -1],
                  kernel = "polynomial",
                  cost = 10,
-                 scale = FALSE)
+                 decision.values = TRUE)
 model.svm
 
 ## Prediction
 pred.valid.svm <- predict(model.svm, valid.ARDS, type = "class")
+fitted.svm  <- attributes(predict(model.svm, valid.ARDS, decision.values = TRUE))
 
 ## Cross classification
-xtab.svm <- table(valid.class, pred.valid.svm)
+xtab.svm <- table(valid.class$ECMO_Survival, pred.valid.svm)
 xtab.svm
 
 ## Class-specific CCRs.
@@ -523,6 +528,10 @@ ccr.class.svm <- diag(xtab.svm) / rowSums(xtab.svm)
 ccr.svm <- sum(diag(xtab.svm)) / sum(xtab.svm)
 err.svm <- 1 - ccr.svm
 ```
+
+
+
+
 
 
 
@@ -564,8 +573,19 @@ plot(ROC.svm, col = "blue")
 
 ```{r ROC, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 #library(caret)
-a <- confusionMatrix(valid.class, pred.valid.svm)
+#a <- confusionMatrix(valid.class, pred.valid.svm)
+library(ROCR)
+data(ROCR.simple)
+df <- data.frame(ROCR.simple)
+pred <- prediction(df$predictions, df$labels)
 
+
+#pred <- prediction(as.numeric(pred.valid.cva$class), valid.class$ECMO_Survival)
+pred <- prediction(fitted.svm$decision.values, valid.class$ECMO_Survival)
+
+perf <- performance(pred,"tpr","fpr")
+plot(perf,colorize=TRUE)
+abline(a=0,b=1,lwd=2,lty=2,col="gray")
 ```
 
 

@@ -261,7 +261,7 @@ Looking at Table \ref{tab:sum4}
 
 All continuous features are normally scaled to be comparable. 
 ```{r scale, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
-feature_names <- colnames(data.df[,5:n])
+feature_names <- colnames(data.df[,5:ncol(data.df)])
 data_standard.df <- data.df %>%
   select(5:ncol(data.df)) %>%
   mutate_each_(funs(scale), vars=feature_names)
@@ -306,7 +306,7 @@ data_standard.df %>%
 
 ```{r heatmap, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:cor}Correlation heatmap of contnuous variables."}
 # Correlation matrix plot
-ggcorr(data_standard.df[, 5:ncol(data_standard.df)], 
+ggcorr(data_standard.df[, 1:ncol(data_standard.df)], 
        hjust = 0.95, 
        size = 2, 
        label = TRUE, 
@@ -317,15 +317,15 @@ ggcorr(data_standard.df[, 5:ncol(data_standard.df)],
        legend.size = 8) +
   guides(fill = guide_colorbar(barwidth = 10, 
                                barheight = 0.5, 
-                               title.vjust = 0.75)) +
-  theme(  plot.margin = margin(1, 1, 1, 1, "cm") ) #top, right, bottom, left
+                               title.vjust = 0.75)) 
+#  theme(  plot.margin = margin(1, 1, 1, 1, "cm") ) #top, right, bottom, left
 ```
 
 ```{r heatmap_PDF, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:cor}Pairs plot of contnuous variables."}
 pdf(file="../viva/images/heatmap.pdf", height=8, width=10)
 
 # Correlation matrix plot
-ggcorr(data_standard.df[, 5:ncol(data_standard.df)], 
+ggcorr(data_standard.df[, 1:ncol(data_standard.df)], 
        hjust = 0.95, 
        size = 2, 
        label = TRUE, 
@@ -336,8 +336,8 @@ ggcorr(data_standard.df[, 5:ncol(data_standard.df)],
        legend.size = 8) +
   guides(fill = guide_colorbar(barwidth = 10, 
                                barheight = 0.5, 
-                               title.vjust = 0.75)) +
-  theme(  plot.margin = margin(1, 1, 1, 1, "cm") ) #top, right, bottom, left
+                               title.vjust = 0.75)) 
+#  theme(  plot.margin = margin(1, 1, 1, 1, "cm") ) #top, right, bottom, left
 
 dev.off()
 ```
@@ -376,11 +376,11 @@ group <- NA
 group[pairs.df$ECMO_Survival == "Y"] <- 1
 group[pairs.df$ECMO_Survival == "N"] <- 2
 
-pairs(pairs.df[, 21:ncol(pairs.df)],
+pairs(pairs.df[, 1:ncol(pairs.df)],
       col = c("red", "cornflowerblue")[group],   # Change color by group
-      cex = 0.5,
+      cex = 0.25,
       pch = c(20, 20)[group],                            # Change points by group
-      labels = names(pairs.df[21:ncol(pairs.df)]),
+      labels = names(pairs.df[1:ncol(pairs.df)]),
       main = "This is an even nicer pairs plot in R")
 
 dev.off()
