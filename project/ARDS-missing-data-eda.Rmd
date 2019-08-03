@@ -263,7 +263,7 @@ All continuous features are normally scaled to be comparable.
 ```{r scale, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 feature_names <- colnames(data.df[,5:ncol(data.df)])
 data_standard.df <- data.df %>%
-  select(5:ncol(data.df)) %>%
+  dplyr::select(5:ncol(data.df)) %>%
   mutate_each_(funs(scale), vars=feature_names)
 ```
 

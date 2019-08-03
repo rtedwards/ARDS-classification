@@ -128,7 +128,7 @@ library(InformationValue)
 #opt_cutoff <- optimalCutoff(test.ARDS$ECMO_Survival , pred.valid)[1] 
 
 ## Changing the predictions to predited labels.
-pred.valid.logit <- ifelse(round(pred.valid) <= 0.5, 0, 1)
+pred.valid.logit <- ifelse(round(pred.valid.logit) <= 0.5, 0, 1)
 
 ## Changing the predictions to predited labels.
 #pred.valid.label.opt <- ifelse(round(pred.valid) <= opt_cutoff, 0, 1)
@@ -138,21 +138,19 @@ pred.valid.logit <- ifelse(round(pred.valid) <= 0.5, 0, 1)
 ##Model Diagnostics
 ```{r xtab1, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 ## Cross-classification table.
-xtab.logit <- table(valid.ARDS$ECMO_Survival, pred.valid.label)
+xtab.logit <- table(valid.ARDS$ECMO_Survival, pred.valid.logit)
 
 ## Correct classification rate (CCR).
 ccr.logit <- sum(diag(xtab.logit)) / sum(xtab.logit)
 err.logit <- 1 - ccr.logit
 
 ## Class-specific CCRs.
-diag(xtab.logit) / rowSums(xtab.logit)
+ccr.class.logit <- diag(xtab.logit) / rowSums(xtab.logit)
+err.class.logit <- 1 - ccr.class.logit
 
-## Cross-classification table.
-#logit.table.opt <- table(valid.ARDS$ECMO_Survival, pred.valid.label.opt)
-## Correct classification rate (CCR).
-#sum(pred.valid.label == valid.ARDS$ECMO_Survival) / length(pred.valid.label.opt)
-## Class-specific CCRs.
-#diag(logit.table) / rowSums(logit.table)
+## Precision / Recall
+tpr.logit <- xtab.logit[1]/(xtab.logit[1] + xtab.logit[2]) #sensitivity
+fpr.logit <- xtab.logit[2]/(xtab.logit[2] + xtab.logit[4]) #False Positive Rate
 ```
 
 
@@ -186,7 +184,7 @@ model.net <- glmnet(x.train, y.train, family="binomial", alpha=.5)
 ###################################
 ### Choosing between ridge regression, Lasso regression and elastic nets using glmnet()
 ###################################
-nets.a <- seq(0, 1, by=0.1)
+nets.a <- seq(0, 0.1, by=0.001)
 n.a <- length(nets.a)
 
 nets.model <- vector(mode="list", length=n.a)
@@ -250,30 +248,38 @@ ccr.lasso <- sum(diag(xtab.lasso)) / sum(xtab.lasso)
 err.lasso <- 1 - ccr.lasso
 
 ## Class-specific CCRs.
-diag(xtab.lasso) / rowSums(xtab.lasso)
+ccr.class.lasso <- diag(xtab.lasso) / rowSums(xtab.lasso)
+err.class.lasso <- 1 - ccr.class.lasso
+
+## Precision / Recall
+tpr.lasso <- xtab.lasso[1]/(xtab.lasso[1] + xtab.lasso[2]) #sensitivity
+fpr.lasso <- xtab.lasso[2]/(xtab.lasso[2] + xtab.lasso[4]) #False Positive Rate
 ```
 
 
 \newpage
 #K-Nearest Neighbors
 
-```{r KNN, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE}
+```{r KNN, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 library(kknn)
 
 n.valid <- nrow(x.valid)
 
-knn.train <- kknn(formula=formula(ECMO_Survival~.), train=train.ARDS, test=valid.ARDS, k=5, dist=2, ker="rectangular")
-knn.valid <- kknn(formula=formula(ECMO_Survival~.), train=train.ARDS, test=valid.ARDS, k=5, dist=2, ker="rectangular")
+pred.train.knn <- kknn(formula=formula(ECMO_Survival~.), train=train.ARDS, test=valid.ARDS, k=5, dist=2, ker="rectangular")
+pred.valid.knn <- kknn(formula=formula(ECMO_Survival~.), train=train.ARDS, test=valid.ARDS, k=5, dist=2, ker="rectangular")
 
 ## Class-specific CCRs.
-xtab.knn <- table(knn.valid$fitted.values, valid.ARDS$ECMO_Survival) 
-ccr.class <- diag(xtab.knn) / rowSums(xtab.knn)
+xtab.knn <- table(pred.valid.knn$fitted.values, valid.ARDS$ECMO_Survival) 
+ccr.class.knn <- diag(xtab.knn) / rowSums(xtab.knn)
+err.class.knn <- 1-ccr.class.knn
 
 ## Calculate and store the test set correct classification rate
-ccr.knn <- sum(knn.valid$fitted.values == valid.ARDS$ECMO_Survival) / n.valid
+ccr.knn <- sum(pred.valid.knn$fitted.values == valid.ARDS$ECMO_Survival) / n.valid
 err.knn <- 1 - ccr.knn
 
-errors <- list(err.knn, 1-ccr.class)
+## Precision / Recall
+tpr.knn <- xtab.knn[1]/(xtab.knn[1] + xtab.knn[2]) #sensitivity
+fpr.knn <- xtab.knn[2]/(xtab.knn[2] + xtab.knn[4]) #False Positive Rate
 ```
 
 
@@ -303,7 +309,7 @@ valid.class <- valid.ARDS %>%
 #valid.class <- data.matrix(valid.class)
 ```
 
-```{r KNN2, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+```{r KNN2, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE}
 
 library(class) ## knn function
 set.seed(1)
@@ -315,11 +321,13 @@ correct.class <- rep(NA, length(k_to_try)) ## vector to store the correct classi
 
 count <- 0
 for (i in k_to_try) {
-  pred.valid.knn <- knn(train.data, valid.data, train.class, k=i)
+  pred.valid.knn <- knn(data.matrix(train.data), data.matrix(valid.data), data.matrix(train.class), k=i)
   ## Calculate and store the test set correct classification rate for k=1.
-  correct.class[count] <- sum(pred.valid.knn == valid.class) / n.valid
+  correct.class[count] <- sum(pred.valid.knn == data.matrix(valid.class)) / n.valid
   count <- count + 1
 }
+
+pred.valid.knn <- knn(data.matrix(train.data), data.matrix(valid.data), data.matrix(train.class), k=11)
 
 xtab.knn <- table(pred.valid.knn, data.matrix(valid.class))
 xtab.knn
@@ -327,6 +335,10 @@ xtab.knn
 ## Misclassification rate =  1 - correct classifcation rate
 ccr.knn <- sum(diag(xtab.knn)) / sum(xtab.knn)
 err.knn <- 1 - ccr.knn
+
+## Class-specific CCRs.
+ccr.class.knn <- diag(xtab.knn) / rowSums(xtab.knn)
+err.class.knn <- 1 - ccr.class.knn
 
 plot(x = k_to_try, y = correct.class, type = "l")
 ```
@@ -336,7 +348,7 @@ plot(x = k_to_try, y = correct.class, type = "l")
 \newpage
 #CVA
 
-```{r CVA, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+```{r CVA, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE}
 
 #model.cva <- MASS::lda(train.data, train.class, prior = c(0.5, 0.5)) 
 model.cva <- MASS::lda(ECMO_Survival ~ ., train.ARDS, prior = c(0.5, 0.5)) 
@@ -358,6 +370,10 @@ xtab.cva
 ## Misclassification rate =  1 - correct classifcation rate
 ccr.cva <- sum(diag(xtab.cva)) / sum(xtab.cva)
 err.cva <- 1 - ccr.cva
+
+## Class-specific CCRs.
+ccr.class.cva <- diag(xtab.cva) / rowSums(xtab.cva)
+err.class.cva <- 1 - ccr.class.cva
 
 ## Our canonical vector is given by the coefficients of the linear discriminant.
 coef(model.cva)
@@ -387,6 +403,14 @@ xtab.lda
 ## Misclassification rate =  1 - correct classifcation rate
 ccr.lda <- sum(diag(xtab.lda)) / sum(xtab.lda)
 err.lda <- 1 - ccr.lda
+
+## Class-specific CCRs.
+ccr.class.lda <- diag(xtab.lda) / rowSums(xtab.lda)
+err.class.lda <- 1 - ccr.class.lda
+
+## Precision / Recall
+tpr.lda <- xtab.lda[1]/(xtab.lda[1] + xtab.lda[2]) #sensitivity
+fpr.lda <- xtab.lda[2]/(xtab.lda[2] + xtab.lda[4]) #False Positive Rate
 
 ## Our canonical vector is given by the coefficients of the linear discriminant.
 coef(model.lda)
@@ -419,6 +443,14 @@ pred.valid.qda$posterior[valid.ARDS$ECMO_Surviva != pred.valid.qda$class, ]
 ccr.qda <- sum(diag(xtab.qda)) / sum(xtab.qda)
 err.qda <- 1 - ccr.qda
 
+## Class-specific CCRs.
+ccr.class.qda <- diag(xtab.qda) / rowSums(xtab.qda)
+err.class.qda <- 1 - ccr.class.qda
+
+## Precision / Recall
+tpr.qda <- xtab.qda[1]/(xtab.qda[1] + xtab.qda[2]) #sensitivity
+fpr.qda <- xtab.qda[2]/(xtab.qda[2] + xtab.qda[4]) #False Positive Rate
+
 ## Our canonical vector is given by the coefficients of the linear discriminant.
 coef(model.qda)
 ```
@@ -427,7 +459,7 @@ coef(model.qda)
 \newpage
 #Trees
 
-```{r Tree, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+```{r Tree, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE}
 set.seed(126)
 library(rpart)
 
@@ -467,6 +499,10 @@ xtab.tree
 ## Calculating the misclassification rate.
 ccr.tree <- sum(diag(xtab.tree)) / sum(xtab.tree)
 err.tree <- 1 - ccr.tree
+
+## Class-specific CCRs.
+ccr.class.tree <- diag(xtab.tree) / rowSums(xtab.tree)
+err.class.tree <- 1 - ccr.class.tree
 ```
 
 
@@ -478,7 +514,12 @@ set.seed(126)
 library(randomForest)
 
 ## Here we need to set the argument method to "class" to ensure we get a classification rather than regression tree (since the labels in this case are numbers rather than text so could be interpreted either way).
-model.rf <- randomForest(ECMO_Survival ~ . , data=train.ARDS[, -1])
+model.rf <- randomForest(ECMO_Survival ~ . , data=train.ARDS[, -1],
+                         proximity = TRUE,
+                         importance = TRUE,
+                         nodesize = 1,
+                         replace = TRUE,
+                         ntree = 1000)
 
 ## Printing the text version of the tree.
 model.rf
@@ -490,15 +531,20 @@ plot(model.rf, margin=0.1)
 pred.valid.rf <- predict(model.rf, valid.ARDS, type="class")
 
 ## Cross classification
-xtab.rf <- table(valid.class, pred.valid.rf)
+xtab.rf <- table(data.matrix(valid.class), pred.valid.rf)
 xtab.rf
-
-## Class-specific CCRs.
-ccr.class.rf <- diag(xtab.rf) / rowSums(xtab.rf)
 
 ## Calculating the misclassification rate.
 ccr.rf <- sum(diag(xtab.rf)) / sum(xtab.rf)
 err.rf <- 1 - ccr.rf
+
+## Class-specific CCRs.
+ccr.class.rf <- diag(xtab.rf) / rowSums(xtab.rf)
+err.class.rf <- 1 - ccr.class.rf
+
+## Precision / Recall
+tpr.rf <- xtab.rf[1]/(xtab.rf[1] + xtab.rf[2]) #sensitivity
+fpr.rf <- xtab.rf[2]/(xtab.rf[2] + xtab.rf[4]) #False Positive Rate
 ```
 
 
@@ -525,10 +571,15 @@ xtab.svm
 
 ## Class-specific CCRs.
 ccr.class.svm <- diag(xtab.svm) / rowSums(xtab.svm)
+err.class.svm <- 1 - ccr.class.svm
 
 ## Calculating the misclassification rate.
 ccr.svm <- sum(diag(xtab.svm)) / sum(xtab.svm)
 err.svm <- 1 - ccr.svm
+
+## Precision / Recall
+tpr.svm <- xtab.svm[1]/(xtab.svm[1] + xtab.svm[2]) #sensitivity
+fpr.svm <- xtab.svm[2]/(xtab.svm[2] + xtab.svm[4]) #False Positive Rate
 ```
 
 
@@ -540,29 +591,27 @@ err.svm <- 1 - ccr.svm
 \newpage
 #Model Selection
 ```{r table5, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
-err <- cbind(err.logit, err.lasso, err.knn, err.cva, err.lda, err.qda, err.tree, err.rf, err.svm)
-err
+ccr <- rbind(ccr.logit, ccr.knn, ccr.lda, ccr.qda, ccr.rf, ccr.svm)
+tpr <- rbind(tpr.logit, tpr.knn, tpr.lda, tpr.qda, tpr.rf, tpr.svm)
+fpr <- rbind(fpr.logit, fpr.knn, fpr.lda, fpr.qda, fpr.rf, fpr.svm)
+ccr <- cbind(ccr, fpr, tpr)
+
+rownames(ccr) <- c("Logistic", "KNN", "LDA", "QDA", "RF", "SVM")
+colnames(ccr) <- c("Accuracy", "FPR", "TPR")
+ccr <- round(ccr, 3)
+
+ccr %>%
+  kable(col.names = c("Accuracy", "FPR", "TPR"),
+#        row.names = c("Logistic", "KNN", "LDA", "QDA", "RF", "SVM"),
+        caption = 'Accuracy on validation set', booktabs = TRUE, format = "latex") %>%
+  kable_styling(font_size = 10, latex_options = "hold_position")
+
 ```
 
 
 ##ROC
-```{r ROC, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
-library(ROCR)
-rocplot <- function( pred, truth, ...) {
-  predob <- prediction(pred, truth)
-  perf <- performance( predob, "tpr", "fpr" )
-  plot(perf, ...)
-}
 
-fitted <- attributes(predict(model.svm, valid.ARDS[, -1], decision.values = TRUE))$decision.values
-
-rocplot(fitted, valid.ARDS$ECMO_Survival, 
-        main = "Training Data",
-        add = T,
-        col = "red")
-```
-
-```{r ROC, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+```{r pROC, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE}
 library(pROC)
 ROC.svm <- roc(valid.class, pred.valid.svm)
 
@@ -583,21 +632,21 @@ pred <- prediction(df$predictions, df$labels)
 
 #pred <- prediction(as.numeric(pred.valid.cva$class), valid.class$ECMO_Survival)
 pred.logit <- prediction(pred.valid.logit, valid.class$ECMO_Survival)
-pred.cva <- prediction(pred.valid.cva$posterior[,2], valid.class$ECMO_Survival)
+#pred.cva <- prediction(pred.valid.cva$posterior[,2], valid.class$ECMO_Survival)
 pred.lda <- prediction(pred.valid.lda$posterior[,2], valid.class$ECMO_Survival)
 pred.qda <- prediction(pred.valid.qda$posterior[,1], valid.class$ECMO_Survival)
 pred.svm <- prediction(fitted.svm$decision.values, valid.class$ECMO_Survival)
 
 perf.logit <- performance(pred.logit,"tpr","fpr")
 perf.svm <- performance(pred.svm,"tpr","fpr")
-perf.cva <- performance(pred.cva,"tpr","fpr")
+#perf.cva <- performance(pred.cva,"tpr","fpr")
 perf.lda <- performance(pred.lda,"tpr","fpr")
 perf.qda <- performance(pred.qda,"tpr","fpr")
 
 
 
 plot(perf.logit, col = "green")
-plot(perf.cva, col = "orange", add = TRUE)
+#plot(perf.cva, col = "orange", add = TRUE)
 plot(perf.lda, col = "red", add = TRUE)
 plot(perf.qda, col = "purple", add = TRUE)
 plot(perf.svm, col = "blue", add = TRUE)
