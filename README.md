@@ -1,7 +1,7 @@
 # I. 💉 ARDS Survival Prediction
 Survival prediction on [ECMO](https://en.wikipedia.org/wiki/Extracorporeal_membrane_oxygenation) treatment on patients diagnosed with [ARDS](https://en.wikipedia.org/wiki/Acute_respiratory_distress_syndrome)
 
-## Background
+## 🧛🏼‍♂️Background
 
 
 ## 🌱 Motivation
@@ -15,32 +15,32 @@ ARDSdata.csv - I don't have information on who, where, how this data was optaine
 
 
 
-# II. 🛠️ Libraries
+# II. 📦 Packages
 
 ## Caret 🥕
 
 - [Package 'caret'](https://cran.r-project.org/web/packages/caret/caret.pdf)
 - [caret](http://topepo.github.io/caret/index.html)
 
-### Books
+### Books 📚
 
 - [Applied Predictive Modeling](http://appliedpredictivemodeling.com/toc)
 
-### Vignettes
+### Vignettes 🎻
 
 1. [A Short Introduction to the caret Package](https://cran.r-project.org/web/packages/caret/vignettes/caret.html)
 2. [Caret Practice](https://rpubs.com/phamdinhkhanh/389752)
 
 
 
-## Parallel Computing
+## Parallel Computing 💾
 - [A Quick Intro to Parallel Computing in R](https://nceas.github.io/oss-lessons/parallel-computing-in-r/parallel-computing-in-r.html)
 
-### Vignette
+### Vignette 🎻
 - [Getting Started with doParallel and foreach](https://cran.r-project.org/web/packages/doParallel/vignettes/gettingstartedParallel.pdf)
 
 
-## Imputation
+## Imputation 🐁
 The [`mice`](https://cran.r-project.org/package=mice) package
 implements a method to deal with missing data. The package creates
 multiple imputations (replacement values) for multivariate missing
@@ -54,11 +54,11 @@ implemented to inspect the quality of the imputations.
 
 -[Package 'mice'](https://cran.r-project.org/web/packages/mice/mice.pdf)
 
-### Books 
+### Books 📚
 
 - Van Buuren, S. (2018). [Flexible Imputation of Missing Data. Second Edition.](https://stefvanbuuren.name/fimd/). Chapman & Hall/CRC. Boca Raton, FL.
 
-### Vignettes
+### Vignettes 🎻
 
 1. [Ad hoc methods and the MICE algorithm](https://gerkovink.github.io/miceVignettes/Ad_hoc_and_mice/Ad_hoc_methods.html)
 2. [Convergence and pooling](https://gerkovink.github.io/miceVignettes/Convergence_pooling/Convergence_and_pooling.html)
@@ -74,20 +74,20 @@ implemented to inspect the quality of the imputations.
 
 
 
-# III. Methods
+# III. 🛠️ Methods
 
 ## Logistic Regression + LASSO Regularization
 ### References
 
 ## Linear Discriminant Analysis
 ### References
-### Vignettes
+### Vignettes 🎻
 
 - [Foundation of LDA and QDA for prediction, dimensionality reduction or forecasting](http://www.socr.umich.edu/people/dinov/2017/Spring/DSPA_HS650/notes/20_PredictionCrossValidation.html#73_foundation_of_lda_and_qda_for_prediction,_dimensionality_reduction_or_forecastin)
 
 ## Quadratic Discriminant Analysis
 ### References
-### Vignettes
+### Vignettes 🎻
 
 - [Foundation of LDA and QDA for prediction, dimensionality reduction or forecasting](http://www.socr.umich.edu/people/dinov/2017/Spring/DSPA_HS650/notes/20_PredictionCrossValidation.html#73_foundation_of_lda_and_qda_for_prediction,_dimensionality_reduction_or_forecastin)
 
@@ -107,14 +107,14 @@ implemented to inspect the quality of the imputations.
 ## Support Vector Machines
 
 ### References
-### Vignettes
+### Vignettes 🎻
 
 - [SVM Classifier Implementation in R with caret package](https://dataaspirant.com/2017/01/19/support-vector-machine-classifier-implementation-r-caret-package/)
 
 
 # IV. Misc Topics
 ## Imbalanced Data Sets
-### Vignettes
+### Vignettes 🎻
 
 - [Methods for Dealing with Imbalanced Data](https://towardsdatascience.com/methods-for-dealing-with-imbalanced-data-5b761be45a18)
 
