@@ -11,8 +11,8 @@ setwd("~/OneDrive - University of Glasgow/University of Glasgow/ARDS-classificat
 
 #########################################
 ## Config 
-library(config)
-config <- config::get()
+#library(config)
+#config <- config::get()
 
 #source("_settings/functions.R")
 #load_libraries(config$settings$libraries)
@@ -23,7 +23,7 @@ config <- config::get()
 
 #########################################
 ## Load theme 
-source("../_settings/theme.R")
+#source("../_settings/theme.R")
 #########################################
 
 
@@ -175,11 +175,8 @@ write.csv(data.imputed.listwise.df, "../data/data-imputed-listwise.csv",
 #########################################
 rm(data.raw.df)
 rm(data.df)
-rm(data.clean.df)
-rm(data.categorical.df)
-rm(data.continuous.df)
 rm(data.imputed.listwise.df)
-rm(data.imputed.median.df)
-rm(data.imputed.knn.df)
+#rm(data.imputed.median.df)
+#rm(data.imputed.knn.df)
 #rm(data.imputed.mice.df)
 
