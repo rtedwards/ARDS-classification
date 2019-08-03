@@ -81,9 +81,16 @@ implemented to inspect the quality of the imputations.
 
 ## Linear Discriminant Analysis
 ### References
+### Vignettes
+
+- [Foundation of LDA and QDA for prediction, dimensionality reduction or forecasting](http://www.socr.umich.edu/people/dinov/2017/Spring/DSPA_HS650/notes/20_PredictionCrossValidation.html#73_foundation_of_lda_and_qda_for_prediction,_dimensionality_reduction_or_forecastin)
 
 ## Quadratic Discriminant Analysis
 ### References
+### Vignettes
+
+- [Foundation of LDA and QDA for prediction, dimensionality reduction or forecasting](http://www.socr.umich.edu/people/dinov/2017/Spring/DSPA_HS650/notes/20_PredictionCrossValidation.html#73_foundation_of_lda_and_qda_for_prediction,_dimensionality_reduction_or_forecastin)
+
 
 ## K-Nearest Neighbors
 ### References
@@ -98,11 +105,28 @@ implemented to inspect the quality of the imputations.
 
 
 ## Support Vector Machines
+
 ### References
+### Vignettes
+
+- [SVM Classifier Implementation in R with caret package](https://dataaspirant.com/2017/01/19/support-vector-machine-classifier-implementation-r-caret-package/)
 
 
+# IV. Misc Topics
+## Imbalanced Data Sets
+### Vignettes
 
-# IV. To-Do
+- [Methods for Dealing with Imbalanced Data](https://towardsdatascience.com/methods-for-dealing-with-imbalanced-data-5b761be45a18)
+
+
+## Rank Deficiency
+
+Ran into some rank deficiency problems when training QDA on imputed datasets
+
+- [What is Rank Deficiency?](https://stats.stackexchange.com/questions/35071/what-is-rank-deficiency-and-how-to-deal-with-it)
+
+
+# V. To-Do
 
 - [ ] Try out caret "recipes" (http://topepo.github.io/caret/using-recipes-with-train.html)
 - [ ] ROC plots
