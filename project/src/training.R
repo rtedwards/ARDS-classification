@@ -32,18 +32,20 @@ registerDoParallel(clusters)
 #########################################
 ## Load Data
 #########################################
-ards <- read.csv(file = "../data/data-imputed-listwise.csv", header = TRUE)
-#data.df <- read.csv(file = "../data/data-imputed-median.csv", header = TRUE)
-#data.df <- read.csv(file = "../data/data-imputed-knn.csv", header = TRUE)
-#data.df <- read.csv(file = "../data/data-imputed-mice.csv", header = TRUE)
+#ards <- read.csv(file = "../data/data-imputed-listwise.csv", header = TRUE)
+#ards <- read.csv(file = "../data/data-imputed-median.csv", header = TRUE)
+ards <- read.csv(file = "../data/data-imputed-knn.csv", header = TRUE)
+#ards <- read.csv(file = "../data/data-imputed-mice.csv", header = TRUE)
 
+#ards <- ards %>% 
+#  select(-"PreECMO_Albumin")
 
 #########################################
 ## Data Splitting 
 #########################################
 set.seed(21)
 trainIndex <- createDataPartition(ards$ECMO_Survival, 
-                                  p = .75,      ## 75% data in training set
+                                  p = .8,      ## 75% data in training set
                                   list = FALSE, ## avoids returning data as a list
                                   times = 1)
 head(trainIndex)
@@ -52,28 +54,36 @@ train <- ards[ trainIndex,]
 test  <- ards[-trainIndex,]
 
 
-#folds <- createFolds(factor(train$ECMO_Survival), k = 5, returnTrain = T, list = T)
-
-# verify stratification: Every fold has 2 observations of each species
-#train$fold <- folds
-#summary(train$ECMO_Survival[folds$Fold1==1])
-
-
 #########################################
-## Train Control
+## Training Settings
 #########################################
+set.seed(21)
 
-ctrl <- caret::trainControl(## 10-fold CV
-#  method = "repeatedcv",
-  method = "cv",
-  number = 10,
+## Pre-Compute CV folds so we can use the same ones for all models
+CV_folds <- createMultiFolds(train$ECMO_Survival, 
+                             k = 5, # 5-fold cross validation
+                             times = 10 # 10 times
+                             )
+
+## K-Fold Cross Validation
+trControl <- caret::trainControl(
+  method = "repeatedcv",
+  index = CV_folds,
   returnResamp = "all",
   classProbs = TRUE, 
-  summaryFunction = twoClassSummary,
-  ## repeated ten times
-#  repeats = 1
-  )
+  summaryFunction = twoClassSummary
+)
 
+## How is the data preprocessed?
+preProcess <- c("center",    # mean centered
+               "scale",      # sd = 1
+               "YeoJohnson", # Trnasform variables
+               "corr"        # remove correlated variables
+               )
+
+## Model evaluation metric
+metric <- "ROC"
+#metric <- "Accuracy"
 
 
 #########################################
@@ -88,10 +98,9 @@ ptime <- system.time({
 lasso_model <- caret::train(ECMO_Survival ~ ., 
                             data = train, 
                             method = "glmnet", 
-                            metric = "ROC",
-                            trControl = ctrl, 
-                            preProcess = c('center', 'scale'),
-                            ## parameters for glmnet()
+                            metric = metric,
+                            trControl = trControl, 
+                            preProcess = preProcess,
                             family = "binomial",
                             tuneGrid = tuneGrid)
 })[3]
@@ -115,20 +124,23 @@ set.seed(21)
 lda_model <- caret::train(ECMO_Survival ~ ., 
                           data = train,
                           method = "lda", 
-                          metric = "ROC",
-                          trControl = ctrl)
+                          metric = metric,
+                          preProcess = preProcess,
+                          trControl = trControl)
 lda_model
 
 
 #########################################
 ## Quadratic Discriminant Analysis
+## "Rank deficiency in group N" https://stats.stackexchange.com/questions/35071/what-is-rank-deficiency-and-how-to-deal-with-it
 #########################################
 set.seed(21)
 qda_model <- caret::train(ECMO_Survival ~ ., 
                           data = train, 
                           method = "qda", 
-                          metric = "ROC",
-                          trControl = ctrl)
+                          metric = metric,
+                          preProcess = preProcess,
+                          trControl = trControl)
 qda_model
 
 
@@ -150,8 +162,9 @@ ptime <- system.time({
 knn_model <- caret::train(ECMO_Survival ~ ., 
                           data = train, 
                           method = "kknn", 
-                          metric = "ROC",
-                          trControl = ctrl,
+                          metric = metric,
+                          preProcess = preProcess,
+                          trControl = trControl,
                           ## parameters for knn()
                           tuneGrid = tuneGrid,
                           tuneLength = 10)
@@ -170,25 +183,128 @@ confusionMatrix(knnPredict, test$ECMO_Survival )
 ## https://cran.r-project.org/web/packages/randomForest/randomForest.pdf
 #########################################
 set.seed(21)
-tuneGrid <- expand.grid()
+tuneGrid <- expand.grid(mtry = c(1:10))
+#mtry <- sqrt(ncol(train))
 
-rf_model <- caret::train(ECMO_Survival ~ ., 
-                          data = train, 
-                          method = "rf", 
-                          metric = "ROC",
-                          trControl = ctrl
-#                          tuneGrid = tuneGrid,
-#                          tuneLength = 10
+ptime <- system.time({
+rf_model <- caret::train(ECMO_Survival ~ .,
+                         data = train, 
+                         method = "rf", 
+                         metric = metric,
+                         preProcess = preProcess,
+                         trControl = trControl,
+                         tuneGrid = tuneGrid,
+                         ntree = 1000, 
+                         tuneLength = 10
                           )
+})[3]
+ptime
 rf_model
 
 
 #########################################
 ## Support Vector Classifier
-## https://cran.r-project.org/web/packages/kknn/kknn.pdf
+## 
 #########################################
+set.seed(21)
+
+## I. Fit a Linear SVM kernel
+tuneGrid <- expand.grid(C = seq(0.1, 1, by = 0.1))
+
+svmTime1 <- system.time({
+svmLinear_model <- caret::train(ECMO_Survival ~ ., 
+                         data = train, 
+                         method = "svmLinear", 
+                         metric = metric,
+                         preProcess = preProcess,
+                         trControl = trControl,
+                         tuneGrid = tuneGrid,
+                         tuneLength = 10
+                         )
+})[3]
+svmTime1
+svmLinear_model
 
 
+
+## II. Fit a Radial SVM kernel
+tuneGrid <- expand.grid(sigma = seq(0.1, 1, by = 0.1), 
+                        C = seq(0.1, 1, by = 0.1))
+svmTime2 <- system.time({
+  svmRadial_model <- caret::train(ECMO_Survival ~ ., 
+                                  data = train, 
+                                  method = "svmRadial", 
+                                  metric = metric,
+                                  preProcess = preProcess,
+                                  trControl = trControl,
+                                  tuneGrid = tuneGrid,
+                                  tuneLength = 10)
+})[3]
+svmTime2
+
+svmRadial_model
+
+
+
+## III. Fit a Polynomial SVM kernel
+tuneGrid <- expand.grid(degree = 1:4,
+                        scale = 0.1,   # seq(0.1, 1, by = 0.1), 
+                        C = 0.1       # seq(0.1, 1, by = 0.1)
+                        )
+
+svmTime3 <- system.time({
+svmPoly_model <- caret::train(ECMO_Survival ~ ., 
+                                data = train, 
+                                method = "svmPoly", 
+                                metric = metric,
+                                preProcess = preProcess,
+                                trControl = trControl,
+                                tuneGrid = tuneGrid,
+                                tuneLength = 10
+                              )
+})[3]
+svmTime3
+svmPoly_model
+
+
+
+
+
+
+
+#########################################
+## Model Comparison 
+#########################################
+# resamps <- resamples(list(Linear = L_model, Poly = P_model, Radial = R_model))
+# summary(resamps)
+# bwplot(resamps, metric = "Accuracy")
+# densityplot(resamps, metric = "Accuracy")
+# 
+# #Test a model's predictive accuracy Using Area under the ROC curve
+# #Ideally, this should be done with a SEPERATE test set
+# pSpecies <- predict(L_model,x,type='prob')
+# colAUC(pSpecies,y,plot=TRUE)
+
+
+
+
+#########################################
+## Save Trained Models 
+#########################################
+# Save multiple objects
+save(file = "trained-models-listwise.RData",
+     lasso_model,
+     lda_model,
+#     qda_model,
+     knn_model,
+     rf_model,
+     svmLinear_model,
+     svmPoly_model,
+     svmRadial_model
+     )
+
+# To load the data again
+#load("data.RData")
 
 #########################################
 ## Cleanup 
@@ -201,12 +317,22 @@ rm(test)
 rm(trainIndex)
 rm(tuneGrid)
 rm(ctrl)
+
+rm(numCores)
+rm(clusters)
+
+rm(CV_folds)
+rm(tuneGrid)
+
 rm(lasso_model)
 rm(lda_model)
 rm(qda_model)
 rm(knn_model)
 rm(rf_model)
-rm(svm_model)
+rm(svmLinear_model)
+rm(svmPoly_model)
+rm(svmRadial_model)
+
 
 ## Parallel Computing
 stopCluster(clusters)  ## Stop the cluster
