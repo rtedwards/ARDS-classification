@@ -125,9 +125,14 @@ Ran into some rank deficiency problems when training QDA on imputed datasets
 
 - [What is Rank Deficiency?](https://stats.stackexchange.com/questions/35071/what-is-rank-deficiency-and-how-to-deal-with-it)
 
+## Tuning Parameters 📻
+
+- [Tune ML Algorithms in R](https://machinelearningmastery.com/tune-machine-learning-algorithms-in-r/)
+
 
 # V. To-Do
 
+- [ ] Save trained models
 - [ ] Try out caret "recipes" (http://topepo.github.io/caret/using-recipes-with-train.html)
 - [ ] ROC plots
 - [ ] Performance Tables
