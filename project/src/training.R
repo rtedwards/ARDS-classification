@@ -7,7 +7,7 @@
 #########################################
 ## Set Project Directory
 #########################################
-setwd("~/OneDrive - University of Glasgow/University of Glasgow/ARDS-classification/project/_data_preprocessing")
+setwd("~/OneDrive - University of Glasgow/University of Glasgow/ARDS-classification/project/src")
 
 
 #########################################
@@ -25,17 +25,24 @@ source("../_data_preprocessing/impute.R")
 ## system("sysctl  hw.physicalcpu")  # number of physical CPUs
 #########################################
 numCores <- parallel::detectCores()
-clusters <- makePSOCKcluster(numCores - 2) # Leave some for other important tasks, like browsing reddit
+clusters <- makePSOCKcluster(numCores) # Leave some for other important tasks, like browsing reddit
 registerDoParallel(clusters)
 #registerDoSEQ() ## register the sequential backend
 
 #########################################
 ## Load Data
 #########################################
-#ards <- read.csv(file = "../data/data-imputed-listwise.csv", header = TRUE)
+ards <- read.csv(file = "../data/data-imputed-listwise.csv", header = TRUE)
+imputation_method <- "listwise"
+
 #ards <- read.csv(file = "../data/data-imputed-median.csv", header = TRUE)
-ards <- read.csv(file = "../data/data-imputed-knn.csv", header = TRUE)
+#imputation_method <- "median"
+
+#ards <- read.csv(file = "../data/data-imputed-knn.csv", header = TRUE)
+#imputation_method <- "knn"
+
 #ards <- read.csv(file = "../data/data-imputed-mice.csv", header = TRUE)
+#imputation_method <- "mice"
 
 #ards <- ards %>% 
 #  select(-"PreECMO_Albumin")
@@ -61,16 +68,18 @@ set.seed(21)
 
 ## Pre-Compute CV folds so we can use the same ones for all models
 CV_folds <- createMultiFolds(train$ECMO_Survival, 
-                             k = 5, # 5-fold cross validation
+                             k = 5,     # 5-fold cross validation
                              times = 10 # 10 times
                              )
 
 ## K-Fold Cross Validation
 trControl <- caret::trainControl(
-  method = "repeatedcv",
+  method = "repeatedcv",  # repeated K-fold cross-validation
   index = CV_folds,
   returnResamp = "all",
-  classProbs = TRUE, 
+  classProbs = TRUE,      # Should be TRUE if metric = "ROC" Can skip if metric = "Kappa"
+  savePredictions = TRUE,
+#  sampling = "down",      # For imbalanced datasets c("down", "up", "rose", "smote")
   summaryFunction = twoClassSummary
 )
 
@@ -86,11 +95,37 @@ metric <- "ROC"
 #metric <- "Accuracy"
 
 
+
+#########################################
+## Logistic Regression 
+#########################################
+tuneGrid = expand.grid(alpha = 1,   ## LASSO regularization
+                       lambda = 0)  ## No regularization
+
+logit_time <- system.time({
+logit_model <- caret::train(ECMO_Survival ~ ., 
+                            data = train, 
+                            method = "glmnet", 
+                            metric = metric,
+                            trControl = trControl, 
+                            preProcess = preProcess,
+                            family = "binomial",
+                            tuneGrid = tuneGrid
+#                            tuneLength = 10
+                            )
+})[3]
+logit_time
+logit_model
+
+
 #########################################
 ## Logistic Regression + LASSO
 #########################################
 set.seed(21)
 
+## TuneGrid - It means user has to specify a tune grid manually. In the grid, 
+## each algorithm parameter can be specified as a vector of possible values. 
+## These vectors combine to define all the possible combinations to try.
 tuneGrid = expand.grid(alpha = 1, ## LASSO regularization
                        lambda = seq(0.001,0.1,by = 0.001))
 
@@ -165,9 +200,8 @@ knn_model <- caret::train(ECMO_Survival ~ .,
                           metric = metric,
                           preProcess = preProcess,
                           trControl = trControl,
-                          ## parameters for knn()
                           tuneGrid = tuneGrid,
-                          tuneLength = 10)
+                          )
 })[3]
 ptime
 knn_model
@@ -209,7 +243,7 @@ rf_model
 set.seed(21)
 
 ## I. Fit a Linear SVM kernel
-tuneGrid <- expand.grid(C = seq(0.1, 1, by = 0.1))
+tuneGrid <- expand.grid(C = seq(0.25, 1, by = 0.25))
 
 svmTime1 <- system.time({
 svmLinear_model <- caret::train(ECMO_Survival ~ ., 
@@ -228,8 +262,8 @@ svmLinear_model
 
 
 ## II. Fit a Radial SVM kernel
-tuneGrid <- expand.grid(sigma = seq(0.1, 1, by = 0.1), 
-                        C = seq(0.1, 1, by = 0.1))
+tuneGrid <- expand.grid(sigma = seq(0.25, 1, by = 0.25), 
+                        C = seq(0.25, 1, by = 0.25))
 svmTime2 <- system.time({
   svmRadial_model <- caret::train(ECMO_Survival ~ ., 
                                   data = train, 
@@ -247,9 +281,9 @@ svmRadial_model
 
 
 ## III. Fit a Polynomial SVM kernel
-tuneGrid <- expand.grid(degree = 1:4,
-                        scale = 0.1,   # seq(0.1, 1, by = 0.1), 
-                        C = 0.1       # seq(0.1, 1, by = 0.1)
+tuneGrid <- expand.grid(degree = 1:8,
+                        scale = seq(0.25, 1, by = 0.25),   # seq(0.1, 1, by = 0.1), 
+                        C = seq(0.25, 1, by = 0.25)       # seq(0.1, 1, by = 0.1)
                         )
 
 svmTime3 <- system.time({
@@ -292,10 +326,14 @@ svmPoly_model
 ## Save Trained Models 
 #########################################
 # Save multiple objects
-save(file = "trained-models-listwise.RData",
+file_name <- paste0("../_trained-models/trained-models-", imputation_method, ".RData")
+save(file = file_name,
+     train,
+     test,
+     logit_model,
      lasso_model,
      lda_model,
-#     qda_model,
+     qda_model,
      knn_model,
      rf_model,
      svmLinear_model,
@@ -304,7 +342,7 @@ save(file = "trained-models-listwise.RData",
      )
 
 # To load the data again
-#load("data.RData")
+#load(file_name)
 
 #########################################
 ## Cleanup 
@@ -318,6 +356,9 @@ rm(trainIndex)
 rm(tuneGrid)
 rm(ctrl)
 
+## Parallel Computing
+stopCluster(clusters)  ## Stop the cluster
+registerDoSEQ() ## register the sequential backend
 rm(numCores)
 rm(clusters)
 
@@ -333,10 +374,9 @@ rm(svmLinear_model)
 rm(svmPoly_model)
 rm(svmRadial_model)
 
+rm(file_name)
 
-## Parallel Computing
-stopCluster(clusters)  ## Stop the cluster
-registerDoSEQ() ## register the sequential backend
+
 
 
 
