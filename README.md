@@ -172,5 +172,17 @@ Ran into some rank deficiency problems when training QDA on imputed datasets
 - [Multiple Imputation for Nonresponse in Surveys](https://books.google.co.uk/books?hl=en&lr=&id=bQBtw6rx_mUC&oi=fnd&pg=PR24&dq=+Multiple+Imputation+for+Nonresponse+in+Surveys&ots=8OtK8O2WhU&sig=JWLpVxM2VztZfhP2aQIQUiIZZZo&redir_esc=y#v=onepage&q=Multiple%20Imputation%20for%20Nonresponse%20in%20Surveys&f=false)
   - **Notes**: Rubin's Rules (pooling estimates)
   
-  
+- Khan, S. Shehroz and Ahmad, Amir and Mihailidis, Alex (2018)  Bootstrapping and Multiple Imputation Ensemble Approaches for Missing Data. 
+  - **Notes**: Good literature review on Multiple Imputation and ensembling results.  
+  - **Keywords**: Ensemble, Multiple Imputation, Bagging, Flow Chart, Classifier Fusion Techniques, Expectation Maximization
+
+- [Impact of imputation of missing values on classification error for discrete data](https://www.sciencedirect.com/science/article/pii/S003132030800201X#tbl1)
+  - **Notes**: Comparison of imputation methods.  Good write up on missing data and imputation methods.
+
+ - Barnard, J. and Rubin, D.B. (1999). Small sample degrees of freedom with multiple imputation. Biometrika, 86, 948-955.
+
+- Rubin, D.B. (1987). Multiple Imputation for Nonresponse in Surveys. New York: John Wiley and Sons.
+
+- van Buuren S and Groothuis-Oudshoorn K (2011). mice: Multivariate Imputation by Chained Equations in R. Journal of Statistical Software, 45(3), 1-67. https://www.jstatsoft.org/v45/i03/
+    - **Notes**: MICE package
 
