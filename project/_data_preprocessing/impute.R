@@ -91,6 +91,18 @@ data.df <- data.df %>%
   mutate(Gender = factor(Gender))
 
 
+
+#########################################
+## Missingness Analysis
+#########################################
+
+## Keeping everything else constant, variables with high influx and outflux are prefered.
+## Outflux - indicates the potential (and not actual) contribution to impute other variables. 
+round(flux(data.df), 3)
+
+## Vairables that are located higher up in the display are more complete and potentially more useful for imputation.
+fluxplot(data.df, labels = FALSE)
+
 #########################################
 ## Imputation 
 ## library("mice")
@@ -118,7 +130,7 @@ nrow(data.imputed.listwise.df) ## Check number of rows
 #########################################
 ## Median Imputation
 #########################################
-#data.imputed.median.df <- data.df %>%
+#data.imputed.median.df <- 
 
 
 ## Sanity Checks
@@ -130,9 +142,9 @@ nrow(data.imputed.listwise.df) ## Check number of rows
 
 
 #########################################
-## Mean Imputation
+## Predictive Mean Matching Imputation
 #########################################
-#data.imputed.knn.df <- data.df %>%
+data.imputed.mean_match.df <- mice(data.df, seed = 123, printFlag = FALSE)
 
 
 ## Sanity Checks

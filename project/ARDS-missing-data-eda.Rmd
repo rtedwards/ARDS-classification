@@ -47,7 +47,7 @@ library(VIM) # data imputation
 
 
 ```{r import_data, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
-data.raw.df <- read.csv(file = "../data/ARDSdata_reorder.csv", header = TRUE)
+data.raw.df <- read.csv(file = "data/ARDSdata_reorder.csv", header = TRUE)
 ```
 
 ```{r rename, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE, results="hide"}
@@ -325,6 +325,37 @@ dev.off()
 ```
 
 
+##Violinplot After Yeo Johnson Transformation
+
+- center
+- scale
+- YeoJohnson
+
+```{r violinplot, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:violin}Violin plot of continuous variables."}
+data_yeojohnson.df <- data.raw.df[, 5:ncol(data.raw.df)] %>%
+  preProcess(method = c("center", "scale", "YeoJohnson"))
+
+data_yeojohnson.df <- predict(data_yeojohnson.df, newdata = data.raw.df[, 5:ncol(data.raw.df)])
+
+data_yeojohnson.df %>%
+#  dplyr::select(5:ncol(data.raw.df)) %>% 
+  gather(key = Feature, value = Value) %>% 
+  ggplot(aes(x = Feature, y = Value, fill = Feature)) +
+    geom_violin(scale = "width", 
+                draw_quantiles = TRUE,
+                trim = TRUE,
+                show.legend = FALSE) +
+    geom_boxplot(width = 0.2,
+                 outlier.size = 0.5) +
+    xlab("Features") + 
+    ylab("Scaled Value") +
+    theme_bw() +
+    theme(plot.title = element_text(hjust = 0.5),
+          legend.position = "none",
+          axis.text.x = element_text(angle = 60, hjust = 1))  
+```
+
+
 ##Correlation Plot
 
 ```{r heatmap, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:cor}Correlation heatmap of contnuous variables."}
@@ -365,6 +396,23 @@ ggcorr(data_standard.df[, 1:ncol(data_standard.df)],
 dev.off()
 ```
 
+##Yeo Johnson Correlation Heatmap
+```{r heatmap-yeojohnson, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:cor}Correlation heatmap of contnuous variables."}
+# Correlation matrix plot
+ggcorr(data_yeojohnson.df, 
+       hjust = 0.95, 
+       size = 2, 
+       label = TRUE, 
+       label_size = 2, 
+       label_alpha = TRUE, 
+       layout.exp = 5, 
+       legend.position = "bottom", 
+       legend.size = 8) +
+  guides(fill = guide_colorbar(barwidth = 10, 
+                               barheight = 0.5, 
+                               title.vjust = 0.75)) 
+#  theme(  plot.margin = margin(1, 1, 1, 1, "cm") ) #top, right, bottom, left
+```
 
 ##Pairs Plot
 

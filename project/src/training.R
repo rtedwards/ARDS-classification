@@ -14,7 +14,7 @@ setwd("~/OneDrive - University of Glasgow/University of Glasgow/ARDS-classificat
 ## Run dependent files 
 #########################################
 source("../_settings/libraries.R")
-source("../_data_preprocessing/impute.R")
+source("../_data_preprocessing/preprocess.R")
 
 
 #########################################
@@ -32,8 +32,10 @@ registerDoParallel(clusters)
 #########################################
 ## Load Data
 #########################################
-ards <- read.csv(file = "../data/data-imputed-listwise.csv", header = TRUE)
-imputation_method <- "listwise"
+#ards <- read.csv(file = "../data/data-imputed-listwise.csv", header = TRUE)
+#imputation_method <- "listwise"
+#ards <- ards %>% 
+#  select(-"PreECMO_Albumin")
 
 #ards <- read.csv(file = "../data/data-imputed-median.csv", header = TRUE)
 #imputation_method <- "median"
@@ -41,20 +43,33 @@ imputation_method <- "listwise"
 #ards <- read.csv(file = "../data/data-imputed-knn.csv", header = TRUE)
 #imputation_method <- "knn"
 
-#ards <- read.csv(file = "../data/data-imputed-mice.csv", header = TRUE)
-#imputation_method <- "mice"
+ards <- read.csv(file = "../data/data-imputed-pmm10.csv", header = TRUE)
+imputation_method <- "pmm10"
 
-#ards <- ards %>% 
-#  select(-"PreECMO_Albumin")
+
 
 #########################################
 ## Data Splitting 
 #########################################
 set.seed(21)
-trainIndex <- createDataPartition(ards$ECMO_Survival, 
+trainIndex <- createDataPartition(ards$ECMO_Survival[1:450], 
                                   p = .8,      ## 75% data in training set
                                   list = FALSE, ## avoids returning data as a list
                                   times = 1)
+
+## set the same trainIndex across the m imputated datasets
+trainIndex <- rbind(trainIndex, 
+                    trainIndex+450, 
+                    trainIndex+(450*2), 
+                    trainIndex+(450*3), 
+                    trainIndex+(450*4),
+                    trainIndex+(450*5),
+                    trainIndex+(450*6),
+                    trainIndex+(450*7),
+                    trainIndex+(450*8),
+                    trainIndex+(450*9)
+                    )
+
 head(trainIndex)
 
 train <- ards[ trainIndex,]
@@ -84,16 +99,19 @@ trControl <- caret::trainControl(
 )
 
 ## How is the data preprocessed?
-preProcess <- c("center",    # mean centered
-               "scale",      # sd = 1
-               "YeoJohnson", # Trnasform variables
-               "corr"        # remove correlated variables
-               )
+# preProcess <- c("center",    # mean centered
+#                "scale",      # sd = 1
+#                "YeoJohnson", # Trnasform variables
+#                "corr"        # remove correlated variables
+#                )
 
 ## Model evaluation metric
 metric <- "ROC"
 #metric <- "Accuracy"
 
+## Create a variable to store training times
+training_times <- list()
+colnames(training_times) <- c("logit", "LASSO", "LDA", "QDA", "KNN", "RF", "svmLinear", "svmRadial", "svmPoly")
 
 
 #########################################
@@ -102,19 +120,19 @@ metric <- "ROC"
 tuneGrid = expand.grid(alpha = 1,   ## LASSO regularization
                        lambda = 0)  ## No regularization
 
-logit_time <- system.time({
+training_times[1] <- system.time({
 logit_model <- caret::train(ECMO_Survival ~ ., 
                             data = train, 
                             method = "glmnet", 
                             metric = metric,
                             trControl = trControl, 
-                            preProcess = preProcess,
+#                            preProcess = preProcess,
                             family = "binomial",
                             tuneGrid = tuneGrid
 #                            tuneLength = 10
                             )
 })[3]
-logit_time
+training_times[1]
 logit_model
 
 
@@ -129,39 +147,33 @@ set.seed(21)
 tuneGrid = expand.grid(alpha = 1, ## LASSO regularization
                        lambda = seq(0.001,0.1,by = 0.001))
 
-ptime <- system.time({
+training_times[2] <- system.time({
 lasso_model <- caret::train(ECMO_Survival ~ ., 
                             data = train, 
                             method = "glmnet", 
                             metric = metric,
                             trControl = trControl, 
-                            preProcess = preProcess,
+#                            preProcess = preProcess,
                             family = "binomial",
                             tuneGrid = tuneGrid)
 })[3]
-ptime
+training_times[2]
 lasso_model
-
-## Plot LogLambda
-# oldpar <- par(no.readonly=TRUE)
-# par(mfrow=c(1, 2))
-# 
-# plot(lasso_cv_model, xvar="lambda", label = TRUE)
-# plot(lasso_cv_model$results, main="LASSO") # alpha = 1
-# par(oldpar)
-
 
 
 #########################################
 ## Linear Discriminant Analysis
 #########################################
 set.seed(21)
+training_times[3] <- system.time({
 lda_model <- caret::train(ECMO_Survival ~ ., 
                           data = train,
                           method = "lda", 
                           metric = metric,
-                          preProcess = preProcess,
+#                          preProcess = preProcess,
                           trControl = trControl)
+})[3]
+training_times[3]
 lda_model
 
 
@@ -170,12 +182,16 @@ lda_model
 ## "Rank deficiency in group N" https://stats.stackexchange.com/questions/35071/what-is-rank-deficiency-and-how-to-deal-with-it
 #########################################
 set.seed(21)
+training_times[4] <- system.time({
 qda_model <- caret::train(ECMO_Survival ~ ., 
                           data = train, 
                           method = "qda", 
                           metric = metric,
-                          preProcess = preProcess,
+#                          preProcess = preProcess,
+                          preProcess = c("corr"),
                           trControl = trControl)
+})[3]
+training_times[4]
 qda_model
 
 
@@ -198,12 +214,12 @@ knn_model <- caret::train(ECMO_Survival ~ .,
                           data = train, 
                           method = "kknn", 
                           metric = metric,
-                          preProcess = preProcess,
+#                          preProcess = preProcess,
                           trControl = trControl,
-                          tuneGrid = tuneGrid,
+                          tuneGrid = tuneGrid
                           )
 })[3]
-ptime
+training_times[5]
 knn_model
 
 ggplot(knn_model)
@@ -225,14 +241,14 @@ rf_model <- caret::train(ECMO_Survival ~ .,
                          data = train, 
                          method = "rf", 
                          metric = metric,
-                         preProcess = preProcess,
+#                         preProcess = preProcess,
                          trControl = trControl,
                          tuneGrid = tuneGrid,
-                         ntree = 1000, 
-                         tuneLength = 10
+                         ntree = 1000 
+#                         tuneLength = 10
                           )
 })[3]
-ptime
+training_times[6]
 rf_model
 
 
@@ -243,47 +259,47 @@ rf_model
 set.seed(21)
 
 ## I. Fit a Linear SVM kernel
-tuneGrid <- expand.grid(C = seq(0.25, 1, by = 0.25))
+tuneGrid <- expand.grid(C = seq(0.2, 1, by = 0.2))
 
 svmTime1 <- system.time({
 svmLinear_model <- caret::train(ECMO_Survival ~ ., 
                          data = train, 
                          method = "svmLinear", 
                          metric = metric,
-                         preProcess = preProcess,
+#                         preProcess = preProcess,
                          trControl = trControl,
-                         tuneGrid = tuneGrid,
-                         tuneLength = 10
+                         tuneGrid = tuneGrid
+#                         tuneLength = 10
                          )
 })[3]
-svmTime1
+training_times[7]
 svmLinear_model
 
 
 
 ## II. Fit a Radial SVM kernel
-tuneGrid <- expand.grid(sigma = seq(0.25, 1, by = 0.25), 
-                        C = seq(0.25, 1, by = 0.25))
+tuneGrid <- expand.grid(sigma = seq(0.2, 1, by = 0.2), 
+                        C = seq(0.2, 1, by = 0.2))
 svmTime2 <- system.time({
   svmRadial_model <- caret::train(ECMO_Survival ~ ., 
                                   data = train, 
                                   method = "svmRadial", 
                                   metric = metric,
-                                  preProcess = preProcess,
+#                                  preProcess = preProcess,
                                   trControl = trControl,
-                                  tuneGrid = tuneGrid,
-                                  tuneLength = 10)
+                                  tuneGrid = tuneGrid
+#                                  tuneLength = 10
+                                )
 })[3]
-svmTime2
-
+training_times[8]
 svmRadial_model
 
 
 
 ## III. Fit a Polynomial SVM kernel
-tuneGrid <- expand.grid(degree = 1:8,
-                        scale = seq(0.25, 1, by = 0.25),   # seq(0.1, 1, by = 0.1), 
-                        C = seq(0.25, 1, by = 0.25)       # seq(0.1, 1, by = 0.1)
+tuneGrid <- expand.grid(degree = 1:4,
+                        scale = seq(0.2, 1, by = 0.2),   # seq(0.1, 1, by = 0.1), 
+                        C = seq(0.2, 1, by = 0.2)       # seq(0.1, 1, by = 0.1)
                         )
 
 svmTime3 <- system.time({
@@ -291,13 +307,13 @@ svmPoly_model <- caret::train(ECMO_Survival ~ .,
                                 data = train, 
                                 method = "svmPoly", 
                                 metric = metric,
-                                preProcess = preProcess,
+#                                preProcess = preProcess,
                                 trControl = trControl,
-                                tuneGrid = tuneGrid,
-                                tuneLength = 10
+                                tuneGrid = tuneGrid
+#                                tuneLength = 10
                               )
 })[3]
-svmTime3
+training_times[9]
 svmPoly_model
 
 
@@ -330,6 +346,7 @@ file_name <- paste0("../_trained-models/trained-models-", imputation_method, ".R
 save(file = file_name,
      train,
      test,
+     training_times,
      logit_model,
      lasso_model,
      lda_model,

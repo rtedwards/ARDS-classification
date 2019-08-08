@@ -22,6 +22,9 @@ setwd("~/OneDrive - University of Glasgow/University of Glasgow/ARDS-classificat
 ## Load Data
 #########################################
 load("../_trained-models/trained-models-listwise.RData")
+load("../_trained-models/trained-models-median.RData")
+load("../_trained-models/trained-models-mean.RData")
+load("../_trained-models/trained-models-pmm.RData")
 
 models <- list( logit = logit_model,
                 lasso = lasso_model,
@@ -81,26 +84,6 @@ svmPoly_table <- confusionMatrix(data = svmPoly_pred, reference = test$ECMO_Surv
 #########################################
 ## ROC Plot 
 #########################################
-library(ggplot2)
-library(plotROC)
-
-# Select a parameter setting
-selectedIndices <- rf_model$pred$mtry == 2
-ggplot(rf_model$pred[selectedIndices, ], 
-       aes(m = M, d = factor(ECMO_Survival, levels = c("Y", "N")))) + 
-  geom_roc(hjust = -0.4, vjust = 1.5) + coord_equal()
-
-
-g <- ggplot(lasso_model$pred[lasso_model$bestTune$lambda ], 
-            aes(m = M, d = factor(obs, levels = c("Y", "N")))
-            ) + 
-  geom_roc(n.cuts=0) + 
-  coord_equal() +
-  style_roc()
-
-g + annotate("text", x=0.75, y=0.25, label=paste("AUC =", round((calc_auc(g))$AUC, 4)))
-
-
 
 testROC <- function(model, data) {
   library(pROC)
@@ -130,6 +113,77 @@ plot(svmLinear_roc, add = TRUE, col = "purple")
 plot(svmRadial_roc, add = TRUE, col = "brown")
 plot(svmPoly_roc, add = TRUE, col = "black")
 
+
+specificities <- as.data.frame(cbind(logit_roc$specificities,
+                       lasso_roc$specificities,
+                       lda_roc$specificities,
+                       qda_roc$specificities,
+                       knn_roc$specificities,
+                       rf_roc$specificities,
+                       svmLinear_roc$specificities,
+                       svmRadial_roc$specificities,
+                       svmPoly_roc$specificities
+                       ))
+colnames(specificities) <- cbind("Logit", 
+                              "LASSO",
+                              "LDA",
+                              "QDA",
+                              "KNN",
+                              "RF",
+                              "svmLinear",
+                              "svmRadial",
+                              "svmPoly"
+                              )
+sensitivities <- as.data.frame(cbind(logit_roc$sensitivities,
+                       lasso_roc$sensitivities,
+                       lda_roc$sensitivities,
+                       qda_roc$sensitivities,
+                       knn_roc$sensitivities,
+                       rf_roc$sensitivities,
+                       svmLinear_roc$sensitivities,
+                       svmRadial_roc$sensitivities,
+                       svmPoly_roc$sensitivities
+                       ))
+colnames(sensitivities) <- cbind("Logit", 
+                              "LASSO",
+                              "LDA",
+                              "QDA",
+                              "KNN",
+                              "RF",
+                              "svmLinear",
+                              "svmRadial",
+                              "svmPoly"
+                              )
+
+specificities <- specificities %>%
+  gather(model, specificity, factor_key = TRUE)
+
+sensitivities <- sensitivities %>%
+  gather(model, sensitivity, factor_key = TRUE)
+
+roc_df <- cbind(specificities, sensitivities[, 2])
+colnames(roc_df) <- c("model", "specificity", "sensitivity")
+
+
+library(ggplot2)
+library(plotROC)
+
+# Select a parameter setting
+selectedIndices <- rf_model$pred$mtry == 2
+ggplot(rf_model$pred[selectedIndices, ], 
+       aes(m = M, d = factor(ECMO_Survival, levels = c("Y", "N")))) + 
+  geom_roc(hjust = -0.4, vjust = 1.5) + coord_equal()
+
+
+roc_df %>% 
+  group_by(model) %>%
+  ggplot() + 
+  aes(specificity, sensitivity) + 
+  geom_roc(n.cuts=0) + 
+  coord_equal() +
+  style_roc()
+
+g + annotate("text", x=0.75, y=0.25, label=paste("AUC =", round((calc_auc(g))$AUC, 4)))
 
 #########################################
 ## Model Comparison 
