@@ -128,7 +128,11 @@ Ran into some rank deficiency problems when training QDA on imputed datasets
 ## Tuning Parameters 📻
 
 - [Tune ML Algorithms in R](https://machinelearningmastery.com/tune-machine-learning-algorithms-in-r/)
-
+- [Accuracy Metrics in caret](https://machinelearningmastery.com/machine-learning-evaluation-metrics-in-r/)
+  - Accuracy & Cohen's Kappa - Kappa good for imbalanced datasets
+  - ROC & AUC - Good for binary outcome
+  - RMSE & R^2 - Good for continuous outcome
+  - Logarithmic Loss - Good for multilevel outcome.  A linear translation of the log likelihood for a binary outcome model (Bernoulli trials).
 
 # V. To-Do
 
