@@ -79,6 +79,9 @@ implemented to inspect the quality of the imputations.
 ## Logistic Regression + LASSO Regularization
 ### References
 
+- [Regression Shrinkage and Selection via the Lasso (Tibshirani, 1996)(Tibshirani, Robert (1996). "Regression Shrinkage and Selection via the lasso". Journal of the Royal Statistical Society. )
+
+
 ## Linear Discriminant Analysis
 ### References
 ### Vignettes 🎻
