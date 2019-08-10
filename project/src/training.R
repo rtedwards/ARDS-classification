@@ -40,11 +40,11 @@ registerDoParallel(clusters)
 #ards <- read.csv(file = "../data/data-imputed-median.csv", header = TRUE)
 #imputation_method <- "median"
 
-#ards <- read.csv(file = "../data/data-imputed-knn.csv", header = TRUE)
-#imputation_method <- "knn"
+ards <- read.csv(file = "../data/data-imputed-pmm5.csv", header = TRUE)
+imputation_method <- "pmm5"
 
-ards <- read.csv(file = "../data/data-imputed-pmm10.csv", header = TRUE)
-imputation_method <- "pmm10"
+#ards <- read.csv(file = "../data/data-imputed-pmm10.csv", header = TRUE)
+#imputation_method <- "pmm10"
 
 
 
@@ -371,7 +371,8 @@ rm(train)
 rm(test)
 rm(trainIndex)
 rm(tuneGrid)
-rm(ctrl)
+rm(trControl)
+rm(training_times)
 
 ## Parallel Computing
 stopCluster(clusters)  ## Stop the cluster
@@ -382,6 +383,7 @@ rm(clusters)
 rm(CV_folds)
 rm(tuneGrid)
 
+rm(logit_model)
 rm(lasso_model)
 rm(lda_model)
 rm(qda_model)

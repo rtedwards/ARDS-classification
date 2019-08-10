@@ -144,17 +144,33 @@ nrow(data.imputed.listwise.df) ## Check number of rows
 #########################################
 ## Predictive Mean Matching Imputation
 #########################################
-data.imputed.mean_match.df <- mice(data.df, seed = 123, printFlag = FALSE)
+imputed.pmm <- mice(data.df, meth = "pmm", m = 10, maxit = 20, seed = 123, printFlag = FALSE)
 
 
 ## Sanity Checks
-# colMeans(data.imputed.knn.df[, 4:ncol(data.imputed.knn.df)]) ## Check that we get mean of 0
-# apply(data.imputed.knn.df[, 4:ncol(data.imputed.knn.df)], 2, sd) ## Check that we get sd of 1
-# sum(is.na(data.imputed.knn.df)) ## Check for any missing observations
-# nrow(data.imputed.knn.df) ## Check number of rows
+## https://www.r-bloggers.com/imputing-missing-data-with-r-mice-package/
+imputed.pmm$method ## imputation method on each variable
 
 
+## Check if variables have converged
+plot(imputed.pmm)
 
+## Compare distributions of original and imputed data
+xyplot(imputed.pmm, PreECMO_Albumin ~ PreECMO_RR+PreECMO_Ppeak+PreECMO_Pmean+PreECMO_PEEP+PreECMO_Bilirubin+PreECMO_Ddimer+PreECMO_ATIII+PreECMO_Leukocytes, pch=18, cex=.5)
+
+xyplot(imputed.pmm, PreECMO_Albumin ~ PreECMO_Vt+PreECMO_CRP+PreECMO_Fibrinogen+PreECMO_TNFa, pch=18, cex=.5)
+
+xyplot(imputed.pmm, PreECMO_Albumin ~ PreECMO_IL8+PreECMO_siIL2, pch=18, cex=.5)
+
+
+densityplot(imputed.pmm)
+stripplot(imputed.pmm, pch = c(1, 20), cex = 0.5)
+
+modelFit1 <- with(imputed.pmm, glm(ECMO_Survival ~ PreECMO_RR+PreECMO_Ppeak+PreECMO_Pmean+PreECMO_PEEP+PreECMO_Bilirubin+PreECMO_Ddimer+PreECMO_ATIII+PreECMO_Leukocytes+PreECMO_Vt+PreECMO_CRP+PreECMO_Fibrinogen+PreECMO_TNFa+PreECMO_IL8+PreECMO_siIL2, family = "binomial"))
+summary(pool(modelFit1))
+
+
+data.imputed.pmm.df <- complete(imputed.pmm, action = "all")
 #########################################
 ## KNN Imputation
 #########################################
@@ -176,8 +192,8 @@ write.csv(data.imputed.listwise.df, "../data/data-imputed-listwise.csv",
           row.names=FALSE)
 #write.csv(data.imputed.median.df, "../data/data-imputed-median.csv",
 #          row.names=FALSE)
-#write.csv(data.imputed.knn.df, "../data/data-imputed-knn.csv",
-#          row.names=FALSE)
+write.csv(data.imputed.pmm.df, "../data/data-imputed-pmm.csv",
+          row.names=FALSE)
 #write.csv(data.imputed.mice.df, "../data/data-imputed-mice.csv",
 #          row.names=FALSE)
 

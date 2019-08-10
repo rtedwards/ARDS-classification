@@ -11,19 +11,18 @@ setwd("~/OneDrive - University of Glasgow/University of Glasgow/ARDS-classificat
 
 #########################################
 ## Config 
-library(config)
-config <- config::get()
+#config <- config::get()
 
 #source("_settings/functions.R")
 #load_libraries(config$settings$libraries)
 #load_sources(config$settings$sources)
-
 #datasets <- load_datasets(config$settings$data_folder)
+#
 #########################################
 
 #########################################
 ## Load theme 
-source("../_settings/theme.R")
+#source("../_settings/theme.R")
 #########################################
 
 
@@ -108,9 +107,9 @@ data.clean.df <- data.df %>%
   drop_na()  # drop rows with missing obs
 
 
-## Listwise Deletion
+## Complete Case (Listwise)
 set.seed(123)
-data.imputed.listwise.df <- data.clean.df %>%
+data.imputed.complete.case.df <- data.clean.df %>%
   preProcess( method = c("center", 
                          "scale",
                          "YeoJohnson"  ## Transformation method
@@ -118,10 +117,10 @@ data.imputed.listwise.df <- data.clean.df %>%
   predict(data.clean.df) ## Generate new dataframe
 
 ## Sanity Checks
-colMeans(data.imputed.listwise.df[, 4:ncol(data.imputed.listwise.df)]) ## Check that we get mean of 0
-apply(data.imputed.listwise.df[, 4:ncol(data.imputed.listwise.df)], 2, sd) ## Check that we get sd of 1
-sum(is.na(data.imputed.listwise.df)) ## Check for any missing observations
-nrow(data.imputed.listwise.df) ## Check number of rows
+colMeans(data.imputed.complete.case.df[, 4:ncol(data.imputed.complete.case.df)]) ## Check that we get mean of 0
+apply(data.imputed.complete.case.df[, 4:ncol(data.imputed.complete.case.df)], 2, sd) ## Check that we get sd of 1
+sum(is.na(data.imputed.complete.case.df)) ## Check for any missing observations
+nrow(data.imputed.complete.case.df) ## Check number of rows
 
 
 
@@ -142,25 +141,8 @@ nrow(data.imputed.median.df) ## Check number of rows
 
 
 
-## KNN Imputation
-set.seed(123)
-data.imputed.knn.df <- data.df %>%
-  preProcess( method = c("center", 
-                         "scale", 
-                         "YeoJohnson",  ## Transformation method
-                         "knnImpute"),
-              k = 5) %>%
-  predict(data.df) ## Generate new dataframe
-
-## Sanity Checks
-colMeans(data.imputed.knn.df[, 4:ncol(data.imputed.knn.df)]) ## Check that we get mean of 0
-apply(data.imputed.knn.df[, 4:ncol(data.imputed.knn.df)], 2, sd) ## Check that we get sd of 1
-sum(is.na(data.imputed.knn.df)) ## Check for any missing observations
-nrow(data.imputed.knn.df) ## Check number of rows
-
-
 #########################################
-## Predictive Mean Matching Imputation
+## (5) Predictive Mean Matching Imputation 
 #########################################
 set.seed(123)
 data.preprocess.df <- data.df %>%
@@ -171,48 +153,71 @@ data.preprocess.df <- data.df %>%
             ) %>%
   predict(data.df) ## Generate new dataframe
               
-imputed.pmm <- mice(data.preprocess.df, meth = "pmm", m = 10, maxit = 20, seed = 123, printFlag = FALSE)
-data.imputed.pmm.df <- complete(imputed.pmm, action = "stacked")
+imputed.pmm5 <- mice(data.preprocess.df, meth = "pmm", m = 5, maxit = 20, seed = 123, printFlag = FALSE)
+data.imputed.pmm5.df <- complete(imputed.pmm5, action = "stacked")
 
 
 ## Sanity Checks
 ## https://www.r-bloggers.com/imputing-missing-data-with-r-mice-package/
-imputed.pmm$method ## imputation method on each variable
+imputed.pmm5$method ## imputation method on each variable
 
 
 ## Check if variables have converged
-plot(imputed.pmm)
+plot(imputed.pmm5)
 
 ## Compare distributions of original and imputed data
-xyplot(imputed.pmm, PreECMO_Albumin ~ PreECMO_RR+PreECMO_Ppeak+PreECMO_Pmean+PreECMO_PEEP+PreECMO_Bilirubin+PreECMO_Ddimer+PreECMO_ATIII+PreECMO_Leukocytes, pch=18, cex=.5)
+xyplot(imputed.pmm5, PreECMO_Albumin ~ PreECMO_RR+PreECMO_Ppeak+PreECMO_Pmean+PreECMO_PEEP+PreECMO_Bilirubin+PreECMO_Ddimer+PreECMO_ATIII+PreECMO_Leukocytes, pch=18, cex=.5)
+xyplot(imputed.pmm5, PreECMO_Albumin ~ PreECMO_Vt+PreECMO_CRP+PreECMO_Fibrinogen+PreECMO_TNFa, pch=18, cex=.5)
+xyplot(imputed.pmm5, PreECMO_Albumin ~ PreECMO_IL8+PreECMO_siIL2, pch=18, cex=.5)
 
-xyplot(imputed.pmm, PreECMO_Albumin ~ PreECMO_Vt+PreECMO_CRP+PreECMO_Fibrinogen+PreECMO_TNFa, pch=18, cex=.5)
-
-xyplot(imputed.pmm, PreECMO_Albumin ~ PreECMO_IL8+PreECMO_siIL2, pch=18, cex=.5)
-
-
-densityplot(imputed.pmm)
-stripplot(imputed.pmm, pch = c(1, 20), cex = 0.5)
-
-modelFit1 <- with(imputed.pmm, glm(ECMO_Survival ~ PreECMO_RR+PreECMO_Ppeak+PreECMO_Pmean+PreECMO_PEEP+PreECMO_Bilirubin+PreECMO_Ddimer+PreECMO_ATIII+PreECMO_Leukocytes+PreECMO_Vt+PreECMO_CRP+PreECMO_Fibrinogen+PreECMO_TNFa+PreECMO_IL8+PreECMO_siIL2, family = "binomial"))
-summary(pool(modelFit1))
+densityplot(imputed.pmm5)
+stripplot(imputed.pmm5, pch = c(1, 20), cex = 0.5)
 
 
+#########################################
+## (10) Predictive Mean Matching Imputation 
+#########################################
+set.seed(123)
+data.preprocess.df <- data.df %>%
+  preProcess( method = c("center", 
+                         "scale", 
+                         "YeoJohnson"
+  )
+  ) %>%
+  predict(data.df) ## Generate new dataframe
+
+imputed.pmm10 <- mice(data.preprocess.df, meth = "pmm", m = 10, maxit = 20, seed = 123, printFlag = FALSE)
+data.imputed.pmm10.df <- complete(imputed.pmm10, action = "stacked")
+
+
+## Sanity Checks
+## https://www.r-bloggers.com/imputing-missing-data-with-r-mice-package/
+imputed.pmm10$method ## imputation method on each variable
+
+
+## Check if variables have converged
+plot(imputed.pmm10)
+
+## Compare distributions of original and imputed data
+xyplot(imputed.pmm10, PreECMO_Albumin ~ PreECMO_RR+PreECMO_Ppeak+PreECMO_Pmean+PreECMO_PEEP+PreECMO_Bilirubin+PreECMO_Ddimer+PreECMO_ATIII+PreECMO_Leukocytes, pch=18, cex=.5)
+xyplot(imputed.pmm10, PreECMO_Albumin ~ PreECMO_Vt+PreECMO_CRP+PreECMO_Fibrinogen+PreECMO_TNFa, pch=18, cex=.5)
+xyplot(imputed.pmm10, PreECMO_Albumin ~ PreECMO_IL8+PreECMO_siIL2, pch=18, cex=.5)
+
+densityplot(imputed.pmm10)
+stripplot(imputed.pmm10, pch = c(1, 20), cex = 0.5)
 
 
 
 #########################################
 ## Save Datasets
 #########################################
-write.csv(data.imputed.listwise.df, "../data/data-imputed-listwise.csv",
+write.csv(data.imputed.complete.case.df, "../data/data-imputed-complete-case.csv",
           row.names=FALSE)
 write.csv(data.imputed.median.df, "../data/data-imputed-median.csv",
           row.names=FALSE)
-write.csv(data.imputed.knn.df, "../data/data-imputed-knn.csv",
+write.csv(data.imputed.pmm5.df, "../data/data-imputed-pmm5.csv",
           row.names=FALSE)
-write.csv(data.imputed.pmm.df, "../data/data-imputed-pmm5.csv",
-          row.names=FALSE)
-write.csv(data.imputed.pmm.df, "../data/data-imputed-pmm10.csv",
+write.csv(data.imputed.pmm10.df, "../data/data-imputed-pmm10.csv",
           row.names=FALSE)
 
 
@@ -222,10 +227,13 @@ write.csv(data.imputed.pmm.df, "../data/data-imputed-pmm10.csv",
 rm(data.raw.df)
 rm(data.df)
 rm(data.clean.df)
-rm(data.categorical.df)
+rm(data.preprocess.df)
 rm(data.continuous.df)
-rm(data.imputed.listwise.df)
+rm(data.imputed.complete.case.df)
 rm(data.imputed.median.df)
 rm(data.imputed.knn.df)
-rm(data.imputed.pmm.df)
+rm(imputed.pmm5)
+rm(data.imputed.pmm5.df)
+rm(imputed.pmm10)
+rm(data.imputed.pmm10.df)
 

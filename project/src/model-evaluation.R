@@ -24,7 +24,7 @@ setwd("~/OneDrive - University of Glasgow/University of Glasgow/ARDS-classificat
 load("../_trained-models/trained-models-listwise.RData")
 load("../_trained-models/trained-models-median.RData")
 load("../_trained-models/trained-models-mean.RData")
-load("../_trained-models/trained-models-pmm.RData")
+load("../_trained-models/trained-models-pmm10.RData")
 
 models <- list( logit = logit_model,
                 lasso = lasso_model,
