@@ -1,6 +1,6 @@
 
 ####################################################
-## Imputation
+## imputeData()
 ####################################################
 imputeData <- function(train, test, method, m, maxit = 10, seed = 123) {
 
@@ -42,34 +42,175 @@ imputeData <- function(train, test, method, m, maxit = 10, seed = 123) {
       slice(-1:-nrow(train.imputed.df))         # select only the rows that are the test set
   }
   
+  
   return(list(train.imputed.df, test.imputed.df))
 }
 
 
-
-validate <- function(models, test) {
-  ## Each trained model is validated against each imputed test set
-  ## The prediction of each trained model is the majority vote of the combined test sets
-  ## The  
+#########################################
+## validate()
+#########################################
+validate <- function(model, tests, obs) {
+  ## The model is validated against each imputed test set
+  ## The prediction is the majority vote of the combined test sets
+  ## We can validate against any of the m test sets because the outcome has 0% missingness
   
   pred <- list()
-  vote = list()
-  
-  for (i in 1:length(models)) {
-    ## For each model trained
-    for (j in 1:length(test)) {
-      ## Validate against each imputed test dataset
-      pred[[j]] <- predict(models[i], test[j], type = "raw")
-    }
-    
-    ## Create a n x m dataframe of predictions for each model fit
-    pred.df <- as.data.frame(as.data.frame(pred))
-    colnames(pred.df) <- NULL  # strip colnames
-    vote_Y <- rowSums( as.matrix(pred.df) == "Y" ) # Sum number of "Y" in across test sets for each case
-    vote_N <- rowSums( as.matrix(pred.df) == "N" ) # Sum number of "Y" in across test sets for each case
-    
-    vote[i] <- factor(ifelse( vote_Y > vote_N, "Y", "N"))
-  
+  for (i in 1:length(tests)) {
+    ## Validate against each imputed test dataset
+    pred[[i]] <- predict(model, tests[i], type = "raw")
   }
   
+  ## Vote for final predictions
+  vote <- vote(pred)
+
+  ## Calculate accuracy metrics
+  model$sensitivity <- sensitivity(vote, obs)
+  model$specificity <- specificity(vote, obs)
+  
+  ## Create dataframe of predictions and observations to validate
+  validation <- cbind( as.data.frame(vote), obs )
+  colnames(validation) <- c("pred", "obs")
+  
+  validation <- validation %>%  ## Change variables to factors
+    mutate(pred = factor(pred)) %>%
+    mutate(obs = factor(obs))
+  
+  ## Create confusion matrix with "N" taken as the positive level (event = death)
+  xtab <- confusionMatrix(data = validation$pred, reference = validation$obs, positive = "N" )
+  
+  ## Extract kappa for use as accuracy metric in cross-validation
+  kappa <- xtab$overall[[2]]
+  
+  return(kappa)
+} ## end validate()
+
+
+#########################################
+## vote()
+#########################################
+vote <- function(predictions) {
+  ## Takes a list of multiple predictions and tallys votes (across rows) for the 
+  ## final prediction used. 
+
+  ## Create a n x m dataframe of predictions for each model fit
+  predictions.df <- as.data.frame(as.data.frame(predictions))
+  colnames(predictions.df) <- NULL  # strip colnames
+  
+  vote_Y <- rowSums( as.matrix(predictions.df) == "Y" ) # Sum number of "Y" in across test sets for each case
+  vote_N <- rowSums( as.matrix(predictions.df) == "N" ) # Sum number of "Y" in across test sets for each case
+  
+  final_vote <- factor(ifelse( vote_Y > vote_N, "Y", "N"))
+  
+  return(final_vote)
+} ## end vote()
+
+
+
+#########################################
+## fitModel()
+#########################################
+fitModel <- function(train, response, settings) {
+  ## Call the caret::train() method here because Imputation needs to happen during 
+  ## Cross-Validation.  This function allows for fitting a new model on each 
+  ## k-validation set during CV. 
+  
+  set.seed(settings$seed)
+  
+  if (settings$method == "glmnet") {
+    ## Used for Logit and LASSO models
+    fit_model <- caret::train(response ~ ., 
+                 data = train, 
+                 method = settings$method, 
+                 metric = settings$metric,
+                 trControl = settings$trControl, 
+                 family = "binomial",
+                 tuneGrid = settings$tuneGrid
+                 )
+    return(fit_model)
+  } ## end if
+  
+  if (settings$method == "lda") {
+    fit_model <- caret::train(reponse ~ ., 
+                 data = train,
+                 method = settings$method, 
+                 metric = settings$metric,
+                 trControl = settings$trControl)
+    return(fit_model)
+  } ## end if
+  
+  if (settings$method == "qda") {
+    fit_model <- caret::train(response ~ ., 
+                              data = train,
+                              method = settings$method, 
+                              metric = settings$metric,
+                              trControl = trControl)
+    return(fit_model)
+  } ## end if
+  
+  if (settings$method == "kknn") {
+    fit_model <- caret::train(response ~ ., 
+                              data = train,
+                              method = settings$method, 
+                              metric = metric,
+                              trControl = trControl)
+    return(fit_model)
+  } ## end if
+  
+  if (settings$method == "rf") {
+    fit_model <- caret::train(response ~ ., 
+                              data = train,
+                              method = settings$method, 
+                              metric = settings$metric,
+                              trControl = settings$trControl)
+    return(fit_model)
+  } ## end if
+  
+} ## end fitModel
+
+
+#########################################
+## crossValidate()
+#########################################
+crossValidate <- function(data, K, settings) {
+  ## Will split training set into K folds and 
+  
+  ## Create K-folds
+  folds <- caret::createFolds(data$ECMO_Survival, K)
+  
+  ## Create K Train and Test sets using the generated folds
+  test_cv <- lapply(folds, function(ind, dat) dat[ind,], dat = data)
+  train_cv <- lapply(folds, function(ind, dat) dat[-ind,], dat = data)
+  
+  
 }
+
+folds <- caret::createFolds(train$ECMO_Survival, k = 10)
+test.cv <- lapply(folds, function(ind, dat) dat[ind,], dat = train)
+train.cv <- lapply(folds, function(ind, dat) dat[-ind,], dat = train)
+
+unlist(lapply(train.cv, ncol))
+
+
+
+## List of settings to pass through to caret::train()
+settings <- list()
+settings$method <- "lda"
+settings$trControl <- trControl
+settings$tuneGrid  <- tuneGrid
+settings$preProcess <- preProcess
+settings$metric <- "kappa"
+settings$seed <- 123
+
+
+#########################################
+## Testing Area
+#########################################
+kappa <- data.frame(Kappa=double()) ## create empty dataframe
+kappa[1, ] <- validate(logit_model[[1]], test.impute.df, test.impute.df[[1]]$ECMO_Survival)
+kappa[2, ] <- validate(lda_model[[1]], test.impute.df, test.impute.df[[1]]$ECMO_Survival)
+kappa[3, ] <- validate(qda_model[[1]], test.impute.df, test.impute.df[[1]]$ECMO_Survival)
+
+
+
+

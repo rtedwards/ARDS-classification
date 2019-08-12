@@ -54,10 +54,10 @@ set.seed(123)
 
 ## K-Fold Cross Validation
 trControl <- caret::trainControl(
-  method = "none",
-#  method = "repeatedcv",  # repeated K-fold cross-validation
-#  number = 10,             # k = 5
-#  repeats = 10,           # repeat 10 times
+#  method = "none",
+  method = "repeatedcv",  # repeated K-fold cross-validation
+  number = 10,             # k = 5
+  repeats = 10,           # repeat 10 times
   returnResamp = "all",
   classProbs = TRUE,      # Should be TRUE if metric = "ROC" Can skip if metric = "Kappa"
   savePredictions = TRUE,

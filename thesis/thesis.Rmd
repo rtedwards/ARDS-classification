@@ -1,0 +1,132 @@
+
+---
+title: "Multiple Imputation and Cross-Validation for Classification of Survival Prediction"
+
+thesis: MASTER THESIS
+major: Biostatistics
+output:
+  pdf_document:
+    citation_package: natbib
+    number_sections: yes
+    fig_caption: yes
+#    toc: true
+    toc_depth: 2
+  latex_engine: xelatex
+  includes:
+#    in_header: title.tex
+    before_body: before_body.tex
+#    after_body: latex/after_body.tex
+
+
+mainfont: Calibri Light
+fontsize: 12pt
+geometry: "left=3cm,right=3cm,top=3cm,bottom=3cm"
+
+# bibliography: MasterOfCellTypes.bib
+# fontsize: 11
+# csl: chicago-author-date.csl
+# csl: nature.csl
+
+
+header-includes: 
+  \usepackage[bottom]{footmisc}
+  \usepackage{float}
+  \floatplacement{figure}{H}
+  \usepackage{color}
+  \usepackage{xcolor}
+---
+
+```{r setup, include=FALSE, echo = FALSE, eval = TRUE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE, comment = NA, fig.pos='H', cache=TRUE)
+options()
+```
+
+```{r libraries, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+library(ggplot2)
+library(dplyr)
+library(skimr)
+library(tidyr)
+library(kableExtra)
+library(gridExtra)
+library(xtable)
+library(knitr)
+library(glmnet)
+```
+
+
+\vspace{2cm}
+\begin{center}
+Robert Edwards 
+
+\vspace{0.125cm}
+(2416963E)
+
+
+\vspace{1cm}
+MASTER THESIS 
+
+\vspace{0.125cm}
+Biostatistics
+
+\vspace{10cm}
+  \includegraphics[height = 1.5cm]{images/GUlogo.png}
+\end{center}
+
+
+\newpage 
+\tableofcontents
+\listoffigures
+\listoftables
+\newpage
+
+\newpage
+#Introduction
+
+
+\newpage
+#Basic Statistical Methods
+
+## Accuracy and Kappa
+
+These are the default metrics used to evaluate algorithms on binary and multi-class classification datasets in caret.
+
+Accuracy is the percentage of correctly classifies instances out of all instances. It is more useful on a binary classification than multi-class classification problems because it can be less clear exactly how the accuracy breaks down across those classes (e.g. you need to go deeper with a confusion matrix). Learn more about Accuracy here.
+
+Don’t use accuracy (or error rate) to evaluate your classifier! There are two significant problems with it. Accuracy applies a naive 0.50 threshold to decide between classes, and this is usually wrong when the classes are imbalanced. Second, classification accuracy is based on a simple count of the errors, and you should know more than this. You should know which classes are being confused and where (top end of scores, bottom end, throughout?)
+
+Kappa or Cohen’s Kappa is like classification accuracy, except that it is normalized at the baseline of random chance on your dataset. It is a more useful measure to use on problems that have an imbalance in the classes (e.g. 70-30 split for classes 0 and 1 and you can achieve 70% accuracy by predicting all instances are for class 0).
+
+
+
+\newpage
+#Statistical Methods for the Analysis
+
+
+\newpage
+#Results
+
+
+\newpage
+#Discussion
+
+
+\newpage
+#Conclusion
+
+
+\newpage
+#Bibliography
+
+
+#Appendices
+
+##Additional Material
+
+##R Code
+
+
+
+
+
+
+

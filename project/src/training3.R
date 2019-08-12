@@ -83,12 +83,12 @@ for (i in logit) {
                          lambda = 0)  ## No regularization
   
   logit_model$models[[i]] <- caret::train(ECMO_Survival ~ ., 
-                              data = train, 
-                              method = "glmnet", 
-                              metric = metric,
-                              trControl = trControl, 
-                              family = "binomial",
-                              tuneGrid = tuneGrid
+                                          data = train, 
+                                          method = "glmnet", 
+                                          metric = metric,
+                                          trControl = trControl, 
+                                          family = "binomial",
+                                          tuneGrid = tuneGrid
   )
 }
 logit_model
@@ -107,12 +107,12 @@ for (i in 1:length(lambda)) {
   
   lasso_model$lambda <- lambda[i]
   lasso_model$models[[i]] <- caret::train(ECMO_Survival ~ ., 
-                              data = train, 
-                              method = "glmnet", 
-                              metric = metric,
-                              trControl = trControl, 
-                              family = "binomial",
-                              tuneGrid = tuneGrid)
+                                          data = train, 
+                                          method = "glmnet", 
+                                          metric = metric,
+                                          trControl = trControl, 
+                                          family = "binomial",
+                                          tuneGrid = tuneGrid)
 }
 lasso_model
 
@@ -125,11 +125,11 @@ set.seed(123)
 lda_model = list()
 lda = 1
 for (i in lda) {
-lda_model$models[[i]] <- caret::train(ECMO_Survival ~ ., 
-                          data = train,
-                          method = "lda", 
-                          metric = metric,
-                          trControl = trControl)
+  lda_model$models[[i]] <- caret::train(ECMO_Survival ~ ., 
+                                        data = train,
+                                        method = "lda", 
+                                        metric = metric,
+                                        trControl = trControl)
 }
 lda_model
 
@@ -143,11 +143,11 @@ qda_model = list()
 qda = 1
 for (i in qda) {
   qda_model$models[[i]] <- caret::train(ECMO_Survival ~ ., 
-                            data = train, 
-                            method = "qda", 
-                            metric = metric,
-                            preProcess = c("corr"),
-                            trControl = trControl)
+                                        data = train, 
+                                        method = "qda", 
+                                        metric = metric,
+                                        preProcess = c("corr"),
+                                        trControl = trControl)
 }
 qda_model
 
@@ -168,11 +168,11 @@ for (i in 1:length(kmax)) {
   
   knn_model$k <- kmax[i]
   knn_model$models[[i]] <- caret::train(ECMO_Survival ~ ., 
-                            data = train, 
-                            method = "kknn", 
-                            metric = metric,
-                            trControl = trControl,
-                            tuneGrid = tuneGrid
+                                        data = train, 
+                                        method = "kknn", 
+                                        metric = metric,
+                                        trControl = trControl,
+                                        tuneGrid = tuneGrid
   )
 }
 knn_model
@@ -191,11 +191,11 @@ for (i in 1:length(mtry)) {
   
   rf_model$mtry <- mtry[i]
   rf_model$models[[i]] <- caret::train(ECMO_Survival ~ .,
-                           data = train, 
-                           method = "rf", 
-                           metric = metric,
-                           trControl = trControl,
-                           tuneGrid = tuneGrid
+                                       data = train, 
+                                       method = "rf", 
+                                       metric = metric,
+                                       trControl = trControl,
+                                       tuneGrid = tuneGrid
   )
 }
 rf_model

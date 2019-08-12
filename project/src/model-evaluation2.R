@@ -40,20 +40,34 @@ models <- list( "logit" = logit_model,
 #########################################
 ## Predictions on train Set 
 #########################################
-logit_pred <- list()
+logit <- list()
 #for (j in 1:length(models$logit)) {
   for (i in 1:length(test.impute.df)) {
-    logit_pred[[i]] <- predict(models$logit[1], test.impute.df[i], type = "raw")
+    logit$pred[[i]] <- predict(models$logit[1], test.impute.df[i], type = "raw")
     
   }
 
   ## Create a n x m dataframe of predictions for each model fit
-  pred.df <- as.data.frame(as.data.frame(logit_pred))
+  pred.df <- as.data.frame(as.data.frame(logit$pred))
   colnames(pred.df) <- NULL  # strip colnames
   vote_Y <- rowSums( as.matrix(pred.df) == "Y" ) # Sum number of "Y" in across test sets for each case
   vote_N <- rowSums( as.matrix(pred.df) == "N" ) # Sum number of "Y" in across test sets for each case
   
   vote <- factor(ifelse( vote_Y > vote_N, "Y", "N"))
+  
+  logit$sensitivity <- sensitivity(vote, test.impute.df[[1]]$ECMO_Survival)
+  logit$specificity <- specificity(vote, test.impute.df[[1]]$ECMO_Survival)
+  
+  validation <- as.data.frame(vote)
+  validation <- cbind( validation, as.data.frame(test.impute.df[[1]]$ECMO_Survival) )
+  colnames(validation) <- c("pred", "obs")
+  validation <- validation %>%
+    mutate(pred = factor(pred)) %>%
+    mutate(obs = factor(obs))
+  
+  twoClassSummary(validation, lev = levels(vote))
+  prSummary(validation, lev = levels(vote))
+  confusionMatrix(data = validation$pred, reference = validation$obs )
   
 #}
 
