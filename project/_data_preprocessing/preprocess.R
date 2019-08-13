@@ -126,53 +126,54 @@ test  <- data.scaled.df[-train_index, ]
 
 
 
-#########################################
-## Complete Case (Listwise)
-#########################################
+# #########################################
+# ## Complete Case (Listwise)
+# #########################################
+# 
+# train.complete.df <- train %>%
+#   select(-"PreECMO_Albumin") %>% # remove variables with >40% missing obs
+#   drop_na()  # drop rows with missing obs
+# 
+# test.complete.df <- test %>%
+#   select(-"PreECMO_Albumin") %>% # remove variables with >40% missing obs
+#   drop_na()  # drop rows with missing obs
+# 
+# 
+# #########################################
+# ## Mean Imputation 
+# #########################################
+# set.seed(123)
+# imputed_data <- imputeData(train, test, method = "mean", m = 1)
+# 
+# train.mean.df <- imputed_data$train
+# test.mean.df <- imputed_data$test
+# 
+# 
+# #########################################
+# ## (5) Predictive Mean Matching Imputation 
+# #########################################
+# set.seed(123)
+# imputed_data <- imputeData(train, test, method = "pmm", m = 5)
+# 
+# train.mean.df <- imputed_data$train
+# test.mean.df <- imputed_data$test
 
-train.complete.df <- train %>%
-  select(-"PreECMO_Albumin") %>% # remove variables with >40% missing obs
-  drop_na()  # drop rows with missing obs
-
-test.complete.df <- test %>%
-  select(-"PreECMO_Albumin") %>% # remove variables with >40% missing obs
-  drop_na()  # drop rows with missing obs
-
-
-#########################################
-## Mean Imputation 
-#########################################
-set.seed(123)
-imputed_data <- imputeData(train, test, method = "mean", m = 1)
-
-train.mean.df <- imputed_data[[1]]
-test.mean.df <- imputed_data[[2]]
-
-
-#########################################
-## (5) Predictive Mean Matching Imputation 
-#########################################
-set.seed(123)
-imputed_data <- imputeData(train, test, method = "pmm", m = 5)
-
-train.pmm.df <- imputed_data[[1]]
-test.pmm.df <- imputed_data[[2]]
 
 
 #########################################
 ## Save Objects 
 #########################################
 # Save multiple objects
-save(file = "../data/imputed-data.RData",
+save(file = "../data/processed-data.RData",
      train_index,
      train,
-     test,
-     train.complete.df,
-     test.complete.df,
-     train.mean.df,
-     test.mean.df,
-     train.pmm.df,
-     test.pmm.df
+     test
+     # train.complete.df,
+     # test.complete.df,
+     # train.mean.df,
+     # test.mean.df,
+     # train.pmm.df,
+     # test.pmm.df
 )
 
 
@@ -187,12 +188,12 @@ rm(data.scaled.df)
 rm(train_index)
 rm(train)
 rm(test)
-rm(train.complete.df)
-rm(test.complete.df)
-rm(train.mean.df)
-rm(test.mean.df)
-rm(train.pmm.df)
-rm(test.pmm.df)
-rm(imputed_data)
+# rm(train.complete.df)
+# rm(test.complete.df)
+# rm(train.mean.df)
+# rm(test.mean.df)
+# rm(train.pmm.df)
+# rm(test.pmm.df)
+# rm(imputed_data)
         
 

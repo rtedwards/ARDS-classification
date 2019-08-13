@@ -81,6 +81,7 @@ training_times <- list()
 tuneGrid = expand.grid(alpha = 1,   ## LASSO regularization
                        lambda = 0)  ## No regularization
 
+
 training_times[1] <- system.time({
 logit_model <- caret::train(ECMO_Survival ~ ., 
                             data = train, 

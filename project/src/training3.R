@@ -6,17 +6,27 @@
 ## Start fresh
 rm(list = ls())
 
+
 #########################################
 ## Set Project Directory
 #########################################
 setwd("~/OneDrive - University of Glasgow/University of Glasgow/ARDS-classification/project/src")
+#setwd(getwd())
 
 
 #########################################
 ## Run dependent files 
 #########################################
 source("../_settings/libraries.R")
+source("../_settings/functions.R")
 source("../_data_preprocessing/preprocess.R")
+#source("../src/training.R")
+
+
+#########################################
+## Load Data
+#########################################
+load("../data/processed-data.RData")
 
 
 #########################################
@@ -33,172 +43,133 @@ registerDoParallel(clusters)
 
 
 #########################################
-## Load Data
+## Settings
 #########################################
-load("../data/imputed-data.RData")
 
-# imputation_method <- "complete-case"
-# train <- train.complete.df
+num_folds <- 10   # Cross-Validation Settings
+metric = "kappa" # good for imbalanced data
 
-# imputation_method <- "mean"
-# train <- train.mean.df
+## Imputation Settings
+# impute_method <- "complete-case"
+# impute_method <- "mean"
+impute_method <- "pmm"
+# impute_method <- "norm"
+# impute_method = "rf"
 
-imputation_method <- "pmm5"
-train <- train.pmm.df
+imputeSettings <- list(
+  method = impute_method, 
+  m = 5,      # Number of imputed datasets to create
+  maxit = 5,  # max number of iterations for imputation convergence
+  seed = 123
+)
 
-
-#########################################
-## Training Settings
-#########################################
-set.seed(123)
-
-## K-Fold Cross Validation
+## Settings for trainControl
 trControl <- caret::trainControl(
-  method = "none",
-  #  method = "repeatedcv",  # repeated K-fold cross-validation
-  #  number = 10,             # k = 5
-  #  repeats = 10,           # repeat 10 times
+  method = "none",        # No cross validation
   returnResamp = "all",
-  classProbs = TRUE,      # Should be TRUE if metric = "ROC" Can skip if metric = "Kappa"
+  classProbs = TRUE,     # Should be TRUE if metric = "ROC" Can skip if metric = "Kappa"
   savePredictions = TRUE,
   allowParallel = TRUE,   # Allow parallel processing
   summaryFunction = twoClassSummary
 )
 
+## Training settings
+trainSettings <- list(formula = reformulate(".", response = "ECMO_Survival"), 
+                      trControl = trControl,
+                      metric = metric
+)
 
-## Model evaluation metric
-#metric <- "ROC"
-metric = "kappa"   # good for imbalanced data
-#metric <- "Accuracy"
+
+
 
 
 #########################################
 ## Logistic Regression 
 #########################################
 
-logit_model = list()
-logit = 1
-for (i in logit) {
-  tuneGrid = expand.grid(alpha = 1,   ## LASSO regularization
-                         lambda = 0)  ## No regularization
-  
-  logit_model$models[[i]] <- caret::train(ECMO_Survival ~ ., 
-                                          data = train, 
-                                          method = "glmnet", 
-                                          metric = metric,
-                                          trControl = trControl, 
-                                          family = "binomial",
-                                          tuneGrid = tuneGrid
-  )
-}
-logit_model
+kappa_avg <- data.frame(matrix(data = NA, nrow = 1, ncol = 6))
+colnames(kappa_avg) <-  c("Logit", "LDA", "QDA", "KNN", "RF")
+
+
+## Model to fit
+trainSettings$method <- "glmnet"
+
+## Step in the grid search for model tuning
+trainSettings$tuneGrid = expand.grid(alpha = 1,   ## LASSO regularization
+                                     lambda = 0)  ## No regularization
+
+kappa_logit <- crossValidate(train, K = num_folds, 
+                                 trainSettings = trainSettings, 
+                                 imputeSettings = imputeSettings)
 
 
 #########################################
-## Logistic Regression + LASSO
+## Linear Discriminant Analysis 
 #########################################
-set.seed(123)
+## Model to fit
+trainSettings$method <- "lda"
 
-lasso_model = list()
-lambda = seq(0.001, 0.1, by = 0.001)
-for (i in 1:length(lambda)) {
-  tuneGrid = expand.grid(alpha = 1, ## LASSO regularization
-                         lambda = lambda[i])
-  
-  lasso_model$lambda <- lambda[i]
-  lasso_model$models[[i]] <- caret::train(ECMO_Survival ~ ., 
-                                          data = train, 
-                                          method = "glmnet", 
-                                          metric = metric,
-                                          trControl = trControl, 
-                                          family = "binomial",
-                                          tuneGrid = tuneGrid)
-}
-lasso_model
+kappa_lda <- crossValidate(train, K = num_folds, 
+                               trainSettings = trainSettings, 
+                               imputeSettings = imputeSettings)
 
 
 #########################################
-## Linear Discriminant Analysis
+## Quadratic Discriminant Analysis 
 #########################################
-set.seed(123)
+## Model to fit
+trainSettings$method <- "qda"
 
-lda_model = list()
-lda = 1
-for (i in lda) {
-  lda_model$models[[i]] <- caret::train(ECMO_Survival ~ ., 
-                                        data = train,
-                                        method = "lda", 
-                                        metric = metric,
-                                        trControl = trControl)
-}
-lda_model
-
-
-#########################################
-## Quadratic Discriminant Analysis
-## "Rank deficiency in group N" https://stats.stackexchange.com/questions/35071/what-is-rank-deficiency-and-how-to-deal-with-it
-#########################################
-set.seed(123)
-qda_model = list()
-qda = 1
-for (i in qda) {
-  qda_model$models[[i]] <- caret::train(ECMO_Survival ~ ., 
-                                        data = train, 
-                                        method = "qda", 
-                                        metric = metric,
-                                        preProcess = c("corr"),
-                                        trControl = trControl)
-}
-qda_model
+kappa_qda <- crossValidate(train, K = num_folds, 
+                               trainSettings = trainSettings, 
+                               imputeSettings = imputeSettings)
 
 
 
 #########################################
-## ## Weighted K-Nearest Neighbors
-## https://cran.r-project.org/web/packages/kknn/kknn.pdf
+## Weighted K-Nearest Neighbors
 #########################################
-set.seed(123)
+## Model to fit
+trainSettings$method <- "kknn"
+kmax <- seq(3, 15, by = 2)   # mtry=7 x K=5 x m=99 x ~sec=3 ~= 180min
+kappa_knn <- data.frame(matrix(data = NA, nrow = length(kmax), ncol = 2))
+colnames(kappa_knn) <- c("kmax", "kappa")
 
-knn_model = list()
-kmax = seq(3, 19, by = 2)
 for (i in 1:length(kmax)) {
-  tuneGrid <- expand.grid(kmax = kmax[i],  # allows to test a range of k values
-                          distance = 2, # various Minkowski distances
-                          kernel = 'gaussian')
+  print( paste0("----- k = ", i, " -----") )
+  ## Step in the grid search for model tuning
+  trainSettings$tuneGrid = expand.grid(kmax = kmax[i],              # seq(5, 15, by = 2),  # allows to test a range of k values
+                                       distance = c(2),       # various Minkowski distances
+                                       kernel = c('gaussian') # different weighting types in kknn))
+  ) 
   
-  knn_model$k <- kmax[i]
-  knn_model$models[[i]] <- caret::train(ECMO_Survival ~ ., 
-                                        data = train, 
-                                        method = "kknn", 
-                                        metric = metric,
-                                        trControl = trControl,
-                                        tuneGrid = tuneGrid
-  )
+  kappa_knn[i, 1] <- kmax[[i]]  ## Store k value
+  kappa_knn[i, 2] <- crossValidate(train, K = num_folds, 
+                                   trainSettings = trainSettings, 
+                                   imputeSettings = imputeSettings)
 }
-knn_model
-
-
 
 #########################################
-## Random Forest
-## https://cran.r-project.org/web/packages/randomForest/randomForest.pdf
+## Random Forests
 #########################################
-set.seed(123)
-rf_model = list()
-mtry = seq(1, 33, by = 2)
+## Model to fit
+trainSettings$method <- "rf"
+mtry <- seq(3, 15, by = 2) # mtry=7 x K=5 x m=99 x ~sec=3 ~= 180min
+kappa_rf <- data.frame(matrix(data = NA, nrow = length(mtry), ncol = 2))
+colnames(kappa_rf) <- c("mtry", "kappa")
+
 for (i in 1:length(mtry)) {
-  tuneGrid <- expand.grid(mtry = mtry[i])
+  print( paste0("----- mtry = ", i, " -----") )
+  ## Step in the grid search for model tuning
+  trainSettings$tuneGrid = expand.grid(mtry = mtry[i])    # seq(1, 10, by = 2))
   
-  rf_model$mtry <- mtry[i]
-  rf_model$models[[i]] <- caret::train(ECMO_Survival ~ .,
-                                       data = train, 
-                                       method = "rf", 
-                                       metric = metric,
-                                       trControl = trControl,
-                                       tuneGrid = tuneGrid
-  )
+  kappa_rf[i, 1] <- mtry[[i]]  ## Store k value
+  kappa_rf[i, 2] <- crossValidate(train, K = num_folds, 
+                                  trainSettings = trainSettings, 
+                                  imputeSettings = imputeSettings)
 }
-rf_model
+
+kappa_avg
 
 
 
@@ -206,17 +177,16 @@ rf_model
 ## Save Trained Models 
 #########################################
 # Save multiple objects
-file_name <- paste0("../_trained-models/trained2-models-", imputation_method, ".RData")
+file_name <- paste0("../_trained-models/trained-models-", impute_method, ".RData")
 save(file = file_name,
      train,
-     training_times,
-     logit_model,
-     lasso_model,
-     lda_model,
-     qda_model,
-     knn_model,
-     rf_model
+     kappa_logit,
+     kappa_lda,
+     kappa_qda,
+     kappa_knn,
+     kappa_rf
 )
+
 
 
 #########################################
@@ -224,13 +194,8 @@ save(file = file_name,
 #########################################
 
 ## Cleaning variables
-rm(ards)
 rm(train)
 rm(test)
-rm(tuneGrid)
-rm(trControl)
-rm(training_times)
-rm(imputation_method)
 
 ## Parallel Computing
 stopCluster(clusters)  ## Stop the cluster
@@ -238,20 +203,25 @@ registerDoSEQ() ## register the sequential backend
 rm(numCores)
 rm(clusters)
 
-rm(tuneGrid)
-rm(metric)
+# Kappa values
+rm(kappa_logit)
+rm(kappa_lda)
+rm(kappa_qda)
+rm(kappa_knn)
+rm(kappa_rf)
 
-rm(logit_model)
-rm(lasso_model)
-rm(lda_model)
-rm(qda_model)
-rm(knn_model)
-rm(rf_model)
-rm(svmLinear_model)
-rm(svmPoly_model)
-rm(svmRadial_model)
 
-rm(file_name)
+# # Models
+# rm(logit_model)
+# rm(lasso_model)
+# rm(lda_model)
+# rm(qda_model)
+# rm(knn_model)
+# rm(rf_model)
+# rm(svmLinear_model)
+# rm(svmPoly_model)
+# rm(svmRadial_model)
+
 
 
 

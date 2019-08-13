@@ -3,141 +3,191 @@
 ## Model Training and Evaluation
 #########################################
 
+## Start fresh
+rm(list = ls())
+
+
 #########################################
 ## Set Project Directory
 #########################################
 setwd("~/OneDrive - University of Glasgow/University of Glasgow/ARDS-classification/project/src")
 #setwd(getwd())
 
+
 #########################################
 ## Run dependent files 
 #########################################
-#source("../_settings/libraries.R")
-#source("../_data_preprocessing/preprocess.R")
+source("../_settings/libraries.R")
+source("../_settings/functions.R")
+source("../_data_preprocessing/preprocess.R")
 #source("../src/training.R")
 
 
 #########################################
 ## Load Data
 #########################################
-load("../_trained-models/trained-models-complete-case.RData")
-test.impute.df <- test.complete.df
+load("../data/processed-data.RData")
 
-load("../_trained-models/trained-models-mean.RData")
-test.impute.df <- test.mean.df
 
-load("../_trained-models/trained-models-pmm.RData")
-test.impute.df <- test.pmm.df
+#########################################
+## Set up Parallel Processing 
+## https://cran.r-project.org/web/packages/doParallel/vignettes/gettingstartedParallel.pdf
+## 
+## system("sysctl hw.ncpu") # total number of cores
+## system("sysctl  hw.physicalcpu")  # number of physical CPUs
+#########################################
+numCores <- parallel::detectCores()
+clusters <- makePSOCKcluster(numCores) # Leave some for other important tasks, like browsing reddit
+registerDoParallel(clusters)
+#registerDoSEQ() ## register the sequential backend
 
-models <- list( "logit" = logit_model,
-                "lasso" = lasso_model,
-                "lda" = lda_model,
-                "qda" = qda_model,
-                "knn" = knn_model,
-                "rf" = rf_model
+
+#########################################
+## Settings
+#########################################
+
+num_folds <- 10   # Cross-Validation Settings
+metric = "kappa" # good for imbalanced data
+
+## Imputation Settings
+# impute_method <- "complete-case"
+# impute_method <- "mean"
+impute_method <- "pmm"
+# impute_method <- "norm"
+# impute_method = "rf"
+
+imputeSettings <- list(
+  method = impute_method, 
+  m = 99,      # Number of imputed datasets to create
+  maxit = 5,  # max number of iterations for imputation convergence
+  seed = 123
 )
 
-#########################################
-## Predictions on train Set 
-#########################################
-logit <- list()
-#for (j in 1:length(models$logit)) {
-  for (i in 1:length(test.impute.df)) {
-    logit$pred[[i]] <- predict(models$logit[1], test.impute.df[i], type = "raw")
-    
-  }
+## Settings for trainControl
+trControl <- caret::trainControl(
+  method = "none",        # No cross validation
+  returnResamp = "all",
+  classProbs = TRUE,     # Should be TRUE if metric = "ROC" Can skip if metric = "Kappa"
+  savePredictions = TRUE,
+  allowParallel = TRUE,   # Allow parallel processing
+  summaryFunction = twoClassSummary
+  )
 
-  ## Create a n x m dataframe of predictions for each model fit
-  pred.df <- as.data.frame(as.data.frame(logit$pred))
-  colnames(pred.df) <- NULL  # strip colnames
-  vote_Y <- rowSums( as.matrix(pred.df) == "Y" ) # Sum number of "Y" in across test sets for each case
-  vote_N <- rowSums( as.matrix(pred.df) == "N" ) # Sum number of "Y" in across test sets for each case
-  
-  vote <- factor(ifelse( vote_Y > vote_N, "Y", "N"))
-  
-  logit$sensitivity <- sensitivity(vote, test.impute.df[[1]]$ECMO_Survival)
-  logit$specificity <- specificity(vote, test.impute.df[[1]]$ECMO_Survival)
-  
-  validation <- as.data.frame(vote)
-  validation <- cbind( validation, as.data.frame(test.impute.df[[1]]$ECMO_Survival) )
-  colnames(validation) <- c("pred", "obs")
-  validation <- validation %>%
-    mutate(pred = factor(pred)) %>%
-    mutate(obs = factor(obs))
-  
-  twoClassSummary(validation, lev = levels(vote))
-  prSummary(validation, lev = levels(vote))
-  confusionMatrix(data = validation$pred, reference = validation$obs )
-  
-#}
+## Training settings
+trainSettings <- list(formula = reformulate(".", response = "ECMO_Survival"), 
+                      trControl = trControl,
+                      metric = metric
+                      )
 
 
-logit_pred <- predict(logit_model, test, type = "raw")
-lasso_pred <- predict(lasso_model, test, type = "raw")
-lda_pred <- predict(lda_model, test, type = "raw")
-qda_pred <- predict(qda_model, test, type = "raw")
-knn_pred <- predict(knn_model, test, type = "raw")
-rf_pred <- predict(rf_model, test, type = "raw")
-svmLinear_pred <- predict(svmLinear_model, test, type = "raw")
-svmRadial_pred <- predict(svmRadial_model, test, type = "raw")
-svmPoly_pred <- predict(svmPoly_model, test, type = "raw")
+
+
 
 #########################################
-## Confusion Matrices 
+## Logistic Regression 
 #########################################
-xtab <- list()
-for (i in 1:length(predictions)) {
-  xtab[i] <- confusionMatrix(data = predictions[[i]], reference = test$ECMO_Survival)
+
+kappa_avg <- data.frame(matrix(data = NA, nrow = 1, ncol = 6))
+colnames(kappa_avg) <-  c("Logit", "LASSO", "LDA", "QDA", "KNN", "RF")
+
+
+## Model to fit
+trainSettings$method <- "glmnet"
+
+## Step in the grid search for model tuning
+trainSettings$tuneGrid = expand.grid(alpha = 1,   ## LASSO regularization
+                                     lambda = 0)  ## No regularization
+
+kappa_avg$Logit <- crossValidate(train, K = num_folds, 
+                           trainSettings = trainSettings, 
+                           imputeSettings = imputeSettings)
+
+
+#########################################
+## Linear Discriminant Analysis 
+#########################################
+## Model to fit
+trainSettings$method <- "lda"
+
+## Step in the grid search for model tuning
+trainSettings$tuneGrid = expand.grid(alpha = 1,   ## LASSO regularization
+                                     lambda = 0)  ## No regularization
+
+kappa_avg$LDA <- crossValidate(train, K = num_folds, 
+                           trainSettings = trainSettings, 
+                           imputeSettings = imputeSettings)
+
+
+#########################################
+## Quadratic Discriminant Analysis 
+#########################################
+## Model to fit
+trainSettings$method <- "qda"
+
+## Step in the grid search for model tuning
+trainSettings$tuneGrid = expand.grid(alpha = 1,   ## LASSO regularization
+                                     lambda = 0)  ## No regularization
+
+kappa_avg$QDA <- crossValidate(train, K = num_folds, 
+                           trainSettings = trainSettings, 
+                           imputeSettings = imputeSettings)
+
+
+
+#########################################
+## Weighted K-Nearest Neighbors
+#########################################
+## Model to fit
+trainSettings$method <- "kknn"
+kmax <- seq(3, 15, by = 2)   # mtry=7 x K=5 x m=99 x ~sec=3 ~= 180min
+kappa_knn <- data.frame(matrix(data = NA, nrow = length(kmax), ncol = 2))
+colnames(kappa_knn) <- c("kmax", "kappa")
+
+for (i in 1:length(kmax)) {
+  print("----- k = ", i, " -----")
+  ## Step in the grid search for model tuning
+  trainSettings$tuneGrid = expand.grid(kmax = kmax[i],              # seq(5, 15, by = 2),  # allows to test a range of k values
+                                       distance = c(2),       # various Minkowski distances
+                                       kernel = c('gaussian') # different weighting types in kknn))
+                                       ) 
+  
+  kappa_knn[i, 1] <- kmax[[i]]  ## Store k value
+  kappa_knn[i, 2] <- crossValidate(train, K = num_folds, 
+                             trainSettings = trainSettings, 
+                             imputeSettings = imputeSettings)
 }
 
-logit_table <- confusionMatrix(data = logit_pred, reference = test$ECMO_Survival)
-lasso_table <- confusionMatrix(data = lasso_pred, reference = test$ECMO_Survival)
-lda_table <- confusionMatrix(data = lda_pred, reference = test$ECMO_Survival)
-qda_table <- confusionMatrix(data = qda_pred, reference = test$ECMO_Survival)
-knn_table <- confusionMatrix(data = knn_pred, reference = test$ECMO_Survival)
-rf_table <- confusionMatrix(data = rf_pred, reference = test$ECMO_Survival)
-svmLinear_table <- confusionMatrix(data = svmLinear_pred, reference = test$ECMO_Survival)
-svmRadial_table <- confusionMatrix(data = svmRadial_pred, reference = test$ECMO_Survival)
-svmPoly_table <- confusionMatrix(data = svmPoly_pred, reference = test$ECMO_Survival)
+#########################################
+## Random Forests
+#########################################
+## Model to fit
+trainSettings$method <- "rf"
+mtry <- seq(3, 15, by = 2) # mtry=7 x K=5 x m=99 x ~sec=3 ~= 180min
+kappa_rf <- data.frame(matrix(data = NA, nrow = length(mtry), ncol = 2))
+colnames(kappa_rf) <- c("mtry", "kappa")
 
+for (i in 1:length(mtry)) {
+  print("----- mtry = ", i, " -----")
+  ## Step in the grid search for model tuning
+  trainSettings$tuneGrid = expand.grid(mtry = mtry[i])    # seq(1, 10, by = 2))
+ 
+  kappa_rf[i, 1] <- mtry[[i]]  ## Store k value
+  kappa_rf[i, 2] <- crossValidate(train, K = num_folds, 
+                                trainSettings = trainSettings, 
+                                imputeSettings = imputeSettings)
+}
 
+kappa_avg
 
-
-
-
+## Calculate accuracy metrics
+# model$sensitivity <- sensitivity(vote, obs)
+# model$specificity <- specificity(vote, obs)
 
 
 #########################################
 ## ROC Plot 
 #########################################
 
-testROC <- function(model, data) {
-  library(pROC)
-  roc_obj <- roc(data$ECMO_Survival, 
-                 predict(model, data, type = "prob")[, "Y"],
-                 levels = c("N", "Y"))
-  #  ci(roc_obj)
-}
-
-logit_roc <- testROC(logit_model, test)
-lasso_roc <- testROC(lasso_model, test)
-lda_roc <- testROC(lda_model, test)
-qda_roc <- testROC(qda_model, test)
-knn_roc <- testROC(knn_model, test)
-rf_roc <- testROC(rf_model, test)
-svmLinear_roc <- testROC(svmLinear_model, test)
-svmRadial_roc <- testROC(svmRadial_model, test)
-svmPoly_roc <- testROC(svmPoly_model, test)
-
-plot(logit_roc, col = "darkred")
-plot(lasso_roc, add = TRUE, col = "red")
-plot(lda_roc, add = TRUE, col = "orange")
-plot(qda_roc, add = TRUE, col = "gold")
-plot(knn_roc, add = TRUE, col = "green")
-plot(rf_roc, add = TRUE, col = "blue")
-plot(svmLinear_roc, add = TRUE, col = "purple")
-plot(svmRadial_roc, add = TRUE, col = "brown")
-plot(svmPoly_roc, add = TRUE, col = "black")
 
 
 specificities <- as.data.frame(cbind(logit_roc$specificities,
@@ -234,6 +284,12 @@ g + annotate("text", x=0.75, y=0.25, label=paste("AUC =", round((calc_auc(g))$AU
 ## Cleaning variables
 rm(train)
 rm(test)
+
+## Parallel Computing
+stopCluster(clusters)  ## Stop the cluster
+registerDoSEQ() ## register the sequential backend
+rm(numCores)
+rm(clusters)
 
 # Models
 rm(logit_model)
