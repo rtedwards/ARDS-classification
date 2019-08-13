@@ -120,7 +120,7 @@ implemented to inspect the quality of the imputations.
 ### Vignettes 🎻
 
 - [Methods for Dealing with Imbalanced Data](https://towardsdatascience.com/methods-for-dealing-with-imbalanced-data-5b761be45a18)
-
+- [Imbalanced Classes Part 2](https://dpmartin42.github.io/posts/r/imbalanced-classes-part-2)
 
 ## Rank Deficiency
 
