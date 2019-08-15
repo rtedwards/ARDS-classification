@@ -302,7 +302,7 @@ data_standard.df %>%
 ```
 
 ```{r violinplot, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:violin}Violin plot of continuous variables."}
-pdf(file="../viva/images/violinplot.png", height=8, width=10)
+pdf(file="../thesis/images/violinplot.png", height=8, width=10)
 
 
 data_standard.df %>% 
@@ -331,7 +331,9 @@ dev.off()
 - scale
 - YeoJohnson
 
-```{r violinplot, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:violin}Violin plot of continuous variables."}
+```{r violinplot, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:violin2}Violin plot of continuous variables."}
+pdf(file="../thesis/images/violinplot_standardized.png", height=8, width=10)
+
 data_yeojohnson.df <- data.raw.df[, 5:ncol(data.raw.df)] %>%
   preProcess(method = c("center", "scale", "YeoJohnson"))
 
@@ -353,6 +355,8 @@ data_yeojohnson.df %>%
     theme(plot.title = element_text(hjust = 0.5),
           legend.position = "none",
           axis.text.x = element_text(angle = 60, hjust = 1))  
+
+dev.off()
 ```
 
 
@@ -376,7 +380,7 @@ ggcorr(data_standard.df[, 1:ncol(data_standard.df)],
 ```
 
 ```{r heatmap_PDF, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:cor}Pairs plot of contnuous variables."}
-pdf(file="../viva/images/heatmap.pdf", height=8, width=10)
+pdf(file="../thesis/images/heatmap.pdf", height=8, width=10)
 
 # Correlation matrix plot
 ggcorr(data_standard.df[, 1:ncol(data_standard.df)], 
@@ -398,6 +402,8 @@ dev.off()
 
 ##Yeo Johnson Correlation Heatmap
 ```{r heatmap-yeojohnson, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:cor}Correlation heatmap of contnuous variables."}
+pdf(file="../thesis/images/heatmap_standardized.pdf", height=8, width=10)
+
 # Correlation matrix plot
 ggcorr(data_yeojohnson.df, 
        hjust = 0.95, 
@@ -412,6 +418,7 @@ ggcorr(data_yeojohnson.df,
                                barheight = 0.5, 
                                title.vjust = 0.75)) 
 #  theme(  plot.margin = margin(1, 1, 1, 1, "cm") ) #top, right, bottom, left
+dev.off()
 ```
 
 ##Pairs Plot
@@ -435,7 +442,7 @@ ggpairs(
 
 
 ```{r pairsplot2, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:pairs}Pairs plot of continuous variables."}
-pdf(file="../viva/images/pairsplot.pdf", height=8, width=10)
+pdf(file="../thesis/images/pairsplot.pdf", height=8, width=10)
 
 pairs.df <- cbind(data.df$ECMO_Survival, data_standard.df)
 colnames(pairs.df)[1] <- "ECMO_Survival"

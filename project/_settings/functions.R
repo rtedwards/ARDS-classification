@@ -23,26 +23,34 @@ imputeData <- function(train, test, method, m = 5, maxit = 10, seed = 123) {
     return(imputed_data)
   }
   
+  ## Selects predictors according to simple statistics to speed up imputation
+  predictor_matrix <-  quickpred(train)
   
   ## Impute Training Set    
   train_imputed <- mice(train, 
+                     nnodes = 8,
                      meth = method,
                      m = m, 
                      maxit = maxit, 
                      seed = seed, 
-                     printFlag = FALSE
+                     printFlag = FALSE,
+                     predictorMatrix = predictor_matrix
                      )
   
   # Stack the training sets into one long dataset
   train_imputed.df <- complete(train_imputed, action = "stacked")
   
-  ## Making predictor matrix for test set
-  predictor_matrix <- train_imputed$predictorMatrix
-  predictor_matrix[, 1] <- 0 # Do not use outcome variable ECMO_Survival
+  # ## Making predictor matrix for test set
+  # predictor_matrix <- train_imputed$predictorMatrix
+  # predictor_matrix[, 1] <- 0 # Do not use outcome variable ECMO_Survival
   
   ## Concatenate Test Set with imputed Training Set
   concate.df <- rbind(train_imputed.df, test)
   
+  ## Selects predictors according to simple statistics to speed up imputation
+  predictor_matrix <-  quickpred(concate.df)
+  predictor_matrix[, 1] <- 0 # Do not use outcome variable ECMO_Survival
+
   ## Impute concatenated train and test sets
   concatenated <- mice(concate.df, 
                        meth = method, 
@@ -136,8 +144,6 @@ fitModel <- function(train, settings) {
   ## k-validation set during CV. 
   
   set.seed(settings$seed)
-  
-  metric = "kappa"       # good for imbalanced data
   
   trControl <- caret::trainControl(
     method = "none",        # No cross-validation (because imputation needs to be done on every validation set)
@@ -244,7 +250,7 @@ crossValidate <- function(data, K, trainSettings, imputeSettings) {
     tests_imputed <- imputed_data$test
     
     
-    try({  ## handles errors thrown from rank deficiency in QDA models
+    try({ ## handles errors thrown from rank deficiency in QDA models
       ## Fit model to imputed training set
       fit_model <- fitModel(train_imputed, settings = trainSettings)
       

@@ -82,24 +82,91 @@ Biostatistics
 \newpage
 #Introduction
 
+## Aim of the Thesis
+
+## The Clinical Study
+
+## Study Population & Data Description
+
+## The Statistical Challenege
+
 
 \newpage
-#Basic Statistical Methods
+#Methodology
 
-## Accuracy and Kappa
+##Basic Statistical Methods
+
+###Logistic Regression
+
+###Linear Discriminant Analysis
+
+###Quadratic Discriminant Analysis
+
+###K-Nearest Neighbors
+
+###Random Forests
+
+
+##Missing Data
+
+
+##Multiple Imputation
+
+
+##Validation & Cross-validation
+
+
+
+##Accuracy Metrics
 
 These are the default metrics used to evaluate algorithms on binary and multi-class classification datasets in caret.
+
+###Accuracy
 
 Accuracy is the percentage of correctly classifies instances out of all instances. It is more useful on a binary classification than multi-class classification problems because it can be less clear exactly how the accuracy breaks down across those classes (e.g. you need to go deeper with a confusion matrix). Learn more about Accuracy here.
 
 Don’t use accuracy (or error rate) to evaluate your classifier! There are two significant problems with it. Accuracy applies a naive 0.50 threshold to decide between classes, and this is usually wrong when the classes are imbalanced. Second, classification accuracy is based on a simple count of the errors, and you should know more than this. You should know which classes are being confused and where (top end of scores, bottom end, throughout?)
 
+
+###ROC
+
+
+###Kappa
+
 Kappa or Cohen’s Kappa is like classification accuracy, except that it is normalized at the baseline of random chance on your dataset. It is a more useful measure to use on problems that have an imbalance in the classes (e.g. 70-30 split for classes 0 and 1 and you can achieve 70% accuracy by predicting all instances are for class 0).
+
+
+###Brier Score
+
+
+###F1 Score
+
+
 
 
 
 \newpage
 #Statistical Methods for the Analysis
+
+**Describe the methods step-by-step for the analysis**
+
+##Complete Case Analysis
+
+
+##Mean Imputation
+
+
+##Multiple Imputation
+
+
+###Joint-Model
+
+###FMC(?)
+
+###Predictive Mean Matching
+
+Predictive Mean Matching (PMM) is a semi-parametric imputation approach. It is similar to the regression method except that for each missing value, it fills in a value randomly from among the a observed donor values from an observation whose regression-predicted values are closest to the regression-predicted value for the missing value from the simulated regression model (Heitjan and Little 1991; Schenker and Taylor 1996).
+The PMM method ensures that imputed values are plausible; it might be more appropriate than the regression method (which assumes a joint multivariate normal distribution) if the normality assumption is violated (Horton and Lipsitz 2001, p. 246).
 
 
 \newpage
@@ -117,7 +184,7 @@ Kappa or Cohen’s Kappa is like classification accuracy, except that it is norm
 \newpage
 #Bibliography
 
-
+\newpage
 #Appendices
 
 ##Additional Material

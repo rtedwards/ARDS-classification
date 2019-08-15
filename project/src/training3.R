@@ -39,7 +39,8 @@ load("../data/processed-data.RData")
 numCores <- parallel::detectCores()
 clusters <- makePSOCKcluster(numCores) # Leave some for other important tasks, like browsing reddit
 registerDoParallel(clusters)
-#registerDoSEQ() ## register the sequential backend
+stopCluster(clusters)  ## Stop the cluster
+registerDoSEQ() ## register the sequential backend
 
 
 #########################################
@@ -58,7 +59,7 @@ impute_method <- "pmm"
 
 imputeSettings <- list(
   method = impute_method, 
-  m = 5,      # Number of imputed datasets to create
+  m = 99,      # Number of imputed datasets to create
   maxit = 5,  # max number of iterations for imputation convergence
   seed = 123
 )
@@ -162,10 +163,10 @@ for (i in 1:length(mtry)) {
   print( paste0("----- mtry = ", i, " -----") )
   ## Step in the grid search for model tuning
   trainSettings$tuneGrid = expand.grid(mtry = mtry[i])    # seq(1, 10, by = 2))
-  
+
   kappa_rf[i, 1] <- mtry[[i]]  ## Store k value
-  kappa_rf[i, 2] <- crossValidate(train, K = num_folds, 
-                                  trainSettings = trainSettings, 
+  kappa_rf[i, 2] <- crossValidate(train, K = num_folds,
+                                  trainSettings = trainSettings,
                                   imputeSettings = imputeSettings)
 }
 
@@ -177,7 +178,7 @@ kappa_avg
 ## Save Trained Models 
 #########################################
 # Save multiple objects
-file_name <- paste0("../_trained-models/trained-models-", impute_method, ".RData")
+file_name <- paste0("../_trained-models/trained-models-", impute_method, "99.RData")
 save(file = file_name,
      train,
      kappa_logit,
