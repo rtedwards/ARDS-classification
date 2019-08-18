@@ -37,10 +37,10 @@ load("../data/processed-data.RData")
 ## system("sysctl  hw.physicalcpu")  # number of physical CPUs
 #########################################
 numCores <- parallel::detectCores()
-clusters <- makePSOCKcluster(numCores) # Leave some for other important tasks, like browsing reddit
-registerDoParallel(clusters)
-stopCluster(clusters)  ## Stop the cluster
-registerDoSEQ() ## register the sequential backend
+#clusters <- makePSOCKcluster(numCores) # Leave some for other important tasks, like browsing reddit
+#registerDoParallel(clusters)
+#stopCluster(clusters)  ## Stop the cluster
+#registerDoSEQ() ## register the sequential backend
 
 
 #########################################
@@ -51,17 +51,18 @@ num_folds <- 10   # Cross-Validation Settings
 metric = "kappa" # good for imbalanced data
 
 ## Imputation Settings
-# impute_method <- "complete-case"
+#impute_method <- "complete-case"
 # impute_method <- "mean"
-impute_method <- "pmm"
+ impute_method <- "pmm"
 # impute_method <- "norm"
 # impute_method = "rf"
 
 imputeSettings <- list(
   method = impute_method, 
-  m = 99,      # Number of imputed datasets to create
+  m = 9,      # Number of imputed datasets to create
   maxit = 5,  # max number of iterations for imputation convergence
-  seed = 123
+  seed = 123,
+  numCores = numCores
 )
 
 ## Settings for trainControl
@@ -99,7 +100,7 @@ trainSettings$method <- "glmnet"
 trainSettings$tuneGrid = expand.grid(alpha = 1,   ## LASSO regularization
                                      lambda = 0)  ## No regularization
 
-kappa_logit <- crossValidate(train, K = num_folds, 
+table_logit <- crossValidate(train, K = num_folds, 
                                  trainSettings = trainSettings, 
                                  imputeSettings = imputeSettings)
 
@@ -110,7 +111,7 @@ kappa_logit <- crossValidate(train, K = num_folds,
 ## Model to fit
 trainSettings$method <- "lda"
 
-kappa_lda <- crossValidate(train, K = num_folds, 
+table_lda <- crossValidate(train, K = num_folds, 
                                trainSettings = trainSettings, 
                                imputeSettings = imputeSettings)
 
@@ -121,7 +122,7 @@ kappa_lda <- crossValidate(train, K = num_folds,
 ## Model to fit
 trainSettings$method <- "qda"
 
-kappa_qda <- crossValidate(train, K = num_folds, 
+table_qda <- crossValidate(train, K = num_folds, 
                                trainSettings = trainSettings, 
                                imputeSettings = imputeSettings)
 
@@ -133,8 +134,9 @@ kappa_qda <- crossValidate(train, K = num_folds,
 ## Model to fit
 trainSettings$method <- "kknn"
 kmax <- seq(3, 15, by = 2)   # mtry=7 x K=5 x m=99 x ~sec=3 ~= 180min
-kappa_knn <- data.frame(matrix(data = NA, nrow = length(kmax), ncol = 2))
-colnames(kappa_knn) <- c("kmax", "kappa")
+table_knn <- list(kmax = double(),
+                  xtabs = list())
+colnames(table_knn) <- c("kmax", "xtab")
 
 for (i in 1:length(kmax)) {
   print( paste0("----- k = ", i, " -----") )
@@ -144,8 +146,8 @@ for (i in 1:length(kmax)) {
                                        kernel = c('gaussian') # different weighting types in kknn))
   ) 
   
-  kappa_knn[i, 1] <- kmax[[i]]  ## Store k value
-  kappa_knn[i, 2] <- crossValidate(train, K = num_folds, 
+  table_knn$kmax[[i]] <- kmax[[i]]  ## Store k value
+  table_knn$xtabs[[i]] <- crossValidate(train, K = num_folds, 
                                    trainSettings = trainSettings, 
                                    imputeSettings = imputeSettings)
 }
@@ -156,21 +158,44 @@ for (i in 1:length(kmax)) {
 ## Model to fit
 trainSettings$method <- "rf"
 mtry <- seq(3, 15, by = 2) # mtry=7 x K=5 x m=99 x ~sec=3 ~= 180min
-kappa_rf <- data.frame(matrix(data = NA, nrow = length(mtry), ncol = 2))
-colnames(kappa_rf) <- c("mtry", "kappa")
+table_rf <- list(mtry = double(),
+                 xtabs = list())
+colnames(table_rf) <- c("mtry", "xtab")
 
 for (i in 1:length(mtry)) {
   print( paste0("----- mtry = ", i, " -----") )
   ## Step in the grid search for model tuning
   trainSettings$tuneGrid = expand.grid(mtry = mtry[i])    # seq(1, 10, by = 2))
 
-  kappa_rf[i, 1] <- mtry[[i]]  ## Store k value
-  kappa_rf[i, 2] <- crossValidate(train, K = num_folds,
+  table_rf$mtry[[i]] <- mtry[[i]]  ## Store k value
+  table_rf$xtabs[[i]] <- crossValidate(train, K = num_folds,
                                   trainSettings = trainSettings,
                                   imputeSettings = imputeSettings)
 }
 
-kappa_avg
+
+#########################################
+## SVM Radial
+#########################################
+## Model to fit
+trainSettings$method <- "svmRadial"
+sigma <- c(2^(-1), 2^0, 2^1, 2^3)
+table_svm <- list(sigma = double(),
+                  xtabs = list())
+colnames(table_svm) <- c("sigma", "xtab")
+
+for (i in 1:length(sigma)) {
+  print( paste0("----- sigma = ", i, " -----") )
+  trainSettings$tuneGrid <- expand.grid(sigma = sigma[[i]], 
+                        C = 1)
+
+  table_svm$sigma[[i]] <- sigma[[i]]  ## Store k value
+  table_svm$xtabs[[i]] <- crossValidate(train, K = num_folds,
+                                    trainSettings = trainSettings,
+                                    imputeSettings = imputeSettings)
+}
+
+
 
 
 
@@ -178,14 +203,14 @@ kappa_avg
 ## Save Trained Models 
 #########################################
 # Save multiple objects
-file_name <- paste0("../_trained-models/trained-models-", impute_method, "99.RData")
+file_name <- paste0("../_trained-models/trained-models-", impute_method, "9.RData")
 save(file = file_name,
-     train,
-     kappa_logit,
-     kappa_lda,
-     kappa_qda,
-     kappa_knn,
-     kappa_rf
+     table_logit,
+     table_lda,
+     table_qda,
+     table_knn,
+     table_rf,
+     table_svm
 )
 
 

@@ -35,6 +35,7 @@ header-includes:
   \usepackage{caption}
   \captionsetup[table]{skip=5pt, font=footnotesize}
   \usepackage[font=footnotesize]{caption}
+  \usepackage{algorithm2e}
 ---
 
 ```{r setup, include=FALSE, echo = FALSE, eval = TRUE}
@@ -43,15 +44,7 @@ options()
 ```
 
 ```{r libraries, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
-library(ggplot2)
-library(dplyr)
-library(skimr)
-library(tidyr)
-library(kableExtra)
-library(gridExtra)
-library(xtable)
-library(knitr)
-library(glmnet)
+source("../project/_settings/libraries.R")
 ```
 
 
@@ -85,6 +78,12 @@ Biostatistics
 
 ## Aim of the Thesis
 
++ paragraph about importance of in-sample vs. out-of-sample prediction accuracy
+  + Cross validation
+  + Over fitting / under fitting 
+  
++ Paragraph about Missing data
+
 ## The Clinical Study
 
 ## Study Population & Data Description
@@ -92,9 +91,6 @@ Biostatistics
 ## The Statistical Challenege
 
 
-```{r missing-data, echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig.ensemble-imputation}Visual representation of missing observations in the ARDS dataset."}
-knitr::include_graphics("images/missing_data_visualization.png")
-```
 
 
 \newpage
@@ -105,6 +101,7 @@ knitr::include_graphics("images/missing_data_visualization.png")
 ###Logistic Regression
 
 Logistic regression is a widely used approach in binary classification.  It is set up as a generalised linear model using a logit link that produces a probability. 
+
 
 ###Linear Discriminant Analysis
 
@@ -149,15 +146,15 @@ Drawbacks of QDA:
 
 ###K-Nearest Neighbors
 
-$K$-Nearest Neighbors (KNN) is a commonly used non-parametric classification method.  
+$K$-Nearest Neighbors (KNN) is a commonly used non-parametric classification method.  To predict the class of a new observation, a distance matrix is constructed between all observations and the K nearest labelled observations to the new observation are considered.  The new observation is then assigned the class label that the majority of its neighbors share.  In case of only two classes, ties in class assignments are avoided by using odd values of K.  
+
+In the event of a tie, a class can be chosen at random.  Various distance metrics may be used but it is common to use Euclidean distance to determine the closest training points, though it is advisable to scale variables so that one direction does not dominate the classification. 
+
+As $K$ increases, the variability of the classification tends to decrease at the expense of increased bias. 
+
 
 ###Random Forests
 
-
-##Missing Data
-
-
-##Multiple Imputation
 
 
 ##Validation & Cross-validation
@@ -203,16 +200,19 @@ xtab %>%
         caption = '\\label{tab:confusion-matrix} Confusion matrix for two classes.') %>%
     kable_styling(font_size = 10, 
                   latex_options = c("hold_position", "striped")) 
-        
 ```
 
+For the two class confusion matrix in \ref{tab:confusion-matrix} accuracy is defined as:
 
 $$
 \text{accuracy} = \frac{a+d}{a+b+c+d}
 $$
 
+
+
 ###ROC
 
+**To mention or not to mention(??)** 
 
 ###Cohen's Kappa
 
@@ -224,6 +224,7 @@ Let $p_o$ be the accuracy, the relative observed agreement between observed and 
 $$
 \kappa = \frac{p_o - p_e}{1 - p_e}
 $$
+
 If all the observations are predicted correctly then $\kappa=1$.  **If the observations are predicted no better than expected by the class probabilities, $p_e$ then $\kappa=0$.  If all the observations are predicted incorrectly, then $\kappa=-1$.**  A positive $\kappa$ indicates that the model predicts better than would be expected by chance whereas a negative $\kappa$ indicates that the model predicts worse than would be expected by chance.  
 
 $$
@@ -233,7 +234,15 @@ $$
 For class $k$, number of items $N$ and $n_{ki}$, the number of times $i$ is predicted as class $k$:
 
 $$
-p_e = \sum_k \hat{p}_{k1} \hat{p}_{k2} = \sum_k \frac{n_{k1}}{N}\frac{n_{k2}} {N} = \frac{1}{N^2} \sum_k n_{k1}n_{k2}
+p_{o,Y} = \hat{p}_{k1} = \frac{a+d}{a+b+c+d} ~\cdot~ \frac{a+c}{a+b+c+d}
+$$
+
+$$
+p_{o,N} = \hat{p}_{k2} = \frac{c+d}{a+b+c+d} ~\cdot~ \frac{b+d}{a+b+c+d}
+$$
+
+$$
+p_e = p_{o,Y} + p_{o,N} = \sum_k \hat{p}_{k1} \hat{p}_{k2} = \sum_k \frac{n_{k1}}{N}\frac{n_{k2}} {N} = \frac{1}{N^2} \sum_k n_{k1}n_{k2}
 $$
 
 ###Brier Score
@@ -249,6 +258,12 @@ $$
 #Statistical Methods for the Analysis
 
 **Describe the methods step-by-step for the analysis**
+
+##Missing Data
+
+
+##Multiple Imputation
+
 
 ##Complete Case Analysis
 
@@ -293,8 +308,102 @@ knitr::include_graphics("images/ensemble-imputation.png")
 ```
 
 
+###Number of Imputations
+
++ Rubin's Rule
++ Sample size calculator
+
+$$
+\left( \hat{p} - 1.96\sqrt{\frac{0.25}{n}}, ~~\hat{p} + 1.96\sqrt{\frac{0.25}{n}} \right)
+$$
+
+**Flexible Imputation Book**  
+"The classic advice is to use a low number of imputation, somewhere between 3 and 5 for moderate amounts of missing information. Several authors investigated the influence of m on various aspects of the results. The picture emerging from this work is that it is often beneficial to set m higher, somewhere in the range of 20-100 imputations. 
+
+Theoretically it is always better to use higher m, but this involves more computation and storage. Setting m very high (say m=200) may be useful for low-level estimands that are very uncertain, and for which we want to approximate the full distribution, or for parameters that are notoriously different to estimates, like variance components. On the other hand, setting m high may not be worth the extra wait if the primary interest is on the point estimates (and not on standard errors, p-values, and so on). In that case using m=5-20 will be enough under moderate missingness."
+
++ Rubin's Rules allow the pooling of parameter estimates in GLMs but...
++ To my knowledge, there has been insufficient work on estimating the required number of imputations for pooling posterior probabilities in classification problems.   
+  + Cite the Dutch Master Thesis
+  + Adapt Rubin's Rules - arguing that 
+
+##Voting
+
+###Majority Vote
+
+The combination can be implemented using a variety of strategies, among which majority vote is by far the simplest, yet it has been found to be just as effective as more complicated schemes. (Lam and Suen, 1994).
+
+**(Alexandre et al. 2001)**
+There has been some interest on the comparative performance of the sum and product rules (or the arithmetic and geometric means) (Kittler et al., 1996; Tax et al., 1997; Kittler et al., 1998). The arithmetic mean is one of the most frequently used combination rules since it is easy to implement and normally produces good results.
+
+In (Kittler et al., 1998), the authors show that for combination rules based on the sum, such as the arithmetic mean, and for the case of classifiers working in different feature spaces, the arithmetic mean is less sensitive to errors than geometric mean.
+
+
+In fact (Alexandre et al. 2001) show that for classification problems with two classes, that give estimates of the a posteriori probabilities that sum to one the combination rules arithmetic mean (or the sum) and the geometric mean (or the product) are equivalent. 
+
+
+ 
+\begin{algorithm}[H]
+\DontPrintSemicolon
+\SetAlgoLined
+\KwResult{Write here the result}
+\SetKwInOut{Input}{Input}\SetKwInOut{Output}{Output}
+\Input{Write here the input}
+\Output{Write here the output}
+\BlankLine
+\While{While condition}{
+    instructions\;
+    \eIf{condition}{
+        instructions1\;
+        instructions2\;
+    }{
+        instructions3\;
+    }
+}
+\caption{While loop with If/Else condition}
+\end{algorithm} 
+
+
+
 \newpage
 #Results
+
+## Exploratory Data Analysis
+
++ describe the data:
+  + 3 Categorical variables
+  + 30 continuous variables
+  + Violin plots in appendix
+  
+
+##Missing Data Patterns
+
+Before imputation, and indeed multiple imputation, it is important to inspect the missingness patterns in the data and check assumptions.  Figure \ref{fig:missing-data} shows the missingness patterns in the dataset, where a black bar represents a missing value.  Table \ref{tab:missing-statistics} provides some measures about variable dependence  in the dataset.  The first row shows the probability of observed values for each variable.  The following are coefficients that give insight into how the variables are connected in terms of missingness.  $\mathbf{Influx}$ is the ratio of the number of variables pairs $(Y_j, ~Y_k)$ with $Y_j$ missing and $Y_k$ observed, divided by the total number of observed data.  For a variable that is entirely missing, influx is 1, and 0 for if the variable is complete.  $\mathbf{Outflux}$ is defined in the opposit manner, by dividing the number of pairs $(Y_j, ~Y_k)$ with $Y_j$ observed and $Y_k$ missing, by the total number of complete cells.  For a completely observed variable, outflux will have a value of 1 and 0 if completely missing.  Outflux gives an indication of how useful the variable will be for imputing other variables in the dataset, while influx is an indicator for how easily the variable can be imputed.  We see that **all variables are useful except XXX**.  A high outflux variable might turn out to be useless for the imputation procedure if it is unrelated to the incomplete variables, while the usefulness of a highly predictive variables is severely limited by a low outflux value (Van Buuren 2012).  
+
+
+```{r missing-data, echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig.ensemble-imputation}Visual representation of missing observations in the ARDS dataset."}
+#knitr::include_graphics("images/missing_data_visualization.png")
+load("../project/data/processed-data.RData")
+vis_miss(data_clean.df, sort_miss = TRUE) +
+  theme(  plot.margin = ggplot2::margin(0.125, 2, 0.5, 1, "cm") ) #top, right, bottom, left
+```
+
+```{r missing-patterns, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H"}
+
+flux <- flux(data_clean.df)
+
+flux %>%
+  round(2) %>%
+  select(pobs, influx, outflux) %>%
+  kable(col.names = c("Proportion", "Influx", "Outflux"), 
+        caption = '\\label{tab:missing-patterns} Missing pattern statistics for variables in dataset.',
+        booktabs = TRUE, 
+        format = "latex") %>%
+  kable_styling(font_size = 10, 
+                latex_options = "hold_position") %>%
+  row_spec(23, bold = TRUE)
+```
+
 
 ```{r cv-kappa, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H"}
 load("../project/_trained-models/trained-models-complete-case.RData")

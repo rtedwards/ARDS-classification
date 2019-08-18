@@ -19,14 +19,78 @@ setwd("~/OneDrive - University of Glasgow/University of Glasgow/ARDS-classificat
 #########################################
 source("../_settings/libraries.R")
 source("../_settings/functions.R")
-source("../_data_preprocessing/preprocess.R")
+#source("../_data_preprocessing/preprocess.R")
 #source("../src/training.R")
 
 
 #########################################
-## Load Data
+## Kappa
 #########################################
-load("../data/processed-data.RData")
+load("../_trained-models/trained-models-complete-case.RData")
+kappa_cc <- as.data.frame(cbind(kappa_logit, kappa_lda, kappa_qda, max(kappa_knn$kappa), max(kappa_rf$kappa)) )
+
+load("../_trained-models/trained-models-mean.RData")
+kappa_mean <- as.data.frame(cbind(kappa_logit, kappa_lda, kappa_qda, max(kappa_knn$kappa), max(kappa_rf$kappa)) )
+
+load("../_trained-models/trained-models-pmm99.RData")
+kappa_pmm <- as.data.frame(cbind(kappa_logit, kappa_lda, kappa_qda, max(kappa_knn$kappa), max(kappa_rf$kappa)) )
+
+kappa_table <- rbind(kappa_cc, kappa_mean, kappa_pmm)
+kappa_table <- round(kappa_table, 3)
+colnames(kappa_table) <- c("Logit", "LDA", "QDA", "KNN", "RF")
+rownames(kappa_table) <- c("Complete Case", "Mean", "PMM")
+
+
+#########################################
+## Sensitivity
+#########################################
+# load("../_trained-models/trained-models-complete-case.RData")
+# kappa_cc <- as.data.frame(cbind(kappa_logit, kappa_lda, kappa_qda, max(kappa_knn$kappa), max(kappa_rf$kappa)) )
+# 
+# load("../_trained-models/trained-models-mean.RData")
+# kappa_mean <- as.data.frame(cbind(kappa_logit, kappa_lda, kappa_qda, max(kappa_knn$kappa), max(kappa_rf$kappa)) )
+# 
+# load("../_trained-models/trained-models-pmm99.RData")
+# kappa_pmm <- as.data.frame(cbind(kappa_logit, kappa_lda, kappa_qda, max(kappa_knn$kappa), max(kappa_rf$kappa)) )
+# 
+# kappa_table <- rbind(kappa_cc, kappa_mean, kappa_pmm)
+# colnames(kappa_table) <- c("Logit", "LDA", "QDA", "KNN", "RF")
+# rownames(kappa_table) <- c("Complete Case", "Mean", "PMM")
+
+
+
+fit_model <- fitModel(train_imputed, settings = trainSettings)
+
+## Validate fitted model against each test set
+## Using the observed classes in the first test set
+#      validate[i, ] <- validate(model = fit_model, tests = tests_imputed, obs = tests_imputed[[1]][, 1])
+
+valid_table[[i]] <- validate(model = fit_model, tests = tests_imputed, obs = tests_imputed[[1]][, 1])
+#      print("xtab: ")
+#      print(valid_table[[i]])
+#      print("Kappa: ")
+#      print(valid_table[[i]]$overall[[2]])
+
+validated[i,1 ] <- valid_table[[i]]$overall[[1]] # Extract Accuracy from returned table
+validated[i, 2] <- valid_table[[i]]$overall[[2]] # Extract Kappa from returned table
+validated[i, 3] <- valid_table[[i]]$byClass[[1]] # Extract Sensitivity from returned table
+validated[i, 4] <- valid_table[[i]]$byClass[[2]] # Extract Specificity from returned table
+validated[i, 5] <- valid_table[[i]]$byClass[[3]] # Extract Pos Pred Value from returned table
+validated[i, 6] <- valid_table[[i]]$byClass[[4]] # Extract Neg Pred Value from returned table
+validated[i, 7] <- valid_table[[i]]$byClass[[5]] # Extract Precision from returned table
+validated[i, 8] <- valid_table[[i]]$byClass[[6]] # Extract Recall from returned table
+validated[i, 9] <- valid_table[[i]]$byClass[[7]] # Extract F1 from returned table
+validated[i, 10] <- valid_table[[i]]$byClass[[8]] # Extract Prevalence from returned table
+validated[i, 11] <- valid_table[[i]]$byClass[[9]] # Extract Detection Rate from returned table
+validated[i, 12] <- valid_table[[i]]$byClass[[10]] # Extract Detection Prevalence from returned table
+validated[i, 13] <- valid_table[[i]]$byClass[[11]] # Extract Balanced Accuracy from returned table
+
+
+
+
+
+
+
 
 
 #########################################
@@ -39,7 +103,8 @@ load("../data/processed-data.RData")
 numCores <- parallel::detectCores()
 clusters <- makePSOCKcluster(numCores) # Leave some for other important tasks, like browsing reddit
 registerDoParallel(clusters)
-#registerDoSEQ() ## register the sequential backend
+stopCluster(clusters)  ## Stop the cluster
+registerDoSEQ() ## register the sequential backend
 
 
 #########################################
@@ -71,13 +136,13 @@ trControl <- caret::trainControl(
   savePredictions = TRUE,
   allowParallel = TRUE,   # Allow parallel processing
   summaryFunction = twoClassSummary
-  )
+)
 
 ## Training settings
 trainSettings <- list(formula = reformulate(".", response = "ECMO_Survival"), 
                       trControl = trControl,
                       metric = metric
-                      )
+)
 
 
 
@@ -88,7 +153,7 @@ trainSettings <- list(formula = reformulate(".", response = "ECMO_Survival"),
 #########################################
 
 kappa_avg <- data.frame(matrix(data = NA, nrow = 1, ncol = 6))
-colnames(kappa_avg) <-  c("Logit", "LASSO", "LDA", "QDA", "KNN", "RF")
+colnames(kappa_avg) <-  c("Logit", "LDA", "QDA", "KNN", "RF")
 
 
 ## Model to fit
@@ -98,9 +163,9 @@ trainSettings$method <- "glmnet"
 trainSettings$tuneGrid = expand.grid(alpha = 1,   ## LASSO regularization
                                      lambda = 0)  ## No regularization
 
-kappa_avg$Logit <- crossValidate(train, K = num_folds, 
-                           trainSettings = trainSettings, 
-                           imputeSettings = imputeSettings)
+kappa_logit <- crossValidate(train, K = num_folds, 
+                             trainSettings = trainSettings, 
+                             imputeSettings = imputeSettings)
 
 
 #########################################
@@ -109,11 +174,7 @@ kappa_avg$Logit <- crossValidate(train, K = num_folds,
 ## Model to fit
 trainSettings$method <- "lda"
 
-## Step in the grid search for model tuning
-trainSettings$tuneGrid = expand.grid(alpha = 1,   ## LASSO regularization
-                                     lambda = 0)  ## No regularization
-
-kappa_avg$LDA <- crossValidate(train, K = num_folds, 
+kappa_lda <- crossValidate(train, K = num_folds, 
                            trainSettings = trainSettings, 
                            imputeSettings = imputeSettings)
 
@@ -124,11 +185,7 @@ kappa_avg$LDA <- crossValidate(train, K = num_folds,
 ## Model to fit
 trainSettings$method <- "qda"
 
-## Step in the grid search for model tuning
-trainSettings$tuneGrid = expand.grid(alpha = 1,   ## LASSO regularization
-                                     lambda = 0)  ## No regularization
-
-kappa_avg$QDA <- crossValidate(train, K = num_folds, 
+kappa_qda <- crossValidate(train, K = num_folds, 
                            trainSettings = trainSettings, 
                            imputeSettings = imputeSettings)
 
@@ -144,18 +201,20 @@ kappa_knn <- data.frame(matrix(data = NA, nrow = length(kmax), ncol = 2))
 colnames(kappa_knn) <- c("kmax", "kappa")
 
 for (i in 1:length(kmax)) {
-  print("----- k = ", i, " -----")
+  print( paste0("----- k = ", i, " -----") )
   ## Step in the grid search for model tuning
   trainSettings$tuneGrid = expand.grid(kmax = kmax[i],              # seq(5, 15, by = 2),  # allows to test a range of k values
                                        distance = c(2),       # various Minkowski distances
                                        kernel = c('gaussian') # different weighting types in kknn))
-                                       ) 
+  ) 
   
   kappa_knn[i, 1] <- kmax[[i]]  ## Store k value
   kappa_knn[i, 2] <- crossValidate(train, K = num_folds, 
-                             trainSettings = trainSettings, 
-                             imputeSettings = imputeSettings)
+                                   trainSettings = trainSettings, 
+                                   imputeSettings = imputeSettings)
 }
+
+for (i in 1:length(table_knn$kmax)) {a[[i]] <- mean(table_knn$xtabs[[i]]$kappa)}
 
 #########################################
 ## Random Forests
@@ -167,21 +226,19 @@ kappa_rf <- data.frame(matrix(data = NA, nrow = length(mtry), ncol = 2))
 colnames(kappa_rf) <- c("mtry", "kappa")
 
 for (i in 1:length(mtry)) {
-  print("----- mtry = ", i, " -----")
+  print( paste0("----- mtry = ", i, " -----") )
   ## Step in the grid search for model tuning
   trainSettings$tuneGrid = expand.grid(mtry = mtry[i])    # seq(1, 10, by = 2))
- 
+  
   kappa_rf[i, 1] <- mtry[[i]]  ## Store k value
-  kappa_rf[i, 2] <- crossValidate(train, K = num_folds, 
-                                trainSettings = trainSettings, 
-                                imputeSettings = imputeSettings)
+  kappa_rf[i, 2] <- crossValidate(train, K = num_folds,
+                                  trainSettings = trainSettings,
+                                  imputeSettings = imputeSettings)
 }
 
 kappa_avg
 
-## Calculate accuracy metrics
-# model$sensitivity <- sensitivity(vote, obs)
-# model$specificity <- specificity(vote, obs)
+
 
 
 #########################################

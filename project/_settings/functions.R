@@ -2,7 +2,7 @@
 ####################################################
 ## imputeData()
 ####################################################
-imputeData <- function(train, test, method, m = 5, maxit = 10, seed = 123) {
+imputeData <- function(train, test, method, m = 5, maxit = 10, seed = 123, numCores = 8) {
 
   set.seed(seed)
   
@@ -27,8 +27,8 @@ imputeData <- function(train, test, method, m = 5, maxit = 10, seed = 123) {
   predictor_matrix <-  quickpred(train)
   
   ## Impute Training Set    
-  train_imputed <- mice(train, 
-                     nnodes = 8,
+  train_imputed <- micemd::mice.par(train, 
+                     nnodes = numCores,
                      meth = method,
                      m = m, 
                      maxit = maxit, 
@@ -52,14 +52,15 @@ imputeData <- function(train, test, method, m = 5, maxit = 10, seed = 123) {
   predictor_matrix[, 1] <- 0 # Do not use outcome variable ECMO_Survival
 
   ## Impute concatenated train and test sets
-  concatenated <- mice(concate.df, 
-                       meth = method, 
-                       m = m,
-                       maxit = maxit, 
-                       seed = seed, 
-                       printFlag = FALSE,
-                       predictorMatrix = predictor_matrix
-                       )
+  concatenated <- micemd::mice.par(concate.df, 
+                           nnodes = numCores,
+                           meth = method, 
+                           m = m,
+                           maxit = maxit, 
+                           seed = seed, 
+                           printFlag = FALSE,
+                           predictorMatrix = predictor_matrix
+                           )
   
   concatenated.df <- complete(concatenated, action = "all") # create list of imputed datasets
   
@@ -108,9 +109,10 @@ validate <- function(model, tests, obs) {
   xtab <- confusionMatrix(data = validation$pred, reference = validation$obs, positive = "N" )
   
   ## Extract kappa for use as accuracy metric in cross-validation
-  kappa <- xtab$overall[[2]]
+#  kappa <- xtab$overall[[2]]
   
-  return(kappa)
+  return(xtab)
+#  return(kappa)
 } ## end validate()
 
 
@@ -178,13 +180,12 @@ fitModel <- function(train, settings) {
   } ## end if
   
   if (settings$method == "qda") {
-#    print(cor(train[, 4:ncol(train)]))
     fit_model <- caret::train(settings$formula, 
                               data = train,
                               method = settings$method, 
                               metric = settings$metric,
-                              trControl = settings$trControl
-#                              preProcess = c("corr", "zv", "nzv")  ## Drop correlated variables
+                              trControl = settings$trControl,
+                              preProcess = c("corr")  ## Drop correlated variables
                               )
     return(fit_model)
   } ## end if
@@ -209,6 +210,17 @@ fitModel <- function(train, settings) {
     return(fit_model)
   } ## end if
   
+  if (settings$method == "svmRadial") {
+    fit_model <- caret::train(settings$formula, 
+                              data = train,
+                              method = settings$method, 
+                              metric = settings$metric,
+                              trControl = settings$trControl,
+                              tuneGrid = settings$tuneGrid
+    )
+    return(fit_model)
+  } ## end if
+  
 } ## end fitModel
 
 
@@ -226,7 +238,21 @@ crossValidate <- function(data, K, trainSettings, imputeSettings) {
   train_cv <- lapply(folds, function(ind, dat) dat[-ind,], dat = data)
   
   ## Create a dataframe to store kappa values
-  validate <- data.frame(Kappa = double()) ## create empty dataframe
+  validated <- data.frame(accuracy = double(),
+                          kappa = double(),
+                          sensitivity = double(),
+                          specificity = double(),
+                          posPredValue = double(),
+                          negPredValue = double(),
+                          precision = double(),
+                          recall = double(),
+                          F1 = double(),
+                          prevalence = double(),
+                          detectionRate = double(),
+                          detectionPrevalence = double(),
+                          balancedAccuracy = double()) ## create empty dataframe
+  
+  valid_table <- list()
   
   ## For each fold: 
   ## - impute the train and test, 
@@ -241,7 +267,8 @@ crossValidate <- function(data, K, trainSettings, imputeSettings) {
                method = imputeSettings$method, 
                m = imputeSettings$m, 
                maxit = imputeSettings$maxit, 
-               seed = imputeSettings$seed
+               seed = imputeSettings$seed,
+               numCores = imputeSettings$numCores
                ) 
     })[3]
     print( paste0("CV ", i, " - imputation time: ", round(imputation_time, 3)) )
@@ -256,21 +283,79 @@ crossValidate <- function(data, K, trainSettings, imputeSettings) {
       
       ## Validate fitted model against each test set
       ## Using the observed classes in the first test set
-      validate[i, ] <- validate(model = fit_model, tests = tests_imputed, obs = tests_imputed[[1]][, 1])
+#      validate[i, ] <- validate(model = fit_model, tests = tests_imputed, obs = tests_imputed[[1]][, 1])
+      
+      valid_table[[i]] <- validate(model = fit_model, tests = tests_imputed, obs = tests_imputed[[1]][, 1])
+#      print("xtab: ")
+#      print(valid_table[[i]])
+#      print("Kappa: ")
+#      print(valid_table[[i]]$overall[[2]])
+      
+      validated[i,1 ] <- valid_table[[i]]$overall[[1]] # Extract Accuracy from returned table
+      validated[i, 2] <- valid_table[[i]]$overall[[2]] # Extract Kappa from returned table
+      validated[i, 3] <- valid_table[[i]]$byClass[[1]] # Extract Sensitivity from returned table
+      validated[i, 4] <- valid_table[[i]]$byClass[[2]] # Extract Specificity from returned table
+      validated[i, 5] <- valid_table[[i]]$byClass[[3]] # Extract Pos Pred Value from returned table
+      validated[i, 6] <- valid_table[[i]]$byClass[[4]] # Extract Neg Pred Value from returned table
+      validated[i, 7] <- valid_table[[i]]$byClass[[5]] # Extract Precision from returned table
+      validated[i, 8] <- valid_table[[i]]$byClass[[6]] # Extract Recall from returned table
+      validated[i, 9] <- valid_table[[i]]$byClass[[7]] # Extract F1 from returned table
+      validated[i, 10] <- valid_table[[i]]$byClass[[8]] # Extract Prevalence from returned table
+      validated[i, 11] <- valid_table[[i]]$byClass[[9]] # Extract Detection Rate from returned table
+      validated[i, 12] <- valid_table[[i]]$byClass[[10]] # Extract Detection Prevalence from returned table
+      validated[i, 13] <- valid_table[[i]]$byClass[[11]] # Extract Balanced Accuracy from returned table
     })
 
 
   }## end for  
   
-  averaged_metric <- mean(validate$Kappa)
+#  kappa <- xtab$overall[[2]]
+#  kappa <- validate$overall[[2]]
   
-  return(averaged_metric)
-    
+#  avg_kappa <- mean(valid_table$overall[[2]], na.rm = TRUE)
+#  avg_kappa <- mean(validated$kappa, na.rm = TRUE)
+  
+#  return(avg_kappa)
+  return(validated)  
+#  return(valid_table)
 }## end crossValidate()
 
 
 
-
+#########################################
+## testModel()
+#########################################
+testModel <- function(model, tests, obs) {
+  ## The model is validated against each imputed test set
+  ## The prediction is the majority vote of the combined test sets
+  ## We can validate against any of the m test sets because the outcome has 0% missingness
+  
+  pred <- list()
+  for (i in 1:length(tests)) {
+    ## Validate against each imputed test dataset
+    pred[[i]] <- predict(model, tests[i], type = "raw")
+  }
+  
+  ## Vote for final predictions
+  vote <- vote(predictions = pred)
+  
+  ## Create dataframe of predictions and observations to validate
+  validation <- cbind( as.data.frame(vote), obs )
+  colnames(validation) <- c("pred", "obs")
+  
+  validation <- validation %>%  ## Change variables to factors
+    mutate(pred = factor(pred)) %>%
+    mutate(obs = factor(obs))
+  
+  ## Create confusion matrix with "N" taken as the positive level (event = death)
+  xtab <- confusionMatrix(data = validation$pred, reference = validation$obs, positive = "N" )
+  
+  ## Extract kappa for use as accuracy metric in cross-validation
+#  kappa <- xtab$overall[[2]]
+  
+#  return(kappa)
+  return(xtab)
+} ## end testModel()
 
 
 
@@ -280,7 +365,7 @@ crossValidate <- function(data, K, trainSettings, imputeSettings) {
 # #########################################
 # ## Testing CrossValidate()
 # #########################################
-# 
+
 # data <- train
 # K <- 10
 # 
@@ -290,24 +375,40 @@ crossValidate <- function(data, K, trainSettings, imputeSettings) {
 # test_cv <- lapply(folds, function(ind, dat) dat[ind,], dat = data)
 # train_cv <- lapply(folds, function(ind, dat) dat[-ind,], dat = data)
 # 
+# ## Create a dataframe to store kappa values
+# validated <- data.frame(accuracy = double(),
+#                        kappa = double(),
+#                        sensitivity = double(),
+#                        specificity = double(),
+#                        posPredValue = double(),
+#                        negPredValue = double(),
+#                        precision = double(),
+#                        recall = double(),
+#                        F1 = double(),
+#                        prevalence = double(),
+#                        detectionRate = double(),
+#                        detectionPrevalence = double(),
+#                        balancedAccuracy = double()) ## create empty dataframe
 # 
-# ## For each fold: 
-# ## - impute the train and test, 
+# valid_table <- list()
+# 
+# ## For each fold:
+# ## - impute the train and test,
 # ## - fit a model on the training set
 # ## - validate the model against each of the test sets
 # ## - calculate accuracy scoree (kappa) for each validation
 # for (i in 1:length(test_cv)) {
-#   
+# 
 #   print("Imputing")
 #   ## Impute the training and test sets
-#   imputed_data <- imputeData(train_cv[[i]], test_cv[[i]], 
-#                              method = imputeSettings$method, 
-#                              m = 5, 
-#                              maxit = imputeSettings$maxit, 
+#   imputed_data <- imputeData(train_cv[[i]], test_cv[[i]],
+#                              method = imputeSettings$method,
+#                              m = 5,
+#                              maxit = imputeSettings$maxit,
 #                              seed = imputeSettings$seed
-#   ) 
+#   )
 # 
-#   train_imputed <- imputed_data$train 
+#   train_imputed <- imputed_data$train
 #   tests_imputed <- imputed_data$test
 # 
 #   ## Training settings
@@ -319,74 +420,64 @@ crossValidate <- function(data, K, trainSettings, imputeSettings) {
 #     allowParallel = TRUE,   # Allow parallel processing
 #     summaryFunction = twoClassSummary
 #   )
-#   
+# 
 #   tuneGrid = expand.grid(alpha = 1,   ## LASSO regularization
 #                          lambda = 0)  ## No regularization
+#   
+#   print("Fitting Model")
+#   fit_model <- fitModel(train_imputed, settings = trainSettings)
 #   ## Fit model to imputed training set
-#   fit_model <- caret::train(ECMO_Survival ~ ., 
-#                             data = train_imputed, 
-#                             method = "glmnet", 
-#                             metric = metric,
-#                             trControl = trControl, 
-#                             #                            preProcess = preProcess,
-#                             family = "binomial",
-#                             tuneGrid = tuneGrid
-#                             )
-#   
+#   # fit_model <- caret::train(ECMO_Survival ~ .,
+#   #                           data = train_imputed,
+#   #                           method = "glmnet",
+#   #                           metric = "kappa",
+#   #                           trControl = trControl,
+#   #                           #                            preProcess = preProcess,
+#   #                           family = "binomial",
+#   #                           tuneGrid = tuneGrid
+#   #                           )
+# 
 # #  fit_model <- fitModel(train_imputed, settings = trainSettings)
-#   print("Model Fit")
-#   
+# 
 #   ## Validate fitted model against each test set
 #   ## Using the observed classes in the first test set
 #   kappa <- data.frame(Kappa = double()) ## create empty dataframe
-#   
+# 
 #   pred <- list()
-#   for (i in 1:length(tests_imputed)) {
+#   for (j in 1:length(tests_imputed)) {
 #     ## Validate against each imputed test dataset
-#     pred[[i]] <- predict(fit_model, tests_imputed[i], type = "raw")
+#     pred[[j]] <- predict(fit_model, tests_imputed[j], type = "raw")
 #   }
-#   
-# 
-#   
-#   print("Validating Model")
-#   kappa[1, ] <- validate(model = fit_model, tests = tests_imputed, obs = tests_imputed[[i]][, 1])
-#   print("Model Validated")
-#   
-# }## end for  
-# 
-# averaged_metric <- mean(validate$Kappa)
 # 
 # 
-# #########################################
-# ## Testing Area
-# #########################################
+#   valid_table[[i]] <- validate(model = fit_model, tests = tests_imputed, obs = tests_imputed[[1]][, 1])
+#   # print("xtab: ")
+#   # print(valid_table[[i]])
+#   # print("Kappa: ")
+#   # print(valid_table[[i]]$overall[[2]])
 # 
-# folds <- caret::createFolds(train$ECMO_Survival, k = 10)
-# test.cv <- lapply(folds, function(ind, dat) dat[ind,], dat = train)
-# train.cv <- lapply(folds, function(ind, dat) dat[-ind,], dat = train)
+#   validated[i,1 ] <- valid_table[[i]]$overall[[1]] # Extract Accuracy from returned table
+#   validated[i, 2] <- valid_table[[i]]$overall[[2]] # Extract Kappa from returned table
+#   validated[i, 3] <- valid_table[[i]]$byClass[[1]] # Extract Sensitivity from returned table
+#   validated[i, 4] <- valid_table[[i]]$byClass[[2]] # Extract Specificity from returned table
+#   validated[i, 5] <- valid_table[[i]]$byClass[[3]] # Extract Pos Pred Value from returned table
+#   validated[i, 6] <- valid_table[[i]]$byClass[[4]] # Extract Neg Pred Value from returned table
+#   validated[i, 7] <- valid_table[[i]]$byClass[[5]] # Extract Precision from returned table
+#   validated[i, 8] <- valid_table[[i]]$byClass[[6]] # Extract Recall from returned table
+#   validated[i, 9] <- valid_table[[i]]$byClass[[7]] # Extract F1 from returned table
+#   validated[i, 10] <- valid_table[[i]]$byClass[[8]] # Extract Prevalence from returned table
+#   validated[i, 11] <- valid_table[[i]]$byClass[[9]] # Extract Detection Rate from returned table
+#   validated[i, 12] <- valid_table[[i]]$byClass[[10]] # Extract Detection Prevalence from returned table
+#   validated[i, 13] <- valid_table[[i]]$byClass[[11]] # Extract Balanced Accuracy from returned table
 # 
-# unlist(lapply(train.cv, ncol))
+#   # print("Validating Model")
+#   # kappa[1, ] <- validate(model = fit_model, tests = tests_imputed, obs = tests_imputed[[i]][, 1])
+#   # print("Model Validated")
 # 
+# }## end for
 # 
-# train_settings <- list()
-# train_settings$formula <- as.formula("ECMO_Survival ~ .") 
+# averaged_metric <- mean(validated$Kappa)
 # 
-# 
-# ## List of settings to pass through to caret::train()
-# settings <- list()
-# settings$method <- "lda"
-# settings$trControl <- trControl
-# settings$tuneGrid  <- tuneGrid
-# settings$preProcess <- preProcess
-# settings$metric <- "kappa"
-# settings$seed <- 123
-# 
-# 
-# 
-# kappa <- data.frame(Kappa=double()) ## create empty dataframe
-# kappa[1, ] <- validate(logit_model[[1]], test.impute.df, test.impute.df[[1]]$ECMO_Survival)
-# kappa[2, ] <- validate(lda_model[[1]], test.impute.df, test.impute.df[[1]]$ECMO_Survival)
-# kappa[3, ] <- validate(qda_model[[1]], test.impute.df, test.impute.df[[1]]$ECMO_Survival)
 # 
 
 

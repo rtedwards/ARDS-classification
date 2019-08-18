@@ -58,7 +58,7 @@ colnames(data.raw.df)[1] <- c("Pt_ID")
 Removing features that are not relevant to this analysis
 ```{r reduce, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 Day1_vars <- c("Hospital_Survival", 
-#               "Duration_ECMO",
+               "Duration_ECMO",
                "Day1ECMO_RR", 
                "Day1ECMO_Vt", 
                "Day1ECMO_FiO2", 
@@ -112,21 +112,21 @@ data.raw.df <- data.raw.df %>%
 ```
 
 ```{r missing_data_PDF, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE}
-pdf(file="../viva/images/missing_data_visualization.pdf", height=8, width=10)
+png(file="../thesis/images/missing_data_visualization.png", height=540, width=960)
 vis_miss(data.raw.df, sort_miss = TRUE)  +
   theme(  plot.margin = ggplot2::margin(0.125, 2, 0.5, 1, "cm") ) #top, right, bottom, left
 dev.off()
 ```
 
 
-```{r missing_data, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+```{r missing_data, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, fig.ext='png'}
 vis_miss(data.raw.df, sort_miss = TRUE) +
   theme(  plot.margin = ggplot2::margin(0.125, 2, 0.5, 1, "cm") ) #top, right, bottom, left
 ```
 
 We see that `PreECMO_Albumin` is missing in 46% of observations.  In listwise deletion, this will cause it to drop the entire row if a single observation has missing data.  So we drop this feature.   
 ```{r drop PreECMO_Albumin, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE, results="hide"}
-pdf(file="../viva/images/missing_data_visualization_var_dropped.pdf", height=8, width=10)
+png(file="../thesis/images/missing_data_visualization_var_dropped.png", height=540, width=960)
 
 data.df <- data.raw.df %>% 
   select(-"PreECMO_Albumin")
@@ -283,7 +283,7 @@ data_standard.df %>%
 The boxplot shows many highly skewed variables indicating that these likely need to be transformed in some fashion (likely log transformation).  For **logistic regression**, first a model will be fit without transformations and then the not significant variables will be transformed and model fit will be evaluated.  
 
 
-```{r violinplot, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:violin}Violin plot of continuous variables."}
+```{r violinplot, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, fig.ext='png', out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:violin}Violin plot of continuous variables."}
 data_standard.df %>% 
   gather(key = Feature, value = Value) %>% 
   ggplot(aes(x = Feature, y = Value, fill = Feature)) +
@@ -301,8 +301,8 @@ data_standard.df %>%
           axis.text.x = element_text(angle = 60, hjust = 1))  
 ```
 
-```{r violinplot, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:violin}Violin plot of continuous variables."}
-pdf(file="../thesis/images/violinplot.png", height=8, width=10)
+```{r violinplot, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, fig.ext='png', out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:violin}Violin plot of continuous variables."}
+png(file="../thesis/images/violinplot.png", height=540, width=960)
 
 
 data_standard.df %>% 
@@ -332,7 +332,7 @@ dev.off()
 - YeoJohnson
 
 ```{r violinplot, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:violin2}Violin plot of continuous variables."}
-pdf(file="../thesis/images/violinplot_standardized.png", height=8, width=10)
+png(file="../thesis/images/violinplot_standardized.png", height=540, width=960)
 
 data_yeojohnson.df <- data.raw.df[, 5:ncol(data.raw.df)] %>%
   preProcess(method = c("center", "scale", "YeoJohnson"))
@@ -362,7 +362,7 @@ dev.off()
 
 ##Correlation Plot
 
-```{r heatmap, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:cor}Correlation heatmap of contnuous variables."}
+```{r heatmap, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, fig.ext='png', out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:cor}Correlation heatmap of contnuous variables."}
 # Correlation matrix plot
 ggcorr(data_standard.df[, 1:ncol(data_standard.df)], 
        hjust = 0.95, 
@@ -380,7 +380,7 @@ ggcorr(data_standard.df[, 1:ncol(data_standard.df)],
 ```
 
 ```{r heatmap_PDF, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:cor}Pairs plot of contnuous variables."}
-pdf(file="../thesis/images/heatmap.pdf", height=8, width=10)
+png(file="../thesis/images/heatmap.png", height=720, width=1280)
 
 # Correlation matrix plot
 ggcorr(data_standard.df[, 1:ncol(data_standard.df)], 
@@ -389,7 +389,7 @@ ggcorr(data_standard.df[, 1:ncol(data_standard.df)],
        label = TRUE, 
        label_size = 2, 
        label_alpha = TRUE, 
-       layout.exp = 2, 
+       layout.exp = 5, 
        legend.position = "bottom", 
        legend.size = 8) +
   guides(fill = guide_colorbar(barwidth = 10, 
@@ -402,7 +402,7 @@ dev.off()
 
 ##Yeo Johnson Correlation Heatmap
 ```{r heatmap-yeojohnson, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:cor}Correlation heatmap of contnuous variables."}
-pdf(file="../thesis/images/heatmap_standardized.pdf", height=8, width=10)
+png(file="../thesis/images/heatmap_standardized.png", height=720, width=1280)
 
 # Correlation matrix plot
 ggcorr(data_yeojohnson.df, 
@@ -423,7 +423,7 @@ dev.off()
 
 ##Pairs Plot
 
-```{r pairsplot1, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:pairs}Pairs plot of continuous variables."}
+```{r pairsplot1, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE, fig.ext='png', out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:pairs}Pairs plot of continuous variables."}
 pairs.df <- cbind(data.df$ECMO_Survival, data_standard.df)
 colnames(pairs.df)[1] <- "ECMO_Survival"
 pairs.df <- pairs.df %>% 
@@ -442,7 +442,7 @@ ggpairs(
 
 
 ```{r pairsplot2, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:pairs}Pairs plot of continuous variables."}
-pdf(file="../thesis/images/pairsplot.pdf", height=8, width=10)
+png(file="../thesis/images/pairsplot.png", height=720, width=1280)
 
 pairs.df <- cbind(data.df$ECMO_Survival, data_standard.df)
 colnames(pairs.df)[1] <- "ECMO_Survival"

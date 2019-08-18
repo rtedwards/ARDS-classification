@@ -85,36 +85,45 @@ data.df <- data.raw.df %>%
 
 
 ## Make categorical variables factors
-data.df <- data.df %>%
+data_clean.df <- data.df %>%
   mutate(Indication = factor(Indication)) %>% 
   mutate(ECMO_Survival = factor(ECMO_Survival)) %>%
   mutate(Gender = factor(Gender))
 
 
 #########################################
-## Scale Data
-#########################################
-set.seed(123)
-data.scaled.df <- data.df %>%
-  preProcess( method = c("center", 
-                         "scale",
-                         "YeoJohnson"  ## Transformation method
-  )) %>%
-  predict(data.df) ## Generate new dataframe
-
-
-#########################################
 ## Data Splitting 
 #########################################
 set.seed(123)
-train_index <- createDataPartition(data.scaled.df$ECMO_Survival[1:nrow(data.scaled.df)], 
+train_index <- createDataPartition(data_clean.df$ECMO_Survival[1:nrow(data_clean.df)], 
                                   p = .75,      ## 75% data in training set
                                   list = FALSE, ## avoids returning data as a list
                                   times = 1)
 
 
-train <- data.scaled.df[ train_index, ]
-test  <- data.scaled.df[-train_index, ]
+train <- data_clean.df[ train_index, ]
+test  <- data_clean.df[-train_index, ]
+
+
+#########################################
+## Scale Data
+#########################################
+set.seed(123)
+train <- train %>%
+  preProcess( method = c("center", 
+                         "scale",
+                         "YeoJohnson"  ## Transformation method
+  )) %>%
+  predict(train) ## Generate new dataframe
+
+
+set.seed(123)
+test <- test %>%
+  preProcess( method = c("center", 
+                         "scale",
+                         "YeoJohnson"  ## Transformation method
+  )) %>%
+  predict(test) ## Generate new dataframe
 
 
 #########################################
@@ -167,7 +176,8 @@ test  <- data.scaled.df[-train_index, ]
 save(file = "../data/processed-data.RData",
      train_index,
      train,
-     test
+     test,
+     data_clean.df
      # train.complete.df,
      # test.complete.df,
      # train.mean.df,
@@ -184,7 +194,6 @@ save(file = "../data/processed-data.RData",
 #########################################
 rm(data.raw.df)
 rm(data.df)
-rm(data.scaled.df)
 rm(train_index)
 rm(train)
 rm(test)
