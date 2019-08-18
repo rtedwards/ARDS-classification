@@ -32,9 +32,6 @@ load("../data/processed-data.RData")
 #########################################
 ## Set up Parallel Processing 
 ## https://cran.r-project.org/web/packages/doParallel/vignettes/gettingstartedParallel.pdf
-## 
-## system("sysctl hw.ncpu") # total number of cores
-## system("sysctl  hw.physicalcpu")  # number of physical CPUs
 #########################################
 numCores <- parallel::detectCores()
 #clusters <- makePSOCKcluster(numCores) # Leave some for other important tasks, like browsing reddit
@@ -52,10 +49,8 @@ metric = "kappa" # good for imbalanced data
 
 ## Imputation Settings
 #impute_method <- "complete-case"
-# impute_method <- "mean"
- impute_method <- "pmm"
-# impute_method <- "norm"
-# impute_method = "rf"
+#impute_method <- "mean"
+impute_method <- "pmm"
 
 imputeSettings <- list(
   method = impute_method, 
@@ -84,15 +79,9 @@ trainSettings <- list(formula = reformulate(".", response = "ECMO_Survival"),
 
 
 
-
 #########################################
 ## Logistic Regression 
 #########################################
-
-kappa_avg <- data.frame(matrix(data = NA, nrow = 1, ncol = 6))
-colnames(kappa_avg) <-  c("Logit", "LDA", "QDA", "KNN", "RF")
-
-
 ## Model to fit
 trainSettings$method <- "glmnet"
 
@@ -127,16 +116,15 @@ table_qda <- crossValidate(train, K = num_folds,
                                imputeSettings = imputeSettings)
 
 
-
 #########################################
 ## Weighted K-Nearest Neighbors
 #########################################
 ## Model to fit
 trainSettings$method <- "kknn"
-kmax <- seq(3, 15, by = 2)   # mtry=7 x K=5 x m=99 x ~sec=3 ~= 180min
-table_knn <- list(kmax = double(),
+kmax <- seq(3, 19, by = 2)   # mtry=7 x K=5 x m=99 x ~sec=3 ~= 180min
+table_knn_all <- list(kmax = double(),
                   xtabs = list())
-colnames(table_knn) <- c("kmax", "xtab")
+table_knn <- list()
 
 for (i in 1:length(kmax)) {
   print( paste0("----- k = ", i, " -----") )
@@ -146,11 +134,18 @@ for (i in 1:length(kmax)) {
                                        kernel = c('gaussian') # different weighting types in kknn))
   ) 
   
-  table_knn$kmax[[i]] <- kmax[[i]]  ## Store k value
-  table_knn$xtabs[[i]] <- crossValidate(train, K = num_folds, 
+  table_knn_all$kmax[[i]] <- kmax[[i]]  ## Store k value
+  table_knn_all$xtabs[[i]] <- crossValidate(train, K = num_folds, 
                                    trainSettings = trainSettings, 
                                    imputeSettings = imputeSettings)
 }
+
+temp.df <- data.frame(matrix(unlist(table_knn_all$xtabs), nrow=length(table_knn_all$xtabs), byrow=T))
+temp.df <- cbind(kmax, temp.df) 
+colnames(temp.df) <- c("kmax", names(table_knn_all$xtabs[[1]]))
+table_knn$kmax <- table_knn_all$kmax[[which.max(temp.df$kappa)]]
+table_knn$xtabs <- table_knn_all$xtabs[[which.max(temp.df$kappa)]]
+
 
 #########################################
 ## Random Forests
@@ -158,44 +153,26 @@ for (i in 1:length(kmax)) {
 ## Model to fit
 trainSettings$method <- "rf"
 mtry <- seq(3, 15, by = 2) # mtry=7 x K=5 x m=99 x ~sec=3 ~= 180min
-table_rf <- list(mtry = double(),
-                 xtabs = list())
-colnames(table_rf) <- c("mtry", "xtab")
+table_rf_all <- list(mtry = double(),
+                    xtabs = list())
+table_rf <- list()
 
 for (i in 1:length(mtry)) {
   print( paste0("----- mtry = ", i, " -----") )
   ## Step in the grid search for model tuning
   trainSettings$tuneGrid = expand.grid(mtry = mtry[i])    # seq(1, 10, by = 2))
 
-  table_rf$mtry[[i]] <- mtry[[i]]  ## Store k value
-  table_rf$xtabs[[i]] <- crossValidate(train, K = num_folds,
+  table_rf_all$mtry[[i]] <- mtry[[i]]  ## Store k value
+  table_rf_all$xtabs[[i]] <- crossValidate(train, K = num_folds,
                                   trainSettings = trainSettings,
                                   imputeSettings = imputeSettings)
 }
 
-
-#########################################
-## SVM Radial
-#########################################
-## Model to fit
-trainSettings$method <- "svmRadial"
-sigma <- c(2^(-1), 2^0, 2^1, 2^3)
-table_svm <- list(sigma = double(),
-                  xtabs = list())
-colnames(table_svm) <- c("sigma", "xtab")
-
-for (i in 1:length(sigma)) {
-  print( paste0("----- sigma = ", i, " -----") )
-  trainSettings$tuneGrid <- expand.grid(sigma = sigma[[i]], 
-                        C = 1)
-
-  table_svm$sigma[[i]] <- sigma[[i]]  ## Store k value
-  table_svm$xtabs[[i]] <- crossValidate(train, K = num_folds,
-                                    trainSettings = trainSettings,
-                                    imputeSettings = imputeSettings)
-}
-
-
+temp.df <- data.frame(matrix(unlist(table_rf_all$xtabs), nrow=length(table_rf_all$xtabs), byrow=T))
+temp.df <- cbind(mtry, temp.df) 
+colnames(temp.df) <- c("mtry", names(table_rf_all$xtabs[[1]]))
+table_rf$mtry <- table_rf_all$mtry[[which.max(temp.df$kappa)]]
+table_rf$xtabs <- table_rf_all$xtabs[[which.max(temp.df$kappa)]]
 
 
 
@@ -203,14 +180,13 @@ for (i in 1:length(sigma)) {
 ## Save Trained Models 
 #########################################
 # Save multiple objects
-file_name <- paste0("../_trained-models/trained-models-", impute_method, "9.RData")
+file_name <- paste0("../_trained-models/trained-models-", impute_method, ".RData")
 save(file = file_name,
      table_logit,
      table_lda,
      table_qda,
      table_knn,
-     table_rf,
-     table_svm
+     table_rf
 )
 
 
@@ -224,29 +200,19 @@ rm(train)
 rm(test)
 
 ## Parallel Computing
-stopCluster(clusters)  ## Stop the cluster
+#stopCluster(clusters)  ## Stop the cluster
 registerDoSEQ() ## register the sequential backend
 rm(numCores)
-rm(clusters)
+#rm(clusters)
 
-# Kappa values
-rm(kappa_logit)
-rm(kappa_lda)
-rm(kappa_qda)
-rm(kappa_knn)
-rm(kappa_rf)
+# Table of metrics
+rm(table_logit)
+rm(table_lda)
+rm(table_qda)
+rm(table_knn)
+rm(table_rf)
 
 
-# # Models
-# rm(logit_model)
-# rm(lasso_model)
-# rm(lda_model)
-# rm(qda_model)
-# rm(knn_model)
-# rm(rf_model)
-# rm(svmLinear_model)
-# rm(svmPoly_model)
-# rm(svmRadial_model)
 
 
 

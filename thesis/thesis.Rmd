@@ -407,27 +407,101 @@ flux %>%
 
 ```{r cv-kappa, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H"}
 load("../project/_trained-models/trained-models-complete-case.RData")
-kappa_cc <- as.data.frame(cbind(kappa_logit, kappa_lda, kappa_qda, max(kappa_knn$kappa), max(kappa_rf$kappa)) )
+kappa_cc <- as.data.frame(cbind(table_logit[[2]], table_lda[[2]], table_qda[[2]], table_knn$xtabs[[2]], table_rf$xtabs[[2]]) )
 
 load("../project/_trained-models/trained-models-mean.RData")
-kappa_mean <- as.data.frame(cbind(kappa_logit, kappa_lda, kappa_qda, max(kappa_knn$kappa), max(kappa_rf$kappa)) )
+kappa_mean <- as.data.frame(cbind(table_logit[[2]], table_lda[[2]], table_qda[[2]], table_knn$xtabs[[2]], table_rf$xtabs[[2]]) )
 
-load("../project/_trained-models/trained-models-pmm99.RData")
-kappa_pmm <- as.data.frame(cbind(kappa_logit, kappa_lda, kappa_qda, max(kappa_knn$kappa), max(kappa_rf$kappa)) )
+load("../project/_trained-models/trained-models-pmm.RData")
+kappa_pmm <- as.data.frame(cbind(table_logit[[2]], table_lda[[2]], table_qda[[2]], table_knn$xtabs[[2]], table_rf$xtabs[[2]]) )
 
 kappa_table <- rbind(kappa_cc, kappa_mean, kappa_pmm)
 kappa_table <- round(kappa_table, 3)
 colnames(kappa_table) <- c("Logit", "LDA", "QDA", "KNN", "RF")
 rownames(kappa_table) <- c("Complete Case", "Mean", "PMM")
 
+cap <- paste0('\\label{tab:cv-kappa} Averaged Cohen\'s Kappa for each model fitted in cross-validation.  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=', table_knn$kmax, ' and mtry=', table_rf$mtry, ', respectively.')
+
 kappa_table %>%
   kable(#col.names = c("Variables", "Test", "df", "p.value"), 
-        caption = '\\label{tab:cv-kappa} Averaged Cohen\'s Kappa for each model fitted in cross-validation.  The number of neighbors, K, for K-Nearest Neighbors is 15.  The number of randomly selected variables at a split in Random Forests is 1.',
+        caption = cap,
         booktabs = TRUE, 
         format = "latex") %>%
   kable_styling(font_size = 10, 
                 latex_options = "hold_position")
 ```
+
+```{r echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H"}
+load("../project/_metrics/metrics-complete-case.RData")
+load("../project/_trained-models/trained-models-complete-case.RData")
+
+cap <- paste0('\\label{tab:cc-metrics} Complete case analysis accuracy metrics.  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=', table_knn$kmax, ' and mtry=', table_rf$mtry, ', respectively.')
+
+metrics_table %>%
+  round(3) %>%
+  select(accuracy, kappa, sensitivity, specificity, precision, recall) %>%
+  kable(col.names = c("Accuracy", "Kappa", "Sensitivity", "Specificity", "Precision", "Recall"), 
+        caption = cap,
+        booktabs = TRUE, 
+        format = "latex") %>%
+  kable_styling(font_size = 10, 
+                latex_options = "hold_position")
+```
+
+
+```{r echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H"}
+load("../project/_metrics/metrics-mean.RData")
+load("../project/_trained-models/trained-models-mean.RData")
+
+cap <- paste0('\\label{tab:mean-metrics} Mean imputation accuracy metrics.  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=', table_knn$kmax, ' and mtry=', table_rf$mtry, ', respectively.')
+
+metrics_table %>%
+  round(3) %>%
+  select(accuracy, kappa, sensitivity, specificity, precision, recall) %>%
+  kable(col.names = c("Accuracy", "Kappa", "Sensitivity", "Specificity", "Precision", "Recall"), 
+        caption = cap,
+        booktabs = TRUE, 
+        format = "latex") %>%
+  kable_styling(font_size = 10, 
+                latex_options = "hold_position")
+```
+
+
+```{r echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H"}
+load("../project/_metrics/metrics-pmm.RData")
+load("../project/_trained-models/trained-models-pmm.RData")
+
+cap <- paste0('\\label{tab:pmm-metrics} Predictively mean-matching imputation accuracy metrics.  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=', table_knn$kmax, ' and mtry=', table_rf$mtry, ', respectively.')
+
+metrics_table %>%
+  round(3) %>%
+  select(accuracy, kappa, sensitivity, specificity, precision, recall) %>%
+  kable(col.names = c("Accuracy", "Kappa", "Sensitivity", "Specificity", "Precision", "Recall"), 
+        caption = cap,
+        booktabs = TRUE, 
+        format = "latex") %>%
+  kable_styling(font_size = 10, 
+                latex_options = "hold_position")
+```
+
+
+```{r echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H"}
+load("../project/_metrics/metrics-pmm99.RData")
+load("../project/_trained-models/trained-models-pmm.RData")
+
+cap <- paste0('\\label{tab:pmm99-metrics} 99 Predictively mean-matching imputation accuracy metrics.  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=', table_knn$kmax, ' and mtry=', table_rf$mtry, ', respectively.')
+
+metrics_table %>%
+  round(3) %>%
+  select(accuracy, kappa, sensitivity, specificity, precision, recall) %>%
+  kable(col.names = c("Accuracy", "Kappa", "Sensitivity", "Specificity", "Precision", "Recall"), 
+        caption = cap,
+        booktabs = TRUE, 
+        format = "latex") %>%
+  kable_styling(font_size = 10, 
+                latex_options = "hold_position")
+```
+
 
 \newpage
 #Discussion

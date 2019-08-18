@@ -108,15 +108,15 @@ test  <- data_clean.df[-train_index, ]
 #########################################
 ## Scale Data
 #########################################
-set.seed(123)
-train <- train %>%
-  preProcess( method = c("center", 
-                         "scale",
-                         "YeoJohnson"  ## Transformation method
-  )) %>%
-  predict(train) ## Generate new dataframe
+# set.seed(123)
+# train <- train %>%
+#   preProcess( method = c("center", 
+#                          "scale",
+#                          "YeoJohnson"  ## Transformation method
+#   )) %>%
+#   predict(train) ## Generate new dataframe
 
-
+## Only preprocess test set because training set must be preprocessed during CV
 set.seed(123)
 test <- test %>%
   preProcess( method = c("center", 

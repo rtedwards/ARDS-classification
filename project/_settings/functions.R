@@ -40,10 +40,6 @@ imputeData <- function(train, test, method, m = 5, maxit = 10, seed = 123, numCo
   # Stack the training sets into one long dataset
   train_imputed.df <- complete(train_imputed, action = "stacked")
   
-  # ## Making predictor matrix for test set
-  # predictor_matrix <- train_imputed$predictorMatrix
-  # predictor_matrix[, 1] <- 0 # Do not use outcome variable ECMO_Survival
-  
   ## Concatenate Test Set with imputed Training Set
   concate.df <- rbind(train_imputed.df, test)
   
@@ -108,11 +104,7 @@ validate <- function(model, tests, obs) {
   ## Create confusion matrix with "N" taken as the positive level (event = death)
   xtab <- confusionMatrix(data = validation$pred, reference = validation$obs, positive = "N" )
   
-  ## Extract kappa for use as accuracy metric in cross-validation
-#  kappa <- xtab$overall[[2]]
-  
   return(xtab)
-#  return(kappa)
 } ## end validate()
 
 
@@ -129,6 +121,10 @@ vote <- function(predictions) {
   
   vote_Y <- rowSums( as.matrix(predictions.df) == "Y" ) # Sum number of "Y" in across test sets for each case
   vote_N <- rowSums( as.matrix(predictions.df) == "N" ) # Sum number of "Y" in across test sets for each case
+  
+#  print("Vote Yes")
+#  print(vote_Y)
+
   
   final_vote <- factor(ifelse( vote_Y > vote_N, "Y", "N"))
   
@@ -149,7 +145,7 @@ fitModel <- function(train, settings) {
   
   trControl <- caret::trainControl(
     method = "none",        # No cross-validation (because imputation needs to be done on every validation set)
-    returnResamp = "all",
+#    returnResamp = "all",
     classProbs = TRUE,      # Should be TRUE if metric = "ROC" Can skip if metric = "Kappa"
     savePredictions = TRUE,
     allowParallel = TRUE,   # Allow parallel processing
@@ -169,6 +165,7 @@ fitModel <- function(train, settings) {
                               )
     return(fit_model)
   } ## end if
+
   
   if (settings$method == "lda") {
     fit_model <- caret::train(settings$formula, 
@@ -261,6 +258,24 @@ crossValidate <- function(data, K, trainSettings, imputeSettings) {
   ## - calculate accuracy scoree (kappa) for each validation
   for (i in 1:length(test_cv)) {
     
+    ## Preprocess the data
+    set.seed(123)
+    train_cv[[i]] <- train_cv[[i]] %>%
+      preProcess( method = c("center", 
+                             "scale",
+                             "YeoJohnson"  ## Transformation method
+      )) %>%
+      predict(train_cv[[i]]) ## Generate new dataframe
+    
+    
+    set.seed(123)
+    test_cv[[i]] <- test_cv[[i]] %>%
+      preProcess( method = c("center", 
+                             "scale",
+                             "YeoJohnson"  ## Transformation method
+      )) %>%
+      predict(test_cv[[i]]) ## Generate new dataframe
+    
     ## Impute the training and test sets
     imputation_time <- system.time({
     imputed_data <- imputeData(train_cv[[i]], test_cv[[i]], 
@@ -286,12 +301,8 @@ crossValidate <- function(data, K, trainSettings, imputeSettings) {
 #      validate[i, ] <- validate(model = fit_model, tests = tests_imputed, obs = tests_imputed[[1]][, 1])
       
       valid_table[[i]] <- validate(model = fit_model, tests = tests_imputed, obs = tests_imputed[[1]][, 1])
-#      print("xtab: ")
-#      print(valid_table[[i]])
-#      print("Kappa: ")
-#      print(valid_table[[i]]$overall[[2]])
       
-      validated[i,1 ] <- valid_table[[i]]$overall[[1]] # Extract Accuracy from returned table
+      validated[i, 1] <- valid_table[[i]]$overall[[1]] # Extract Accuracy from returned table
       validated[i, 2] <- valid_table[[i]]$overall[[2]] # Extract Kappa from returned table
       validated[i, 3] <- valid_table[[i]]$byClass[[1]] # Extract Sensitivity from returned table
       validated[i, 4] <- valid_table[[i]]$byClass[[2]] # Extract Specificity from returned table
@@ -309,15 +320,10 @@ crossValidate <- function(data, K, trainSettings, imputeSettings) {
 
   }## end for  
   
-#  kappa <- xtab$overall[[2]]
-#  kappa <- validate$overall[[2]]
-  
-#  avg_kappa <- mean(valid_table$overall[[2]], na.rm = TRUE)
-#  avg_kappa <- mean(validated$kappa, na.rm = TRUE)
-  
-#  return(avg_kappa)
-  return(validated)  
-#  return(valid_table)
+  ## Average the K folds
+  avg_validated <- sapply(validated, FUN = mean, MARGIN = 2, na.rm = TRUE)
+
+  return(avg_validated)  
 }## end crossValidate()
 
 
@@ -325,37 +331,38 @@ crossValidate <- function(data, K, trainSettings, imputeSettings) {
 #########################################
 ## testModel()
 #########################################
-testModel <- function(model, tests, obs) {
-  ## The model is validated against each imputed test set
-  ## The prediction is the majority vote of the combined test sets
-  ## We can validate against any of the m test sets because the outcome has 0% missingness
+createTable <- function(xtab) {
+  ## Create a dataframe to store kappa values
+  tested <- data.frame(accuracy = double(),
+                          kappa = double(),
+                          sensitivity = double(),
+                          specificity = double(),
+                          posPredValue = double(),
+                          negPredValue = double(),
+                          precision = double(),
+                          recall = double(),
+                          F1 = double(),
+                          prevalence = double(),
+                          detectionRate = double(),
+                          detectionPrevalence = double(),
+                          balancedAccuracy = double()) ## create empty dataframe
   
-  pred <- list()
-  for (i in 1:length(tests)) {
-    ## Validate against each imputed test dataset
-    pred[[i]] <- predict(model, tests[i], type = "raw")
-  }
+  tested[1, 1] <- xtab$overall[[1]] # Extract Accuracy from returned table
+  tested[1, 2] <- xtab$overall[[2]] # Extract Kappa from returned table
+  tested[1, 3] <- xtab$byClass[[1]] # Extract Sensitivity from returned table
+  tested[1, 4] <- xtab$byClass[[2]] # Extract Specificity from returned table
+  tested[1, 5] <- xtab$byClass[[3]] # Extract Pos Pred Value from returned table
+  tested[1, 6] <- xtab$byClass[[4]] # Extract Neg Pred Value from returned table
+  tested[1, 7] <- xtab$byClass[[5]] # Extract Precision from returned table
+  tested[1, 8] <- xtab$byClass[[6]] # Extract Recall from returned table
+  tested[1, 9] <- xtab$byClass[[7]] # Extract F1 from returned table
+  tested[1, 10] <- xtab$byClass[[8]] # Extract Prevalence from returned table
+  tested[1, 11] <- xtab$byClass[[9]] # Extract Detection Rate from returned table
+  tested[1, 12] <- xtab$byClass[[10]] # Extract Detection Prevalence from returned table
+  tested[1, 13] <- xtab$byClass[[11]] # Extract Balanced Accuracy from returned table
   
-  ## Vote for final predictions
-  vote <- vote(predictions = pred)
-  
-  ## Create dataframe of predictions and observations to validate
-  validation <- cbind( as.data.frame(vote), obs )
-  colnames(validation) <- c("pred", "obs")
-  
-  validation <- validation %>%  ## Change variables to factors
-    mutate(pred = factor(pred)) %>%
-    mutate(obs = factor(obs))
-  
-  ## Create confusion matrix with "N" taken as the positive level (event = death)
-  xtab <- confusionMatrix(data = validation$pred, reference = validation$obs, positive = "N" )
-  
-  ## Extract kappa for use as accuracy metric in cross-validation
-#  kappa <- xtab$overall[[2]]
-  
-#  return(kappa)
-  return(xtab)
-} ## end testModel()
+  return(tested)
+} ## end createTable()
 
 
 
