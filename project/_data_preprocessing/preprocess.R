@@ -100,10 +100,8 @@ train_index <- createDataPartition(data_clean.df$ECMO_Survival[1:nrow(data_clean
                                   list = FALSE, ## avoids returning data as a list
                                   times = 1)
 
-
 train <- data_clean.df[ train_index, ]
 test  <- data_clean.df[-train_index, ]
-
 
 #########################################
 ## Scale Data

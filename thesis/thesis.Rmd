@@ -1,6 +1,6 @@
 
 ---
-title: "Multiple Imputation and Cross-Validation for Classification of Survival Prediction"
+title: "Combinging Multiple Imputation and Cross-Validation for Predicting Survival of ECMO Treatment in ARDS Patients"
 
 thesis: MASTER THESIS
 major: Biostatistics
@@ -9,11 +9,18 @@ output:
     citation_package: natbib
     number_sections: yes
     fig_caption: yes
-#    toc: true
-    toc_depth: 2
+    fig_crop: no
+    keep_tex: yes
+#    toc: yes
+#    toc_depth: 2
+#    theme: united  
+    highlight: tango  
+#    highlight: haddock
   latex_engine: xelatex
   includes:
+    in_header: preamble-latex.tex
     before_body: before_body.tex
+    
 
 tables: true
 mainfont: Calibri Light
@@ -33,13 +40,23 @@ header-includes:
   \usepackage{color}
   \usepackage[table]{xcolor}
   \usepackage{caption}
-  \captionsetup[table]{skip=5pt, font=footnotesize}
-  \usepackage[font=footnotesize]{caption}
+  \captionsetup[table]{skip=5pt, font=footnotesize} 
+  \usepackage[font=footnotesize]{caption} 
   \usepackage{algorithm2e}
 ---
 
 ```{r setup, include=FALSE, echo = FALSE, eval = TRUE}
-knitr::opts_chunk$set(echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE, comment = NA, fig.pos='H', cache=TRUE)
+knitr::opts_chunk$set(echo = TRUE, 
+                      eval = TRUE, 
+                      warning = FALSE, 
+                      message = FALSE, 
+                      comment = NA, 
+                      cache = TRUE,
+                      fig.pos = 'H', 
+                      fig.align = 'center',
+                      fig.path = 'figure/graphics-',
+                      cache.path = 'cache/graphics-'
+                      )
 options()
 ```
 
@@ -53,7 +70,7 @@ source("../project/_settings/libraries.R")
 Robert Edwards 
 
 \vspace{0.125cm}
-(2416963E)
+2416963E
 
 
 \vspace{1cm}
@@ -68,9 +85,8 @@ Biostatistics
 
 
 \newpage 
-\tableofcontents
-\listoffigures
-\listoftables
+\setcounter{tocdepth}{2}
+\tableofcontents  
 \newpage
 
 \newpage
@@ -103,13 +119,50 @@ Biostatistics
 Logistic regression is a widely used approach in binary classification.  It is set up as a generalised linear model using a logit link that produces a probability. 
 
 
-###Linear Discriminant Analysis
 
-Linear Discriminant Analysis (LDA) is a widely used method classification method.  generlization of Fisher's Linear Discriminant **(Fisher 1936)**.  Ddiscriminant functions are created through a linear combination of the explanatory variables that characterize the classes.  
+###LDA and QDA
+
+**Discriminant analysis is a powerful...** 
+Linear Discriminant Analysis (LDA) is a widely used method classification method.  generlization of Fisher's Linear Discriminant **(Fisher 1936)**.  Discriminant functions are created through a linear combination of the explanatory variables that characterize the classes.  
+
+
+Let $p(X \vert Y)$ be the densities of distributions of the observations for each class and let $\pi_Y$ denote the prior probabilities of the classes; that is, the prior probability that a randomly sampled observation belongs to the $Y^{th}$ class based on the class proportions.  The posterior probabilities may be written using Bayes Theorem as:
 
 $$
-\text{Pr}(C_g \ | \ \mathbf{x}) = \frac{\pi_g \text{exp}(-\frac{1}{2} d_g (\mathbf{x}))}{\sum^2_{i=1}\pi_g \text{exp}(-\frac{1}{2} d_i (\mathbf{x}))} ~~~~ g = 1,2
+p(Y \vert X) = \frac{p(X \vert Y) ~\pi_Y}{p(X)} \propto p(X \vert Y) ~\pi_Y   \tag{1}
 $$
+
+Suppose the class distribution for class $Y$ is Multivariate Normal with mean $\mu_Y$ and covariance matrix $\Sigma_Y$, so that:
+
+$$
+p(X \vert Y) = \frac{1}{(2 \pi_Y)^{p/2} \vert\boldsymbol{\Sigma}_Y\vert ^{1/2}} \text{exp} \left[-\frac{1}{2}(X - \mu_Y)^T \boldsymbol{\Sigma}^{-1}_Y(X - \mu_Y)  \right]  \tag{2}
+$$
+
+In comparing two classes, it is sufficient to look at the log-ratio:
+$$
+\text{log} \frac{\text{Pr}(Y=1 \vert X=x)}{\text{Pr}(Y=2 \vert X=x)} = \text{log}\frac{p(X \vert Y=1)}{p(X \vert Y=2)} + \text{log}\frac{\pi_1}{\pi_2}   \tag{3}
+$$
+
+The Bayes Discriminant Rule states that the *an observation should be allocated to the class with the largest posterior probability*, which from Equation (1) may be written as
+$$
+p(Y \vert X) \propto \text{exp} \left( Q_Y \right)    \tag{4}
+$$
+
+where
+
+$$
+Q_Y = (X - \mu_Y) \Sigma^{-1}_Y (X - \mu_Y)^T + \text{log} \vert \Sigma_Y \vert - 2\text{log} ~\pi_Y   \tag{5}
+$$
+
+defines the *Quadratic Discriminant Function* (QDA) for class $Y$.  The Bayes Discriminant Rule is then: *allocated the observation to the class with the largest QDF*.  The decision boundaries between classes are elliptical and defined by $Q_Y$, an equation quadratic in $X$.  If the covariance matrix, $\Sigma_Y$ is assumed to be equal for each class then
+
+$$
+L_Y = X \Sigma^{-1}_Y \mu_Y^T -\frac{1}{2}\mu_Y \Sigma^{-1}_Y \mu_Y^T  - \text{log} ~\pi_Y     \tag{6}
+$$
+defines the *Linear Discriminant Function* (LDA) and the decision boundaries between classes are defined by $L_Y$, an equation linear in $X$. The Bayes Discriminant Rule is then: *allocated the observation to the class with the largest LDF*. 
+
+Both LDA and QDA are widely sued and perform well on on a diverse set of classification tasks **(Hastie et al. 2017)**.  
+
 
 Assumptions of LDA:
 
@@ -124,9 +177,6 @@ Drawbacks of LDA:
 
 + Can only utilize continuous explanatory variables
 + Cannot handle missing data
-
-
-###Quadratic Discriminant Analysis
 
 **(Cover 1965)** 
 
@@ -159,6 +209,7 @@ As $K$ increases, the variability of the classification tends to decrease at the
 
 ##Validation & Cross-validation
 
+A 75/25% random split into training and test sets, respectively, preserving class proportions is made using the `createDataPartition()` from the **caret* package.  
 
 
 ##Accuracy Metrics
@@ -174,14 +225,14 @@ Don’t use accuracy (or error rate) to evaluate your classifier! There are two 
 ```{r confusion-matrix, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H"}
 
 xtab <- matrix(c("a", "b", "c", "d"), nrow = 2, byrow = TRUE)
-colnames(xtab) <- c("Y", "N")
-rownames(xtab) <- c("Y", "N")
+colnames(xtab) <- c("N", "Y")
+rownames(xtab) <- c("N", "Y")
 
 xtab %>%
   kable(format = "latex", 
-        align = c("l", rep("c", 2)), 
+        align = c("l", "c", "c"), 
         booktabs = TRUE,
-        col.names = c("Y", "N"), 
+#        col.names = c("N", "Y"), 
         caption = '\\label{tab:confusion-matrix} Confusion matrix for two classes.') %>%
     kable_styling(font_size = 12, 
                   latex_options = c("hold_position", "striped")) %>%
@@ -405,33 +456,8 @@ flux %>%
 ```
 
 
-```{r cv-kappa, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H"}
-load("../project/_trained-models/trained-models-complete-case.RData")
-kappa_cc <- as.data.frame(cbind(table_logit[[2]], table_lda[[2]], table_qda[[2]], table_knn$xtabs[[2]], table_rf$xtabs[[2]]) )
 
-load("../project/_trained-models/trained-models-mean.RData")
-kappa_mean <- as.data.frame(cbind(table_logit[[2]], table_lda[[2]], table_qda[[2]], table_knn$xtabs[[2]], table_rf$xtabs[[2]]) )
-
-load("../project/_trained-models/trained-models-pmm.RData")
-kappa_pmm <- as.data.frame(cbind(table_logit[[2]], table_lda[[2]], table_qda[[2]], table_knn$xtabs[[2]], table_rf$xtabs[[2]]) )
-
-kappa_table <- rbind(kappa_cc, kappa_mean, kappa_pmm)
-kappa_table <- round(kappa_table, 3)
-colnames(kappa_table) <- c("Logit", "LDA", "QDA", "KNN", "RF")
-rownames(kappa_table) <- c("Complete Case", "Mean", "PMM")
-
-cap <- paste0('\\label{tab:cv-kappa} Averaged Cohen\'s Kappa for each model fitted in cross-validation.  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=', table_knn$kmax, ' and mtry=', table_rf$mtry, ', respectively.')
-
-kappa_table %>%
-  kable(#col.names = c("Variables", "Test", "df", "p.value"), 
-        caption = cap,
-        booktabs = TRUE, 
-        format = "latex") %>%
-  kable_styling(font_size = 10, 
-                latex_options = "hold_position")
-```
-
-```{r echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H"}
+```{r echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%'}
 load("../project/_metrics/metrics-complete-case.RData")
 load("../project/_trained-models/trained-models-complete-case.RData")
 
@@ -449,7 +475,7 @@ metrics_table %>%
 ```
 
 
-```{r echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H"}
+```{r echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%'}
 load("../project/_metrics/metrics-mean.RData")
 load("../project/_trained-models/trained-models-mean.RData")
 
@@ -467,7 +493,7 @@ metrics_table %>%
 ```
 
 
-```{r echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H"}
+```{r echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%'}
 load("../project/_metrics/metrics-pmm.RData")
 load("../project/_trained-models/trained-models-pmm.RData")
 
@@ -485,7 +511,7 @@ metrics_table %>%
 ```
 
 
-```{r echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H"}
+```{r echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%'}
 load("../project/_metrics/metrics-pmm99.RData")
 load("../project/_trained-models/trained-models-pmm.RData")
 
@@ -536,11 +562,37 @@ knitr::include_graphics("images/violinplot_standardized.png")
 ```
 
 
+###Kappa Values for Model Selection
+```{r cv-kappa, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%'}
+load("../project/_trained-models/trained-models-complete-case.RData")
+kappa_cc <- as.data.frame(cbind(table_logit[[2]], table_lda[[2]], table_qda[[2]], table_knn$xtabs[[2]], table_rf$xtabs[[2]]) )
 
+load("../project/_trained-models/trained-models-mean.RData")
+kappa_mean <- as.data.frame(cbind(table_logit[[2]], table_lda[[2]], table_qda[[2]], table_knn$xtabs[[2]], table_rf$xtabs[[2]]) )
+
+load("../project/_trained-models/trained-models-pmm.RData")
+kappa_pmm <- as.data.frame(cbind(table_logit[[2]], table_lda[[2]], table_qda[[2]], table_knn$xtabs[[2]], table_rf$xtabs[[2]]) )
+
+kappa_table <- rbind(kappa_cc, kappa_mean, kappa_pmm)
+kappa_table <- round(kappa_table, 3)
+colnames(kappa_table) <- c("Logit", "LDA", "QDA", "KNN", "RF")
+rownames(kappa_table) <- c("Complete Case", "Mean", "PMM")
+
+cap <- paste0('\\label{tab:cv-kappa} Averaged Cohen\'s Kappa for each model fitted in cross-validation.  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=', table_knn$kmax, ' and mtry=', table_rf$mtry, ', respectively.')
+
+kappa_table %>%
+  kable(#col.names = c("Variables", "Test", "df", "p.value"), 
+        caption = cap,
+        booktabs = TRUE, 
+        format = "latex") %>%
+  kable_styling(font_size = 10, 
+                latex_options = "hold_position")
+```
 
 
 ##R Code
 
+**Figure showing flow of code**
 
 
 
