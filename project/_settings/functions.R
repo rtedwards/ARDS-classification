@@ -207,17 +207,6 @@ fitModel <- function(train, settings) {
     return(fit_model)
   } ## end if
   
-  if (settings$method == "svmRadial") {
-    fit_model <- caret::train(settings$formula, 
-                              data = train,
-                              method = settings$method, 
-                              metric = settings$metric,
-                              trControl = settings$trControl,
-                              tuneGrid = settings$tuneGrid
-    )
-    return(fit_model)
-  } ## end if
-  
 } ## end fitModel
 
 

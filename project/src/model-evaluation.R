@@ -23,11 +23,11 @@ source("../_settings/functions.R")
 #########################################
 load("../data/processed-data.RData")
 
-#load("../_trained-models/trained-models-complete-case.RData")
-#impute_method <- "complete-case"
+load("../_trained-models/trained-models-complete-case.RData")
+impute_method <- "complete-case"
 
-#load("../_trained-models/trained-models-mean.RData")
-#impute_method <- "mean"
+load("../_trained-models/trained-models-mean.RData")
+impute_method <- "mean"
 
 load("../_trained-models/trained-models-pmm.RData")
 impute_method <- "pmm"

@@ -25,11 +25,10 @@ output:
 tables: true
 mainfont: Calibri Light
 fontsize: 12pt
-geometry: "left=3cm,right=3cm,top=3cm,bottom=3cm"
+geometry: "left=1in,right=1in,top=1in,bottom=1in"
 
-# bibliography: MasterOfCellTypes.bib
-# fontsize: 11
-# csl: chicago-author-date.csl
+bibliography: bibliography.bib
+csl: chicago-author-date.csl
 # csl: nature.csl
 
 
@@ -39,6 +38,7 @@ header-includes:
   \floatplacement{figure}{H}
   \usepackage{color}
   \usepackage[table]{xcolor}
+  \usepackage{multirow}
   \usepackage{caption}
   \captionsetup[table]{skip=5pt, font=footnotesize} 
   \usepackage[font=footnotesize]{caption} 
@@ -62,6 +62,9 @@ options()
 
 ```{r libraries, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
 source("../project/_settings/libraries.R")
+source("../project/_settings/functions.R")
+
+load("../project/data/processed-data.RData")
 ```
 
 
@@ -112,19 +115,39 @@ Biostatistics
 \newpage
 #Methodology
 
-##Basic Statistical Methods
+##Validation & Cross-validation
+
+When building a classification model, it is important to asses its ability to produce valid predictions.  If there are ample number of observations, one way to asses model performance is to randomly split the dataset into training, validation, and test sets.  The training set is used to fit the model, which is then used to predict the classes for the observations in the validation set;  the validation set is used to estimate prediction error and tune hyperparameters for model selection; the test set is used to estimate future prediction performance for the model/hyperparameters chosen.  To simulate the model predicting on future, unseen data, the test set should be kept isolated.  The model can  overfit the data if feature manipulation and hyperparamter tuning are done before randomly splitting the data.  If standarzation and transformation of the covariates is done on the entire dataset, information from the training set can "leak" into the test set and the true test error will be underestimated. 
+
+If there is insufficient data to split into three parts then a suitable alternative is $K$-fold cross-validation.  It is one of the simplest and most widely used method for estimating prediction error **(Hastie et al 2018)**.  The data is randomly split into $K$ folds, where the $K^{th}$ fold is taken as the validation set and the the remaining $K-1$ folds are used for training the model.  The procedure is then repeated $K$ times and the prediction error averaged.  $K$-fold cross validation is most useful on sparse datasets as it allows more observations to be used in training the model.  The choice of $K$ can effect the variability of the prediction error; if $K=1$, the model will overfit the data and prediction error will be highly variable and if $K=n$ (the number of observation in the dataset), the model is fit with no validation set for training parameters.  Typical values used are $K=5$ & $10$ **(Hastie et al. 2018)**. 
+
+a training and a test set, respectively, preserving class proportions using the `createDataPartition()` from the *caret* package.  
+
+
+##Models
+
+There are many classification methods, some perform well on many types of data and others perform better on certain types of data.  A variety of classification methods are explored toward the aim of predicting survival of ECMO treatment, including parametric methods with many assumptions and high bias as well as non-parametric methods with higher variability.  The five explored on the ARDS dataset in this paper are: Logistic Regression, Linear Discriminant Analysis, Quadratic Discriminant Analysis, K-Nearest Neighbors, and Random Forests.  
+
 
 ###Logistic Regression
 
-Logistic regression is a widely used approach in binary classification.  It is set up as a generalised linear model using a logit link that produces a probability. 
+Logistic regression is a widely used approach in machine learning and medicine for binary classification.  It is a generalisation of linear regression that models the posterior probabilities of the $Y$ classes.   A logit link is used to ensure the posterior probabilities sum to one and are bounded by [0,1].  For two classes, the model has the form
+
+$$
+\text{logit} \Big( \text{Pr}(Y \vert X) \Big) = \text{log} \frac{ \text{Pr}(Y=1 \vert X=x) }{ \text{Pr}(Y=2 \vert X=x) }  = \mathbf{x}^T_i\boldsymbol{\beta}  
+$$
+
+The posterior probabilities are estimated by maximizing the log-likelihood function to find the parameter estimates, $\hat{\boldsymbol{\beta}}$, to obtain estimates of the probabilities:
+
+$$
+\text{Pr}(Y=1 \vert X) = \frac{ \text{exp}(\mathbf{x}^T_1 \hat{\boldsymbol{\beta}}) }{ 1 + \sum^2_{i=1} \text{exp}(\mathbf{x}^T_i \hat{\boldsymbol{\beta}}) }
+$$
 
 
 
 ###LDA and QDA
 
-**Discriminant analysis is a powerful...** 
-Linear Discriminant Analysis (LDA) is a widely used method classification method.  generlization of Fisher's Linear Discriminant **(Fisher 1936)**.  Discriminant functions are created through a linear combination of the explanatory variables that characterize the classes.  
-
+Discriminant Analysis is a widely used set of classification methods.  A generlization of Fisher's Linear Discriminant **(Fisher 1936)**,  discriminant functions are created through a combination of the explanatory variables that characterize the classes.  
 
 Let $p(X \vert Y)$ be the densities of distributions of the observations for each class and let $\pi_Y$ denote the prior probabilities of the classes; that is, the prior probability that a randomly sampled observation belongs to the $Y^{th}$ class based on the class proportions.  The posterior probabilities may be written using Bayes Theorem as:
 
@@ -143,7 +166,7 @@ $$
 \text{log} \frac{\text{Pr}(Y=1 \vert X=x)}{\text{Pr}(Y=2 \vert X=x)} = \text{log}\frac{p(X \vert Y=1)}{p(X \vert Y=2)} + \text{log}\frac{\pi_1}{\pi_2}   \tag{3}
 $$
 
-The Bayes Discriminant Rule states that the *an observation should be allocated to the class with the largest posterior probability*, which from Equation (1) may be written as
+and using Bayes Discriminant Rule stating that *an observation should be allocated to the class with the largest posterior probability*.  From Equation (1), the posterior probability may be written as
 $$
 p(Y \vert X) \propto \text{exp} \left( Q_Y \right)    \tag{4}
 $$
@@ -154,44 +177,14 @@ $$
 Q_Y = (X - \mu_Y) \Sigma^{-1}_Y (X - \mu_Y)^T + \text{log} \vert \Sigma_Y \vert - 2\text{log} ~\pi_Y   \tag{5}
 $$
 
-defines the *Quadratic Discriminant Function* (QDA) for class $Y$.  The Bayes Discriminant Rule is then: *allocated the observation to the class with the largest QDF*.  The decision boundaries between classes are elliptical and defined by $Q_Y$, an equation quadratic in $X$.  If the covariance matrix, $\Sigma_Y$ is assumed to be equal for each class then
+defines the Quadratic Discriminant Function for class $Y$.  The Bayes Discriminant Rule is then: *allocated the observation to the class with the largest QDF*.  This method of classification is called *Quadratic Discriminant Analysis* (QDA) because the decision boundaries between classes are elliptical and defined by $Q_Y$, an equation quadratic in $X$.  If the covariance matrix, $\Sigma_Y$ is assumed to be equal for each class then
 
 $$
 L_Y = X \Sigma^{-1}_Y \mu_Y^T -\frac{1}{2}\mu_Y \Sigma^{-1}_Y \mu_Y^T  - \text{log} ~\pi_Y     \tag{6}
 $$
-defines the *Linear Discriminant Function* (LDA) and the decision boundaries between classes are defined by $L_Y$, an equation linear in $X$. The Bayes Discriminant Rule is then: *allocated the observation to the class with the largest LDF*. 
+defines the *Linear Discriminant Function*. This method has linear decision boundaries between classes defined by $L_Y$, an equation linear in $X$, and is known ad *Linear Discriminant Analysis* (LDA).  The Bayes Discriminant Rule is then: *allocated the observation to the class with the largest LDF*. 
 
-Both LDA and QDA are widely sued and perform well on on a diverse set of classification tasks **(Hastie et al. 2017)**.  
-
-
-Assumptions of LDA:
-
-+ Explanatory variables are assumed to be normally distributed
-+ Homoskedasticity, equal class covariances
-+ No multicollinearity
-+ Independent observations
-
-
-
-Drawbacks of LDA: 
-
-+ Can only utilize continuous explanatory variables
-+ Cannot handle missing data
-
-**(Cover 1965)** 
-
-Quadratic Discriminant Analysis (QDA) is an even more generlized form of discriminant analysis than LDA.  QDA has the same assumptions as LDA with the exception that the covariance of each class is not assumed to be identical.  
-
-Assumptions of QDA:
-
-+ Explanatory variables are assumed to be normally distributed
-+ No multicollinearity
-+ Independent observations
-
-Drawbacks of QDA: 
-
-+ Can only utilize continuous explanatory variables
-+ Cannot handle missing data
+There is a bias-variance trade-off; both assume the covariates are normally distributed, there is no multicollinearity, and the observations are independent **(Cover 1965)**.  LDA additionally assumes equal class covariances.  Discriminant Analysis can only utilize continuous covariates with no missing observations.  The bias from simple linear or quadratic class boundaries can be acceptable because  it is estimated with less variance.  Despite the many assumptions and limitations, both LDA and QDA are widely used and perform well on on a diverse set of classification tasks **(Hastie et al. 2017)**, even when the classes are not normally distributed.  
 
 
 ###K-Nearest Neighbors
@@ -200,23 +193,47 @@ $K$-Nearest Neighbors (KNN) is a commonly used non-parametric classification met
 
 In the event of a tie, a class can be chosen at random.  Various distance metrics may be used but it is common to use Euclidean distance to determine the closest training points, though it is advisable to scale variables so that one direction does not dominate the classification. 
 
-As $K$ increases, the variability of the classification tends to decrease at the expense of increased bias. 
+KNN is sensitive to the local sturcture of the data.  As $K$ increases, the variability of the classification tends to decrease at the expense of increased bias. 
 
 
 ###Random Forests
 
+Random forests (Brieman, 2001) are one of the most successful general-purpose modern algorithms (Biau and Scornet, 2016).  They are an ensemble learning method that can be applied to a wide range of tasks, namely classification and regression.  A random forest is created by building multiple decision trees, where randomness is introduced during the construction of each tree.  Predictions are made by classifying a new observation to the mode of the multiple decisions tree classifications.  Random forests often make accurate and robust predictions, even for very high-dimensional problems (Biau, 2012). 
 
 
-##Validation & Cross-validation
+\begin{algorithm}[H]
+\caption{Random Forest Classifier}
+\DontPrintSemicolon
+\SetAlgoLined
+\BlankLine
 
-A 75/25% random split into training and test sets, respectively, preserving class proportions is made using the `createDataPartition()` from the **caret* package.  
+\begin{enumerate}
+  \item For ($b=1$ to B):
+    \begin{enumerate}
+      \item Draw a bootstrap sample $\mathbf{Z*}$ of the size $N$ from the training data.
+      \item Grow a random-forest tree $T_b$ to the bootstrapped data, by recursively repreating the following steps for each terminal node of the tree, until the minimum node size $n_{min}$ is reached.
+      \begin{enumerate}
+        \item Select $mtry$ variables at random from the $p$ covariates. 
+        \item Pick the best covariate/split-point among the $mtry$. 
+        \item Split the node into two daughter nodes. 
+      \end{enumerate}
+    \end{enumerate}
+  \item Output the ensemble of trees $\{T_B\}^B_1$
+\end{enumerate}
+\BlankLine
+
+Let $\hat{Y}_b(x)$ be the class prediction of the $b^{\text{th}}$ random-forest tree.  Then a new observation, $x$, is classified as:
+
+$$\hat{Y}^B_{\text{rf}}(x) = \text{majority vote } \left\{ \hat{Y}_b(x) \right\}^B_1$$
+\end{algorithm} 
+
 
 
 ##Accuracy Metrics
 
 These are the default metrics used to evaluate algorithms on binary and multi-class classification datasets in caret.
 
-###Accuracy
+###Accuracy, Sensitivity, and Specificity
 
 Accuracy is the percentage of correctly classifies instances out of all instances. It is more useful on a binary classification than multi-class classification problems because it can be less clear exactly how the accuracy breaks down across those classes (e.g. you need to go deeper with a confusion matrix). Learn more about Accuracy here.
 
@@ -225,81 +242,61 @@ Don’t use accuracy (or error rate) to evaluate your classifier! There are two 
 ```{r confusion-matrix, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H"}
 
 xtab <- matrix(c("a", "b", "c", "d"), nrow = 2, byrow = TRUE)
-colnames(xtab) <- c("N", "Y")
-rownames(xtab) <- c("N", "Y")
+response <- matrix(c("N", "Y"), nrow=2, byrow = TRUE)
+predicted <- matrix(c("Predicted", "Predicted"), nrow=2, byrow = TRUE)
+xtab <- cbind(predicted, response, xtab)
+colnames(xtab) <- c(" ", " ", "N", "Y")
 
 xtab %>%
   kable(format = "latex", 
-        align = c("l", "c", "c"), 
+        align = c("l", "c", "|c", "c"), 
         booktabs = TRUE,
-#        col.names = c("N", "Y"), 
         caption = '\\label{tab:confusion-matrix} Confusion matrix for two classes.') %>%
     kable_styling(font_size = 12, 
                   latex_options = c("hold_position", "striped")) %>%
-#  column_spec(1, width = "4em") %>%
-  row_spec(0, align = "c")# %>%
-#  column_spec(0, bold = T) %>%
-#  collapse_rows(columns = 1, valign = "middle") %>%
-#  add_header_above(c(" " = 1, "Observed" = 2), bold = TRUE)
+  column_spec(1, bold = T) %>%
+  collapse_rows(columns = 1:2, valign = "middle", latex_hline = "none") %>%
+  add_header_above(c(" " = 2, "Observed" = 2), bold = FALSE) 
+  
 ```
 
-```{r xtab, echo = FALSE, eval = FALSE}
-xtab %>%
-  kable(booktabs = TRUE, 
-        align = c("|c", "l"),
-        format = "latex",
-        caption = '\\label{tab:confusion-matrix} Confusion matrix for two classes.') %>%
-    kable_styling(font_size = 10, 
-                  latex_options = c("hold_position", "striped")) 
-```
-
-For the two class confusion matrix in \ref{tab:confusion-matrix} accuracy is defined as:
+For the two class confusion matrix in Table \ref{tab:confusion-matrix} accuracy metrics are defined as:
 
 $$
-\text{accuracy} = \frac{a+d}{a+b+c+d}
+\begin{aligned}
+\text{sensitivity} &= \frac{a}{a+c} \\
+\text{specificity} &= \frac{d}{b+d} \\
+\text{accuracy} &= \frac{a+d}{a+b+c+d}
+\end{aligned}
 $$
+where sensitivity is a measure of how accurately non-survival is predicted,  specificity is a measure of how accurately survival is predicted, and accuracy is a measure of how well both survival and non-survival are predicted.  While sensitivity and specificity state the accuracy each class prediction, accuracy is a poor measure for model performance in an imbalanced dataset.  On the ARDS datasets, for example, if `ECMO_Survival` is predicted to be "Y" for all cases, then the accuracy is 75% but the prediction is no better than the baseline likelihood of the class percentages.  
 
-
-
-###ROC
-
-**To mention or not to mention(??)** 
 
 ###Cohen's Kappa
 
-Kappa or Cohen’s Kappa is like classification accuracy, except that it is normalized at the baseline of random chance on your dataset. It is a more useful measure to use on problems that have an imbalance in the classes 
-On the ARDS datasets, for example, if `ECMO_Survival` is predicted to be "Y" for all cases, then the accuracy is 75% but the prediction is no better than the baseline likelihood of the class percentages.  
-
-Let $p_o$ be the accuracy, the relative observed agreement between observed and predicted classes and let $p_e$ be the probability of chance agreement based on the class probabilities.  Cohen's Kappa is defined as:
+Kappa or Cohen’s Kappa is like classification accuracy, except that it is normalized at the baseline of random chance on your dataset. It is a more useful measure to use on problems that have an imbalance in the classes.  Let $p_o$ be the accuracy, the relative observed agreement between observed and predicted classes and let $p_e$ be the probability of chance agreement based on the class probabilities.  Cohen's Kappa is defined as:
 
 $$
 \kappa = \frac{p_o - p_e}{1 - p_e}
 $$
 
-If all the observations are predicted correctly then $\kappa=1$.  **If the observations are predicted no better than expected by the class probabilities, $p_e$ then $\kappa=0$.  If all the observations are predicted incorrectly, then $\kappa=-1$.**  A positive $\kappa$ indicates that the model predicts better than would be expected by chance whereas a negative $\kappa$ indicates that the model predicts worse than would be expected by chance.  
+If all the observations are predicted correctly then $\kappa=1$.  If the observations are predicted no better than expected by the class probabilities, $p_e$ then $\kappa=0$.  If all the observations are predicted incorrectly, then $\kappa=-1$.  A positive $\kappa$ indicates that the model predicts better than would be expected by chance whereas a negative $\kappa$ indicates that the model predicts worse than would be expected by chance.  
 
 $$
 p_o = \frac{a+d}{a+b+c+d}
 $$
-
-For class $k$, number of items $N$ and $n_{ki}$, the number of times $i$ is predicted as class $k$:
-
 $$
-p_{o,Y} = \hat{p}_{k1} = \frac{a+d}{a+b+c+d} ~\cdot~ \frac{a+c}{a+b+c+d}
+p_e = p_{o,Y} + p_{o,N} 
 $$
 
+
 $$
-p_{o,N} = \hat{p}_{k2} = \frac{c+d}{a+b+c+d} ~\cdot~ \frac{b+d}{a+b+c+d}
+p_{o,Y} = \frac{a+d}{a+b+c+d} ~\cdot~ \frac{a+c}{a+b+c+d}
 $$
 
 $$
-p_e = p_{o,Y} + p_{o,N} = \sum_k \hat{p}_{k1} \hat{p}_{k2} = \sum_k \frac{n_{k1}}{N}\frac{n_{k2}} {N} = \frac{1}{N^2} \sum_k n_{k1}n_{k2}
+p_{o,N} = \frac{c+d}{a+b+c+d} ~\cdot~ \frac{b+d}{a+b+c+d}
 $$
-
-###Brier Score
-
-
-###F1 Score
 
 
 
@@ -312,29 +309,35 @@ $$
 
 ##Missing Data
 
-
-##Multiple Imputation
+Missing data is a common problem that must be dealt with in machine learning, statistics, and medicine.  Understanding the missing mechanism for the missing observations is important in the analysis.  [@rubin_inference_1976] defined three types of missing data mechanisms: missing completely at random (MCAR), missing at random (MAR), and missing not at random (MNAR).  The data are said to be missing completely at random (MCAR) if the probability of being missing is the same for all cases.  This implies the causes of the missing data are unrelated to the data itself.  While MCAR is conveinient because it allows many complexities that arise because data are missing to be ignored, it is typically an unrealistic assumption [@van_buuren_flexible_2012].  The data is said to be MAR if the probability of being missing is the same only within groups defined by the observed data.  MAR is a more general and more realistic assumption than MCAR.  If neither MCAR nor MAR applies, then the probability of being missing depends on an unknown mechanism and said to be MNAR.  Most simple approaches to dealing with missing data are only valid under MCAR assumption.  Modern methods to dealing with missing data begin from the MAR assumption.  
 
 
 ##Complete Case Analysis
+Complete case canalysis is a convenient method for handling missing data and is the default method in many statistical packages.  If there is a missing value in an observation, it is dropped from the analysis.  This is often a poor appraoch as complete cases analysis assumes MCAR.  In sparse datasets a complete case analysis can cause an analysis to be underpowered and if MCAR does not hold, can severely bias estimates of means, regression coefficients, and correlations [@van_buuren_flexible_2012].  
+
+The ARDS dataset considered in this paper has `r sum(!complete.cases(data_clean.df))`/`r nrow(data_clean.df)` observations with missing data.
 
 
 ##Mean Imputation
-
+Another common method for handling missing data is mean imputation; the missing value is replaced by the mean of the covariate or the mode for categorical data.  Mean imputation is a simple and attractive solution because it retains more of the data.  Mean imputation distorts the distribution of the variables toward the mean.  If MCAR assumtion does not hold it will underestimate the variance and produce biased estimates other than the mean [@van_buuren_flexible_2012].  [@van_buuren_flexible_2012] suggests mean imputation should only be used only when there are few missing values, and should be generally avoided.  
 
 ##Multiple Imputation
+The aim when imputing data is to recreate the dataset and recreate the missing data as if it were never missing.  Multiple imputation is a method that accounts for the uncertainty in the imputed values.  The analysis begins with the observed, incomplete dataset.  The dataset is imputed multiple times to create $m>1$ complete datasets.  The imputed values are drawn from a distribution specifically modeled for each missing entry.  The $m$ datasets are analyzed using the same method that would have been used had the data been complete.  The results will differ because of the variation in the input data caused by the uncertainty in the imputed values.  
 
+Multiple imputation can handle data that is both MAR and MNAR.  
 
-###Joint-Model
+There is uncertainty as to the true value of the unseen data, and that uncertainty should be included in the analysis.  Multiple imputation is a method created by Donald Rubin wherein multiple datasets are imputed, the analysis is conducted on each dataset, and the results are pooled using "Rubin's Rules" [@rubin_inference_1976].  
+
 
 ###Fully Conditional  Specification
 
 ###Predictive Mean Matching
 
 Predictive Mean Matching (PMM) is a semi-parametric imputation approach. It is similar to the regression method except that for each missing value, it fills in a value randomly from among the a observed donor values from an observation whose regression-predicted values are closest to the regression-predicted value for the missing value from the simulated regression model (Heitjan and Little 1991; Schenker and Taylor 1996).
-The PMM method ensures that imputed values are plausible; it might be more appropriate than the regression method (which assumes a joint multivariate normal distribution) if the normality assumption is violated (Horton and Lipsitz 2001, p. 246).
+The PMM method ensures that imputed values are plausible; it might be more appropriate than the regression method (which assumes a joint multivariate normal distribution) if the normality assumption is violated (Horton and Lipsitz 2001, p. 246). PMM is fairly robust to transformations of the target variables [@van_buuren_flexible_2012], yielding similar results for a Yeo-Johnson transformation or no transformation.  
 
-**Ensemble Multiple Imputation**  
+
+##Ensemble Multiple Imputation
 The steps in the ensemble approach for multiply imputed data in k-fold cross-validation are as follows:
 
 1. Randomly partition the training data into $k$ folds
@@ -378,6 +381,7 @@ Theoretically it is always better to use higher m, but this involves more comput
   + Cite the Dutch Master Thesis
   + Adapt Rubin's Rules - arguing that 
 
+
 ##Voting
 
 ###Majority Vote
@@ -393,26 +397,6 @@ In (Kittler et al., 1998), the authors show that for combination rules based on 
 In fact (Alexandre et al. 2001) show that for classification problems with two classes, that give estimates of the a posteriori probabilities that sum to one the combination rules arithmetic mean (or the sum) and the geometric mean (or the product) are equivalent. 
 
 
- 
-\begin{algorithm}[H]
-\DontPrintSemicolon
-\SetAlgoLined
-\KwResult{Write here the result}
-\SetKwInOut{Input}{Input}\SetKwInOut{Output}{Output}
-\Input{Write here the input}
-\Output{Write here the output}
-\BlankLine
-\While{While condition}{
-    instructions\;
-    \eIf{condition}{
-        instructions1\;
-        instructions2\;
-    }{
-        instructions3\;
-    }
-}
-\caption{While loop with If/Else condition}
-\end{algorithm} 
 
 
 
@@ -426,6 +410,44 @@ In fact (Alexandre et al. 2001) show that for classification problems with two c
   + 30 continuous variables
   + Violin plots in appendix
   
+To get an idea of the distribution of the data, the following summary statistics were obtained for the categorical variable `ECMO_Survival` (Table \ref{tab:ECMO_Survival-table}) and for the continuous variables (Table \ref{tab:Gender-table}).
+
+```{r , echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+#data.df <- data.raw.df
+data_clean.df %>%
+  group_by(ECMO_Survival) %>%
+  summarise(n(), round(100*n()/nrow(data_clean.df), 2)) %>%
+  kable(col.names = c("ECMO_Survival", "n", "Percent %"),
+        caption = '\\label{tab:ECMO_Survival-table} Numbers of survivors and nonsurvivors of ECMO treatment.', booktabs = TRUE, format = "latex") %>%
+  kable_styling(font_size = 10, latex_options = "hold_position")
+```
+
+Table \ref{tab:ECMO_Survival-table} shows that out of the `r nrow(data_clean.df)` individuals, only `r round(100*sum(data_clean.df$ECMO_Survival=="Y")/nrow(data_clean.df), 2)`% of the individuals in the study sample survived ECMO treatment (`r sum(data_clean.df$ECMO_Survival=="Y")` survived vs `r sum(data_clean.df$ECMO_Survival=="N")` did not survive).  
+
+
+```{r , echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+data_clean.df %>%
+  group_by(Gender) %>%
+  summarise(n(), round(100*n()/nrow(data_clean.df), 2)) %>%
+  kable(col.names = c("Gender", "n", "Percent %"),
+        caption = '\\label{tab:Gender-table} Number of males and females.', booktabs = TRUE, format = "latex") %>%
+  kable_styling(font_size = 10, latex_options = "hold_position")
+```
+
+Table \ref{tab:Gender-table} shows that out of the `r nrow(data_clean.df)` individuals, only `r round(100*sum(data_clean.df$Gender == "m")/nrow(data_clean.df), 2)`% of the individuals in the study sample are male (`r sum(data_clean.df$Gender == "m")` male vs `r sum(data_clean.df$Gender == "w")` female).  
+
+```{r Indications-table, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+data_clean.df %>%
+  group_by(Indication) %>%
+  summarise(n(), round(100*n()/nrow(data_clean.df), 2)) %>%
+  kable(col.names = c("Indication", "n", "Percent %"),
+        caption = '\\label{tab:sum3} Number of each disease type indication.', booktabs = TRUE, format = "latex") %>%
+  kable_styling(font_size = 10, latex_options = "hold_position")
+```
+
+Table \ref{tab:Indications-table} shows the distribution of each disease type indication. 
+
+
 
 ##Missing Data Patterns
 
@@ -457,7 +479,7 @@ flux %>%
 
 
 
-```{r echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%'}
+```{r echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '50%'}
 load("../project/_metrics/metrics-complete-case.RData")
 load("../project/_trained-models/trained-models-complete-case.RData")
 
@@ -465,8 +487,8 @@ cap <- paste0('\\label{tab:cc-metrics} Complete case analysis accuracy metrics. 
 
 metrics_table %>%
   round(3) %>%
-  select(accuracy, kappa, sensitivity, specificity, precision, recall) %>%
-  kable(col.names = c("Accuracy", "Kappa", "Sensitivity", "Specificity", "Precision", "Recall"), 
+  select(sensitivity, specificity, accuracy, kappa) %>%
+  kable(col.names = c("Sensitivity", "Specificity", "Accuracy", "Kappa"), 
         caption = cap,
         booktabs = TRUE, 
         format = "latex") %>%
@@ -475,7 +497,7 @@ metrics_table %>%
 ```
 
 
-```{r echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%'}
+```{r echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '50%'}
 load("../project/_metrics/metrics-mean.RData")
 load("../project/_trained-models/trained-models-mean.RData")
 
@@ -483,8 +505,8 @@ cap <- paste0('\\label{tab:mean-metrics} Mean imputation accuracy metrics.  The 
 
 metrics_table %>%
   round(3) %>%
-  select(accuracy, kappa, sensitivity, specificity, precision, recall) %>%
-  kable(col.names = c("Accuracy", "Kappa", "Sensitivity", "Specificity", "Precision", "Recall"), 
+  select(sensitivity, specificity, accuracy, kappa) %>%
+  kable(col.names = c("Sensitivity", "Specificity", "Accuracy", "Kappa"), 
         caption = cap,
         booktabs = TRUE, 
         format = "latex") %>%
@@ -493,7 +515,7 @@ metrics_table %>%
 ```
 
 
-```{r echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%'}
+```{r echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '50%'}
 load("../project/_metrics/metrics-pmm.RData")
 load("../project/_trained-models/trained-models-pmm.RData")
 
@@ -501,8 +523,8 @@ cap <- paste0('\\label{tab:pmm-metrics} Predictively mean-matching imputation ac
 
 metrics_table %>%
   round(3) %>%
-  select(accuracy, kappa, sensitivity, specificity, precision, recall) %>%
-  kable(col.names = c("Accuracy", "Kappa", "Sensitivity", "Specificity", "Precision", "Recall"), 
+  select(sensitivity, specificity, accuracy, kappa) %>%
+  kable(col.names = c("Sensitivity", "Specificity", "Accuracy", "Kappa"), 
         caption = cap,
         booktabs = TRUE, 
         format = "latex") %>%
@@ -511,7 +533,7 @@ metrics_table %>%
 ```
 
 
-```{r echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%'}
+```{r echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '50%'}
 load("../project/_metrics/metrics-pmm99.RData")
 load("../project/_trained-models/trained-models-pmm.RData")
 
@@ -519,8 +541,8 @@ cap <- paste0('\\label{tab:pmm99-metrics} 99 Predictively mean-matching imputati
 
 metrics_table %>%
   round(3) %>%
-  select(accuracy, kappa, sensitivity, specificity, precision, recall) %>%
-  kable(col.names = c("Accuracy", "Kappa", "Sensitivity", "Specificity", "Precision", "Recall"), 
+  select(sensitivity, specificity, accuracy, kappa) %>%
+  kable(col.names = c("Sensitivity", "Specificity", "Accuracy", "Kappa"), 
         caption = cap,
         booktabs = TRUE, 
         format = "latex") %>%
@@ -533,12 +555,32 @@ metrics_table %>%
 #Discussion
 
 
+
+##Model Performance
+
+**Logistic Regression**  
+For complete-case analysis, mean imputation, and predictive mean-mathcing, logistic regression does not meet the "one in ten rule", a rule of thumb stating that a logistic regression models give stable estimates for the covariates if there are at least 10 observations of the least frequent class per covariate.  
+
+
+**LDA**  
+Can perform better than logistic regression when the covariates are normally distributed **(CITATION)**, which they are in this case after Yeo-Johnson transformation.  
+
+
+**Random Forests Fails**  
+
++ Sparsity - When the data are very sparse, it's very plausible that for some node, the bootstrapped sample and the random subset of features will collaborate to produce an invariant feature space. There's no productive split to be had, so it's unlikely that the children of this node will be at all helpful.
+
++  One surprising consequence is that trees that work well for nearest-neighbor search problems can be bad candidates for forests without sufficient subsampling, due toa lack of diversity.  **(Tang et al. 2018)**
+
++ Data are not axis-aligned - Suppose that there is a diagonal decision boundary in the space of two features, $x_1$ or $x_2$.  Even if this is the only relevant dimension to your data, it will take an ordinary random forest model many splits to describes that diagonal boundary.  This is because each split is oriented perpendicular to the axis of either $x_1$ or $x_2$.  
+
++ XGBoost, Rotation forest (PCA rotation) may do better
+
+
 \newpage
 #Conclusion
 
 
-\newpage
-#Bibliography
 
 \newpage
 #Appendices
@@ -563,7 +605,7 @@ knitr::include_graphics("images/violinplot_standardized.png")
 
 
 ###Kappa Values for Model Selection
-```{r cv-kappa, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%'}
+```{r cv-kappa, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '0%'}
 load("../project/_trained-models/trained-models-complete-case.RData")
 kappa_cc <- as.data.frame(cbind(table_logit[[2]], table_lda[[2]], table_qda[[2]], table_knn$xtabs[[2]], table_rf$xtabs[[2]]) )
 
@@ -598,4 +640,4 @@ kappa_table %>%
 
 
 
-
+\newpage

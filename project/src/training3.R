@@ -48,13 +48,13 @@ num_folds <- 10   # Cross-Validation Settings
 metric = "kappa" # good for imbalanced data
 
 ## Imputation Settings
-#impute_method <- "complete-case"
+impute_method <- "complete-case"
 #impute_method <- "mean"
-impute_method <- "pmm"
+#impute_method <- "pmm"
 
 imputeSettings <- list(
   method = impute_method, 
-  m = 9,      # Number of imputed datasets to create
+  m = 1,      # Number of imputed datasets to create
   maxit = 5,  # max number of iterations for imputation convergence
   seed = 123,
   numCores = numCores
@@ -158,7 +158,7 @@ table_rf_all <- list(mtry = double(),
 table_rf <- list()
 
 for (i in 1:length(mtry)) {
-  print( paste0("----- mtry = ", i, " -----") )
+  print( paste0("----- mtry = ", mtry[[i]], " -----") )
   ## Step in the grid search for model tuning
   trainSettings$tuneGrid = expand.grid(mtry = mtry[i])    # seq(1, 10, by = 2))
 

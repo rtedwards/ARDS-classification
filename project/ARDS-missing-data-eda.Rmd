@@ -29,20 +29,8 @@ options()
 ```
 
 ```{r libraries, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
-library(ggplot2)
-library(dplyr)
-library(moderndive)
-library(skimr)
-library(tidyr)
-library(kableExtra)
-library(gridExtra)
-library(xtable)
-library(knitr)
-library(GGally)
-library(broom)
-library(purrr)
-library(naniar) # missing data eda
-library(VIM) # data imputation
+source("_settings/libraries.R")
+source("_settings/functions.R")
 ```
 
 
@@ -283,7 +271,7 @@ data_standard.df %>%
 The boxplot shows many highly skewed variables indicating that these likely need to be transformed in some fashion (likely log transformation).  For **logistic regression**, first a model will be fit without transformations and then the not significant variables will be transformed and model fit will be evaluated.  
 
 
-```{r violinplot, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, fig.ext='png', out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:violin}Violin plot of continuous variables."}
+```{r violinplot-raw, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, fig.ext='png', out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:violin}Violin plot of continuous variables."}
 data_standard.df %>% 
   gather(key = Feature, value = Value) %>% 
   ggplot(aes(x = Feature, y = Value, fill = Feature)) +
@@ -301,7 +289,7 @@ data_standard.df %>%
           axis.text.x = element_text(angle = 60, hjust = 1))  
 ```
 
-```{r violinplot, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, fig.ext='png', out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:violin}Violin plot of continuous variables."}
+```{r violinplot-scaled, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, fig.ext='png', out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:violin}Violin plot of continuous variables."}
 png(file="../thesis/images/violinplot.png", height=540, width=960)
 
 
@@ -331,7 +319,7 @@ dev.off()
 - scale
 - YeoJohnson
 
-```{r violinplot, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:violin2}Violin plot of continuous variables."}
+```{r violinplot-transformed, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:violin2}Violin plot of continuous variables."}
 png(file="../thesis/images/violinplot_standardized.png", height=540, width=960)
 
 data_yeojohnson.df <- data.raw.df[, 5:ncol(data.raw.df)] %>%
@@ -641,10 +629,7 @@ hyp_tests %>%
 ```
 
 
-```{r save_dataframe}
-write.csv(data.df, "../data/ARDS_data_clean.csv",
-          row.names=FALSE)
-```
+
 
 
 

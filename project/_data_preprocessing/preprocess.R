@@ -38,12 +38,12 @@ source("../_settings/functions.R")
 #########################################
 
 ## Load data from .csv 
-data.raw.df <- read.csv(file = "../data/ARDSdata_reorder.csv", header = TRUE)
+data_raw.df <- read.csv(file = "../data/ARDSdata_reorder.csv", header = TRUE)
 
 ##Rename first column
-colnames(data.raw.df)[1] <- c("Pt_ID")
+colnames(data_raw.df)[1] <- c("Pt_ID")
 
-data.raw.df <- data.raw.df %>%
+data_raw.df <- data_raw.df %>%
   dplyr::select("ECMO_Survival",
                 "Gender",
                 "Indication",
@@ -80,7 +80,7 @@ data.raw.df <- data.raw.df %>%
 
 
 ## Select the first 450 rows.  The others are blank
-data.df <- data.raw.df %>%
+data.df <- data_raw.df %>%
   dplyr::slice(1:450) 
 
 
@@ -175,6 +175,7 @@ save(file = "../data/processed-data.RData",
      train_index,
      train,
      test,
+     data
      data_clean.df
      # train.complete.df,
      # test.complete.df,
