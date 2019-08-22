@@ -28,6 +28,7 @@ fontsize: 12pt
 geometry: "left=1in,right=1in,top=1in,bottom=1in"
 
 bibliography: bibliography.bib
+link-citations: yes
 csl: chicago-author-date.csl
 # csl: nature.csl
 
@@ -95,6 +96,10 @@ Biostatistics
 \newpage
 #Introduction
 
+Prediction in medical data can often be difficult; imbalanced class distributions and poor predictive covariates.  If the sample size is small, then prediction becomes even more difficult.  Some of these issues arise from the experimental design of the study but little can be rememdied post-hoc.  Missing values in the data complicate analysis even further and are often handled either by dropping missing observations or filling in the missing value by the mean.  Both methods can be valid if certain assumptions hold, but useful information is either lost to the analysis or the natural distribution of the data is effected.  
+
+Multiple imputation is another method for handling missing data that is not yet common in analysis of medical datasets **(Citation)**.  This method can 
+
 ## Aim of the Thesis
 
 + paragraph about importance of in-sample vs. out-of-sample prediction accuracy
@@ -106,6 +111,11 @@ Biostatistics
 ## The Clinical Study
 
 ## Study Population & Data Description
+
++ describe the data:
+  + 3 Categorical variables
+  + 30 continuous variables
+  + Violin plots in appendix
 
 ## The Statistical Challenege
 
@@ -119,9 +129,9 @@ Biostatistics
 
 When building a classification model, it is important to asses its ability to produce valid predictions.  If there are ample number of observations, one way to asses model performance is to randomly split the dataset into training, validation, and test sets.  The training set is used to fit the model, which is then used to predict the classes for the observations in the validation set;  the validation set is used to estimate prediction error and tune hyperparameters for model selection; the test set is used to estimate future prediction performance for the model/hyperparameters chosen.  To simulate the model predicting on future, unseen data, the test set should be kept isolated.  The model can  overfit the data if feature manipulation and hyperparamter tuning are done before randomly splitting the data.  If standarzation and transformation of the covariates is done on the entire dataset, information from the training set can "leak" into the test set and the true test error will be underestimated. 
 
-If there is insufficient data to split into three parts then a suitable alternative is $K$-fold cross-validation.  It is one of the simplest and most widely used method for estimating prediction error **(Hastie et al 2018)**.  The data is randomly split into $K$ folds, where the $K^{th}$ fold is taken as the validation set and the the remaining $K-1$ folds are used for training the model.  The procedure is then repeated $K$ times and the prediction error averaged.  $K$-fold cross validation is most useful on sparse datasets as it allows more observations to be used in training the model.  The choice of $K$ can effect the variability of the prediction error; if $K=1$, the model will overfit the data and prediction error will be highly variable and if $K=n$ (the number of observation in the dataset), the model is fit with no validation set for training parameters.  Typical values used are $K=5$ & $10$ **(Hastie et al. 2018)**. 
+If there is insufficient data to split into three parts then a suitable alternative is $K$-fold cross-validation.  It is one of the simplest and most widely used method for estimating prediction error [@hastie_elements_2009].  The data is randomly split into $K$ folds, where the $K^{th}$ fold is taken as the validation set and the the remaining $K-1$ folds are used for training the model.  The procedure is then repeated $K$ times and the prediction error averaged.  $K$-fold cross validation is most useful on sparse datasets as it allows more observations to be used in training the model.  The choice of $K$ can effect the variability of the prediction error; if $K=1$, the model will overfit the data and prediction error will be highly variable and if $K=n$ (the number of observation in the dataset), the model is fit with no validation set for training parameters.  Typical values used are $K=5$ & $10$ [@hastie_elements_2009]. 
 
-a training and a test set, respectively, preserving class proportions using the `createDataPartition()` from the *caret* package.  
+a training and a test set, respectively, preserving class proportions using the `createDataPartition()` from the **caret** package.  
 
 
 ##Models
@@ -147,7 +157,7 @@ $$
 
 ###LDA and QDA
 
-Discriminant Analysis is a widely used set of classification methods.  A generlization of Fisher's Linear Discriminant **(Fisher 1936)**,  discriminant functions are created through a combination of the explanatory variables that characterize the classes.  
+Discriminant Analysis is a widely used set of classification methods.  A generlization of Fisher's Linear Discriminant [@fisher_use_1936],  discriminant functions are created through a combination of the explanatory variables that characterize the classes.  
 
 Let $p(X \vert Y)$ be the densities of distributions of the observations for each class and let $\pi_Y$ denote the prior probabilities of the classes; that is, the prior probability that a randomly sampled observation belongs to the $Y^{th}$ class based on the class proportions.  The posterior probabilities may be written using Bayes Theorem as:
 
@@ -184,7 +194,7 @@ L_Y = X \Sigma^{-1}_Y \mu_Y^T -\frac{1}{2}\mu_Y \Sigma^{-1}_Y \mu_Y^T  - \text{l
 $$
 defines the *Linear Discriminant Function*. This method has linear decision boundaries between classes defined by $L_Y$, an equation linear in $X$, and is known ad *Linear Discriminant Analysis* (LDA).  The Bayes Discriminant Rule is then: *allocated the observation to the class with the largest LDF*. 
 
-There is a bias-variance trade-off; both assume the covariates are normally distributed, there is no multicollinearity, and the observations are independent **(Cover 1965)**.  LDA additionally assumes equal class covariances.  Discriminant Analysis can only utilize continuous covariates with no missing observations.  The bias from simple linear or quadratic class boundaries can be acceptable because  it is estimated with less variance.  Despite the many assumptions and limitations, both LDA and QDA are widely used and perform well on on a diverse set of classification tasks **(Hastie et al. 2017)**, even when the classes are not normally distributed.  
+There is a bias-variance trade-off; both assume the covariates are normally distributed, there is no multicollinearity, and the observations are independent [@cover_geometrical_1965].  LDA additionally assumes equal class covariances.  Discriminant Analysis can only utilize continuous covariates with no missing observations.  The bias from simple linear or quadratic class boundaries can be acceptable because  it is estimated with less variance.  Despite the many assumptions and limitations, both LDA and QDA are widely used and perform well on on a diverse set of classification tasks [@hastie_elements_2009], even when the classes are not normally distributed.  
 
 
 ###K-Nearest Neighbors
@@ -227,6 +237,7 @@ Let $\hat{Y}_b(x)$ be the class prediction of the $b^{\text{th}}$ random-forest 
 $$\hat{Y}^B_{\text{rf}}(x) = \text{majority vote } \left\{ \hat{Y}_b(x) \right\}^B_1$$
 \end{algorithm} 
 
++ **State why random forests are good predictors**
 
 
 ##Accuracy Metrics
@@ -338,6 +349,9 @@ The PMM method ensures that imputed values are plausible; it might be more appro
 
 
 ##Ensemble Multiple Imputation
+
+Two approaches have been proposed for pooling results from several SVMs **(Belache et al. 2014)** and Cox regression **(Zavrakidis 2017)** from multiply imputed datasets.  The method is to concatenate the $m$ imputed datasets and fit a classifier, and optimize, to the resulting set; this accounts for the variability of the parameter estimates as well as the variability of the training observations in relation to the imputed values **(Belache et al. 2014)**.  The second proceedure fits separate classifiers to each imputed data set and get the pooled (i.e. avereaged) performance of the $m$ classifiers.  Results from both studies either show similar results between appraoches **(Zavrakidis 2017)** or slightly better performance with the first approach **(Belache et al. 2014)**.  For simplicity and the sake of computational costs, this paper, only considers the first approach.    
+
 The steps in the ensemble approach for multiply imputed data in k-fold cross-validation are as follows:
 
 1. Randomly partition the training data into $k$ folds
@@ -374,19 +388,18 @@ $$
 **Flexible Imputation Book**  
 "The classic advice is to use a low number of imputation, somewhere between 3 and 5 for moderate amounts of missing information. Several authors investigated the influence of m on various aspects of the results. The picture emerging from this work is that it is often beneficial to set m higher, somewhere in the range of 20-100 imputations. 
 
-Theoretically it is always better to use higher m, but this involves more computation and storage. Setting m very high (say m=200) may be useful for low-level estimands that are very uncertain, and for which we want to approximate the full distribution, or for parameters that are notoriously different to estimates, like variance components. On the other hand, setting m high may not be worth the extra wait if the primary interest is on the point estimates (and not on standard errors, p-values, and so on). In that case using m=5-20 will be enough under moderate missingness."
+"Rubin's Rules" provide a simple method for pooling parameters estimates from multiple imputation for linear and generalized linear models but to the author's knowledge, there has been insufficient work on estimating the required number of imputations for estimating posterior probabilities in classification problems.  In his book, **(Van Buuren)** states
 
-+ Rubin's Rules allow the pooling of parameter estimates in GLMs but...
-+ To my knowledge, there has been insufficient work on estimating the required number of imputations for pooling posterior probabilities in classification problems.   
-  + Cite the Dutch Master Thesis
-  + Adapt Rubin's Rules - arguing that 
+> "Theoretically it is always better to use higher m, but this involves more computation and storage. Setting m very high (say m=200) may be useful for low-level estimands that are very uncertain, and for which we want to approximate the full distribution, or for parameters that are notoriously different to estimates, like variance components. On the other hand, setting m high may not be worth the extra wait if the primary interest is on the point estimates (and not on standard errors, p-values, and so on). In that case using m=5-20 will be enough under moderate missingness."
 
 
 ##Voting
 
+There has been sufficient exploration into pooling of posterior probabilities resulting from classification problems **(Citation 1)** **(Citation 2)** **Citation 3)**.  But not all statistical methods produce posterior probabilities and the comparison of pooled models from multiple imputation is an area ripe for more analysis.  Indeed, others have pooled predictions from various machine learning methods by taking the majority vote **(Zavrakidis)** **(Citation 2)**, and comparing prediction accuracy.  
+
 ###Majority Vote
 
-The combination can be implemented using a variety of strategies, among which majority vote is by far the simplest, yet it has been found to be just as effective as more complicated schemes. (Lam and Suen, 1994).
+The combination can be implemented using a variety of strategies, among which majority vote is by far the simplest, yet it has been found to be just as effective as more complicated schemes [@lam_optimal_1995].
 
 **(Alexandre et al. 2001)**
 There has been some interest on the comparative performance of the sum and product rules (or the arithmetic and geometric means) (Kittler et al., 1996; Tax et al., 1997; Kittler et al., 1998). The arithmetic mean is one of the most frequently used combination rules since it is easy to implement and normally produces good results.
@@ -405,10 +418,6 @@ In fact (Alexandre et al. 2001) show that for classification problems with two c
 
 ## Exploratory Data Analysis
 
-+ describe the data:
-  + 3 Categorical variables
-  + 30 continuous variables
-  + Violin plots in appendix
   
 To get an idea of the distribution of the data, the following summary statistics were obtained for the categorical variable `ECMO_Survival` (Table \ref{tab:ECMO_Survival-table}) and for the continuous variables (Table \ref{tab:Gender-table}).
 
@@ -451,7 +460,7 @@ Table \ref{tab:Indications-table} shows the distribution of each disease type in
 
 ##Missing Data Patterns
 
-Before imputation, and indeed multiple imputation, it is important to inspect the missingness patterns in the data and check assumptions.  Figure \ref{fig:missing-data} shows the missingness patterns in the dataset, where a black bar represents a missing value.  Table \ref{tab:missing-statistics} provides some measures about variable dependence  in the dataset.  The first row shows the probability of observed values for each variable.  The following are coefficients that give insight into how the variables are connected in terms of missingness.  $\mathbf{Influx}$ is the ratio of the number of variables pairs $(Y_j, ~Y_k)$ with $Y_j$ missing and $Y_k$ observed, divided by the total number of observed data.  For a variable that is entirely missing, influx is 1, and 0 for if the variable is complete.  $\mathbf{Outflux}$ is defined in the opposit manner, by dividing the number of pairs $(Y_j, ~Y_k)$ with $Y_j$ observed and $Y_k$ missing, by the total number of complete cells.  For a completely observed variable, outflux will have a value of 1 and 0 if completely missing.  Outflux gives an indication of how useful the variable will be for imputing other variables in the dataset, while influx is an indicator for how easily the variable can be imputed.  We see that **all variables are useful except XXX**.  A high outflux variable might turn out to be useless for the imputation procedure if it is unrelated to the incomplete variables, while the usefulness of a highly predictive variables is severely limited by a low outflux value (Van Buuren 2012).  
+Before imputation, and indeed multiple imputation, it is important to inspect the missingness patterns in the data and check assumptions.  Figure \ref{fig:missing-data} shows the missingness patterns in the dataset, where a black bar represents a missing value.  Table \ref{tab:missing-statistics} provides some measures about variable dependence  in the dataset.  The first row shows the probability of observed values for each variable.  The following are coefficients that give insight into how the variables are connected in terms of missingness.  $\mathbf{Influx}$ is the ratio of the number of variables pairs $(Y_j, ~Y_k)$ with $Y_j$ missing and $Y_k$ observed, divided by the total number of observed data.  For a variable that is entirely missing, influx is 1, and 0 for if the variable is complete.  $\mathbf{Outflux}$ is defined in the opposit manner, by dividing the number of pairs $(Y_j, ~Y_k)$ with $Y_j$ observed and $Y_k$ missing, by the total number of complete cells.  For a completely observed variable, outflux will have a value of 1 and 0 if completely missing.  Outflux gives an indication of how useful the variable will be for imputing other variables in the dataset, while influx is an indicator for how easily the variable can be imputed.  Table \ref{tab:missing-patterns} shows that all variables will be useful during impuation except `PreECMO_Albumin`.  A high outflux variable might turn out to be useless for the imputation procedure if it is unrelated to the incomplete variables, while the usefulness of a highly predictive variables is severely limited by a low outflux value (Van Buuren 2012).  **Mention \ref{fig:missing-data})**
 
 
 ```{r missing-data, echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig.ensemble-imputation}Visual representation of missing observations in the ARDS dataset."}
@@ -477,6 +486,44 @@ flux %>%
   row_spec(23, bold = TRUE)
 ```
 
+
+## Experiments and Results
+
+The experimentation phase of this study involved three methods for handling missing data: (a) complete case analysis with the variable `PreECMO_Albumin` dropped from the analysis due to `r round( sum(is.na(data_clean.df$PreECMO_Albumin))/450 * 100, 2)`% missingness, (b) mean imputation on variables with missing values, (c) imputation via the MICE algorithm implemented with PMM.  
+
+
+```{r cv-kappa, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '0%'}
+load("../project/_trained-models/trained-models-complete-case.RData")
+kappa_cc <- as.data.frame(cbind(table_logit[[2]], table_lda[[2]], table_qda[[2]], table_knn$xtabs[[2]], table_rf$xtabs[[2]]) )
+
+load("../project/_trained-models/trained-models-mean.RData")
+kappa_mean <- as.data.frame(cbind(table_logit[[2]], table_lda[[2]], table_qda[[2]], table_knn$xtabs[[2]], table_rf$xtabs[[2]]) )
+
+load("../project/_trained-models/trained-models-pmm.RData")
+kappa_pmm <- as.data.frame(cbind(table_logit[[2]], table_lda[[2]], table_qda[[2]], table_knn$xtabs[[2]], table_rf$xtabs[[2]]) )
+
+kappa_table <- rbind(kappa_cc, kappa_mean, kappa_pmm)
+kappa_table <- round(kappa_table, 3)
+colnames(kappa_table) <- c("Logit", "LDA", "QDA", "KNN", "RF")
+rownames(kappa_table) <- c("Complete Case", "Mean", "PMM")
+
+cap <- paste0('\\label{tab:cv-kappa} Averaged Cohen\'s Kappa for each model fitted in cross-validation.  The tuned parameters for K-Nearest Neighbors and Random Forests are K=', table_knn$kmax, ' and mtry=', table_rf$mtry, ', respectively.')
+
+kappa_table %>%
+  kable(#col.names = c("Variables", "Test", "df", "p.value"), 
+        caption = cap,
+        booktabs = TRUE, 
+        format = "latex") %>%
+  kable_styling(font_size = 10, 
+                latex_options = "hold_position")
+```
+
+Table \ref{tab:cv-kappa} shows the averaged Kappa from each analysis in 10-fold cross-validation.  In complete case analysis and mean imputaion, LDA is the highest performer.  While for predictive mean-matching with $m=9$ logistic regression has the higest averaged Kappa.  
+
+
+###Validation on Test Set
+
+Using the parameters values learned obtained from 10-fold cross-validation in Table \ref{tab:cv-kappa}, models were fit to the full training set and validated against the test set.  K-nearest neighbors and random forests were fit with parameters $K=5$ and $mtry=13$, respectively.  
 
 
 ```{r echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '50%'}
@@ -559,7 +606,7 @@ metrics_table %>%
 ##Model Performance
 
 **Logistic Regression**  
-For complete-case analysis, mean imputation, and predictive mean-mathcing, logistic regression does not meet the "one in ten rule", a rule of thumb stating that a logistic regression models give stable estimates for the covariates if there are at least 10 observations of the least frequent class per covariate.  
+For complete-case analysis, mean imputation, and predictive mean-matching, logistic regression does not meet the "one in ten rule", a rule of thumb stating that a logistic regression models give stable estimates for the covariates if there are at least 10 observations of the least frequent class per covariate.  
 
 
 **LDA**  
@@ -580,6 +627,9 @@ Can perform better than logistic regression when the covariates are normally dis
 \newpage
 #Conclusion
 
++ Summary of proceedure
++ Summary of results
++ Possible improvements and future work
 
 
 \newpage
@@ -604,32 +654,7 @@ knitr::include_graphics("images/violinplot_standardized.png")
 ```
 
 
-###Kappa Values for Model Selection
-```{r cv-kappa, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '0%'}
-load("../project/_trained-models/trained-models-complete-case.RData")
-kappa_cc <- as.data.frame(cbind(table_logit[[2]], table_lda[[2]], table_qda[[2]], table_knn$xtabs[[2]], table_rf$xtabs[[2]]) )
 
-load("../project/_trained-models/trained-models-mean.RData")
-kappa_mean <- as.data.frame(cbind(table_logit[[2]], table_lda[[2]], table_qda[[2]], table_knn$xtabs[[2]], table_rf$xtabs[[2]]) )
-
-load("../project/_trained-models/trained-models-pmm.RData")
-kappa_pmm <- as.data.frame(cbind(table_logit[[2]], table_lda[[2]], table_qda[[2]], table_knn$xtabs[[2]], table_rf$xtabs[[2]]) )
-
-kappa_table <- rbind(kappa_cc, kappa_mean, kappa_pmm)
-kappa_table <- round(kappa_table, 3)
-colnames(kappa_table) <- c("Logit", "LDA", "QDA", "KNN", "RF")
-rownames(kappa_table) <- c("Complete Case", "Mean", "PMM")
-
-cap <- paste0('\\label{tab:cv-kappa} Averaged Cohen\'s Kappa for each model fitted in cross-validation.  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=', table_knn$kmax, ' and mtry=', table_rf$mtry, ', respectively.')
-
-kappa_table %>%
-  kable(#col.names = c("Variables", "Test", "df", "p.value"), 
-        caption = cap,
-        booktabs = TRUE, 
-        format = "latex") %>%
-  kable_styling(font_size = 10, 
-                latex_options = "hold_position")
-```
 
 
 ##R Code

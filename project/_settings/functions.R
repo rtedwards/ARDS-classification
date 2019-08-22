@@ -207,6 +207,7 @@ fitModel <- function(train, settings) {
     return(fit_model)
   } ## end if
   
+  
 } ## end fitModel
 
 

@@ -122,6 +122,20 @@ Biostatistics
 
 \section{Introduction}\label{introduction}
 
+Prediction in medical data can often be difficult; imbalanced class
+distributions and poor predictive covariates. If the sample size is
+small, then prediction becomes even more difficult. Some of these issues
+arise from the experimental design of the study but little can be
+rememdied post-hoc. Missing values in the data complicate analysis even
+further and are often handled either by dropping missing observations or
+filling in the missing value by the mean. Both methods can be valid if
+certain assumptions hold, but useful information is either lost to the
+analysis or the natural distribution of the data is effected.
+
+Multiple imputation is another method for handling missing data that is
+not yet common in analysis of medical datasets \textbf{(Citation)}. This
+method can
+
 \subsection{Aim of the Thesis}\label{aim-of-the-thesis}
 
 \begin{itemize}
@@ -140,6 +154,18 @@ Biostatistics
 
 \subsection{Study Population \& Data
 Description}\label{study-population-data-description}
+
+\begin{itemize}
+\tightlist
+\item
+  describe the data:
+\item
+  3 Categorical variables
+\item
+  30 continuous variables
+\item
+  Violin plots in appendix
+\end{itemize}
 
 \subsection{The Statistical
 Challenege}\label{the-statistical-challenege}
@@ -170,7 +196,7 @@ true test error will be underestimated.
 If there is insufficient data to split into three parts then a suitable
 alternative is \(K\)-fold cross-validation. It is one of the simplest
 and most widely used method for estimating prediction error
-\textbf{(Hastie et al 2018)}. The data is randomly split into \(K\)
+\citep{hastie_elements_2009}. The data is randomly split into \(K\)
 folds, where the \(K^{th}\) fold is taken as the validation set and the
 the remaining \(K-1\) folds are used for training the model. The
 procedure is then repeated \(K\) times and the prediction error
@@ -180,11 +206,12 @@ choice of \(K\) can effect the variability of the prediction error; if
 \(K=1\), the model will overfit the data and prediction error will be
 highly variable and if \(K=n\) (the number of observation in the
 dataset), the model is fit with no validation set for training
-parameters. Typical values used are \(K=5\) \& \(10\) \textbf{(Hastie et
-al. 2018)}.
+parameters. Typical values used are \(K=5\) \& \(10\)
+\citep{hastie_elements_2009}.
 
 a training and a test set, respectively, preserving class proportions
-using the \texttt{createDataPartition()} from the \emph{caret} package.
+using the \texttt{createDataPartition()} from the \textbf{caret}
+package.
 
 \subsection{Models}\label{models}
 
@@ -220,7 +247,7 @@ log-likelihood function to find the parameter estimates,
 \subsubsection{LDA and QDA}\label{lda-and-qda}
 
 Discriminant Analysis is a widely used set of classification methods. A
-generlization of Fisher's Linear Discriminant \textbf{(Fisher 1936)},
+generlization of Fisher's Linear Discriminant \citep{fisher_use_1936},
 discriminant functions are created through a combination of the
 explanatory variables that characterize the classes.
 
@@ -277,13 +304,13 @@ the observation to the class with the largest LDF}.
 
 There is a bias-variance trade-off; both assume the covariates are
 normally distributed, there is no multicollinearity, and the
-observations are independent \textbf{(Cover 1965)}. LDA additionally
-assumes equal class covariances. Discriminant Analysis can only utilize
-continuous covariates with no missing observations. The bias from simple
-linear or quadratic class boundaries can be acceptable because it is
-estimated with less variance. Despite the many assumptions and
-limitations, both LDA and QDA are widely used and perform well on on a
-diverse set of classification tasks \textbf{(Hastie et al. 2017)}, even
+observations are independent \citep{cover_geometrical_1965}. LDA
+additionally assumes equal class covariances. Discriminant Analysis can
+only utilize continuous covariates with no missing observations. The
+bias from simple linear or quadratic class boundaries can be acceptable
+because it is estimated with less variance. Despite the many assumptions
+and limitations, both LDA and QDA are widely used and perform well on on
+a diverse set of classification tasks \citep{hastie_elements_2009}, even
 when the classes are not normally distributed.
 
 \subsubsection{K-Nearest Neighbors}\label{k-nearest-neighbors}
@@ -342,6 +369,12 @@ Let $\hat{Y}_b(x)$ be the class prediction of the $b^{\text{th}}$ random-forest 
 
 $$\hat{Y}^B_{\text{rf}}(x) = \text{majority vote } \left\{ \hat{Y}_b(x) \right\}^B_1$$
 \end{algorithm}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{State why random forests are good predictors}
+\end{itemize}
 
 \subsection{Accuracy Metrics}\label{accuracy-metrics}
 
@@ -537,6 +570,20 @@ Yeo-Johnson transformation or no transformation.
 \subsection{Ensemble Multiple
 Imputation}\label{ensemble-multiple-imputation}
 
+Two approaches have been proposed for pooling results from several SVMs
+\textbf{(Belache et al. 2014)} and Cox regression \textbf{(Zavrakidis
+2017)} from multiply imputed datasets. The method is to concatenate the
+\(m\) imputed datasets and fit a classifier, and optimize, to the
+resulting set; this accounts for the variability of the parameter
+estimates as well as the variability of the training observations in
+relation to the imputed values \textbf{(Belache et al. 2014)}. The
+second proceedure fits separate classifiers to each imputed data set and
+get the pooled (i.e.~avereaged) performance of the \(m\) classifiers.
+Results from both studies either show similar results between appraoches
+\textbf{(Zavrakidis 2017)} or slightly better performance with the first
+approach \textbf{(Belache et al. 2014)}. For simplicity and the sake of
+computational costs, this paper, only considers the first approach.
+
 The steps in the ensemble approach for multiply imputed data in k-fold
 cross-validation are as follows:
 
@@ -613,7 +660,15 @@ results. The picture emerging from this work is that it is often
 beneficial to set m higher, somewhere in the range of 20-100
 imputations.
 
-Theoretically it is always better to use higher m, but this involves
+``Rubin's Rules'' provide a simple method for pooling parameters
+estimates from multiple imputation for linear and generalized linear
+models but to the author's knowledge, there has been insufficient work
+on estimating the required number of imputations for estimating
+posterior probabilities in classification problems. In his book,
+\textbf{(Van Buuren)} states
+
+\begin{quote}
+``Theoretically it is always better to use higher m, but this involves
 more computation and storage. Setting m very high (say m=200) may be
 useful for low-level estimands that are very uncertain, and for which we
 want to approximate the full distribution, or for parameters that are
@@ -621,30 +676,25 @@ notoriously different to estimates, like variance components. On the
 other hand, setting m high may not be worth the extra wait if the
 primary interest is on the point estimates (and not on standard errors,
 p-values, and so on). In that case using m=5-20 will be enough under
-moderate missingness."
-
-\begin{itemize}
-\tightlist
-\item
-  Rubin's Rules allow the pooling of parameter estimates in GLMs
-  but\ldots{}
-\item
-  To my knowledge, there has been insufficient work on estimating the
-  required number of imputations for pooling posterior probabilities in
-  classification problems.\\
-\item
-  Cite the Dutch Master Thesis
-\item
-  Adapt Rubin's Rules - arguing that
-\end{itemize}
+moderate missingness.''
+\end{quote}
 
 \subsection{Voting}\label{voting}
+
+There has been sufficient exploration into pooling of posterior
+probabilities resulting from classification problems \textbf{(Citation
+1)} \textbf{(Citation 2)} \textbf{Citation 3)}. But not all statistical
+methods produce posterior probabilities and the comparison of pooled
+models from multiple imputation is an area ripe for more analysis.
+Indeed, others have pooled predictions from various machine learning
+methods by taking the majority vote \textbf{(Zavrakidis)}
+\textbf{(Citation 2)}, and comparing prediction accuracy.
 
 \subsubsection{Majority Vote}\label{majority-vote}
 
 The combination can be implemented using a variety of strategies, among
 which majority vote is by far the simplest, yet it has been found to be
-just as effective as more complicated schemes. (Lam and Suen, 1994).
+just as effective as more complicated schemes \citep{lam_optimal_1995}.
 
 \textbf{(Alexandre et al. 2001)} There has been some interest on the
 comparative performance of the sum and product rules (or the arithmetic
@@ -668,18 +718,6 @@ the geometric mean (or the product) are equivalent.
 \section{Results}\label{results}
 
 \subsection{Exploratory Data Analysis}\label{exploratory-data-analysis}
-
-\begin{itemize}
-\tightlist
-\item
-  describe the data:
-\item
-  3 Categorical variables
-\item
-  30 continuous variables
-\item
-  Violin plots in appendix
-\end{itemize}
 
 To get an idea of the distribution of the data, the following summary
 statistics were obtained for the categorical variable
@@ -768,12 +806,13 @@ missing, by the total number of complete cells. For a completely
 observed variable, outflux will have a value of 1 and 0 if completely
 missing. Outflux gives an indication of how useful the variable will be
 for imputing other variables in the dataset, while influx is an
-indicator for how easily the variable can be imputed. We see that
-\textbf{all variables are useful except XXX}. A high outflux variable
-might turn out to be useless for the imputation procedure if it is
-unrelated to the incomplete variables, while the usefulness of a highly
-predictive variables is severely limited by a low outflux value (Van
-Buuren 2012).
+indicator for how easily the variable can be imputed. Table
+\ref{tab:missing-patterns} shows that all variables will be useful
+during impuation except \texttt{PreECMO\_Albumin}. A high outflux
+variable might turn out to be useless for the imputation procedure if it
+is unrelated to the incomplete variables, while the usefulness of a
+highly predictive variables is severely limited by a low outflux value
+(Van Buuren 2012). \textbf{Mention \ref{fig:missing-data})}
 
 \begin{figure}[H]
 
@@ -835,6 +874,43 @@ PreECMO\_siIL2 & 0.95 & 0.05 & 0.87\\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\subsection{Experiments and Results}\label{experiments-and-results}
+
+The experimentation phase of this study involved three methods for
+handling missing data: (a) complete case analysis with the variable
+\texttt{PreECMO\_Albumin} dropped from the analysis due to 46.44\%
+missingness, (b) mean imputation on variables with missing values, (c)
+imputation via the MICE algorithm implemented with PMM.
+
+\begin{table}[!h]
+
+\caption{\label{tab:cv-kappa}\label{tab:cv-kappa} Averaged Cohen's Kappa for each model fitted in cross-validation.  The tuned parameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=13, respectively.}
+\centering
+\fontsize{10}{12}\selectfont
+\begin{tabular}{lrrrrr}
+\toprule
+  & Logit & LDA & QDA & KNN & RF\\
+\midrule
+Complete Case & 0.139 & 0.205 & 0.038 & 0.053 & 0.035\\
+Mean & 0.191 & 0.220 & 0.040 & 0.136 & 0.085\\
+PMM & 0.179 & 0.124 & 0.106 & 0.088 & 0.136\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table \ref{tab:cv-kappa} shows the averaged Kappa from each analysis in
+10-fold cross-validation. In complete case analysis and mean imputaion,
+LDA is the highest performer. While for predictive mean-matching with
+\(m=9\) logistic regression has the higest averaged Kappa.
+
+\subsubsection{Validation on Test Set}\label{validation-on-test-set}
+
+Using the parameters values learned obtained from 10-fold
+cross-validation in Table \ref{tab:cv-kappa}, models were fit to the
+full training set and validated against the test set. K-nearest
+neighbors and random forests were fit with parameters \(K=5\) and
+\(mtry=13\), respectively.
 
 \begin{table}[!h]
 
@@ -916,7 +992,7 @@ RF & 0.148 & 0.941 & 0.750 & 0.116\\
 
 \textbf{Logistic Regression}\\
 For complete-case analysis, mean imputation, and predictive
-mean-mathcing, logistic regression does not meet the ``one in ten
+mean-matching, logistic regression does not meet the ``one in ten
 rule'', a rule of thumb stating that a logistic regression models give
 stable estimates for the covariates if there are at least 10
 observations of the least frequent class per covariate.
@@ -955,6 +1031,16 @@ after Yeo-Johnson transformation.
 
 \section{Conclusion}\label{conclusion}
 
+\begin{itemize}
+\tightlist
+\item
+  Summary of proceedure
+\item
+  Summary of results
+\item
+  Possible improvements and future work
+\end{itemize}
+
 \newpage
 
 \section{Appendices}\label{appendices}
@@ -987,25 +1073,6 @@ after Yeo-Johnson transformation.
 
 \caption{\label{fig.ensemble-imputation}Violin plot of standardized and transformed variables.}\label{fig:violin-yeojohnson}
 \end{figure}
-
-\subsubsection{Kappa Values for Model
-Selection}\label{kappa-values-for-model-selection}
-
-\begin{table}[!h]
-
-\caption{\label{tab:cv-kappa}\label{tab:cv-kappa} Averaged Cohen's Kappa for each model fitted in cross-validation.  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=13, respectively.}
-\centering
-\fontsize{10}{12}\selectfont
-\begin{tabular}{lrrrrr}
-\toprule
-  & Logit & LDA & QDA & KNN & RF\\
-\midrule
-Complete Case & 0.139 & 0.205 & 0.038 & 0.053 & 0.035\\
-Mean & 0.191 & 0.220 & 0.040 & 0.136 & 0.085\\
-PMM & 0.179 & 0.124 & 0.106 & 0.088 & 0.136\\
-\bottomrule
-\end{tabular}
-\end{table}
 
 \subsection{R Code}\label{r-code}
 
