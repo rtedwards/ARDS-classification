@@ -55,7 +55,7 @@ impute_method <- "pmm"
 imputeSettings <- list(
   method = impute_method, 
   m = 99,      # Number of imputed datasets to create
-  maxit = 5,  # max number of iterations for imputation convergence
+  maxit = 10,  # max number of iterations for imputation convergence
   seed = 123,
   numCores = numCores
 )

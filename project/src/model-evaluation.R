@@ -23,14 +23,17 @@ source("../_settings/functions.R")
 #########################################
 load("../data/processed-data.RData")
 
-load("../_trained-models/trained-models-complete-case.RData")
-impute_method <- "complete-case"
+#load("../_trained-models/trained-models-complete-case.RData")
+#impute_method <- "complete-case"
 
-load("../_trained-models/trained-models-mean.RData")
-impute_method <- "mean"
+#load("../_trained-models/trained-models-mean.RData")
+#impute_method <- "mean"
 
 load("../_trained-models/trained-models-pmm.RData")
 impute_method <- "pmm"
+
+#load("../_trained-models/trained-models-pmm99.RData")
+#impute_method <- "pmm"
 
 #########################################
 ## Settings
@@ -42,7 +45,7 @@ metric = "kappa" # good for imbalanced data
 ## Imputation Settings
 imputeSettings <- list(
   method = impute_method, 
-  m = 99,      # Number of imputed datasets to create
+  m = 9,      # Number of imputed datasets to create
   maxit = 10,  # max number of iterations for imputation convergence
   seed = 123,
   numCores = numCores
@@ -122,8 +125,8 @@ trainSettings$tuneGrid = expand.grid(alpha = 1,   ## LASSO regularization
 try({ ## handles errors thrown from rank deficiency in QDA models
   ## Fit model to imputed training set
   ## Validate fitted model against each test set and vote
-  fit_model <- fitModel(train_imputed, settings = trainSettings)
-  valid_table <- validate(model = fit_model, tests = tests_imputed, obs = tests_imputed[[1]][, 1])
+  logit_model <- fitModel(train_imputed, settings = trainSettings)
+  valid_table <- validate(model = logit_model, tests = tests_imputed, obs = tests_imputed[[1]][, 1])
   logit_metrics <- createTable(valid_table)
 })
 
@@ -138,8 +141,8 @@ trainSettings$method <- "lda"
 try({ ## handles errors thrown from rank deficiency in QDA models
   ## Fit model to imputed training set
   ## Validate fitted model against each test set and vote
-  fit_model <- fitModel(train_imputed, settings = trainSettings)
-  valid_table <- validate(model = fit_model, tests = tests_imputed, obs = tests_imputed[[1]][, 1])
+  lda_model <- fitModel(train_imputed, settings = trainSettings)
+  valid_table <- validate(model = lda_model, tests = tests_imputed, obs = tests_imputed[[1]][, 1])
   lda_metrics <- createTable(valid_table)
 })
 
@@ -152,8 +155,8 @@ trainSettings$method <- "qda"
 try({ ## handles errors thrown from rank deficiency in QDA models
   ## Fit model to imputed training set
   ## Validate fitted model against each test set and vote
-  fit_model <- fitModel(train_imputed, settings = trainSettings)
-  valid_table <- validate(model = fit_model, tests = tests_imputed, obs = tests_imputed[[1]][, 1])
+  qda_model <- fitModel(train_imputed, settings = trainSettings)
+  valid_table <- validate(model = qda_model, tests = tests_imputed, obs = tests_imputed[[1]][, 1])
   qda_metrics <- createTable(valid_table)
 })
 
@@ -169,8 +172,8 @@ trainSettings$tuneGrid = expand.grid(kmax = table_knn$kmax,
 try({ ## handles errors thrown from rank deficiency in QDA models
   ## Fit model to imputed training set
   ## Validate fitted model against each test set and vote
-  fit_model <- fitModel(train_imputed, settings = trainSettings)
-  valid_table <- validate(model = fit_model, tests = tests_imputed, obs = tests_imputed[[1]][, 1])
+  knn_model <- fitModel(train_imputed, settings = trainSettings)
+  valid_table <- validate(model = knn_model, tests = tests_imputed, obs = tests_imputed[[1]][, 1])
   knn_metrics <- createTable(valid_table)
 })
   
@@ -187,8 +190,8 @@ trainSettings$tuneGrid = expand.grid(mtry = table_rf$mtry)
 try({ ## handles errors thrown from rank deficiency in QDA models
   ## Fit model to imputed training set
   ## Validate fitted model against each test set and vote
-  fit_model <- fitModel(train_imputed, settings = trainSettings)
-  valid_table <- validate(model = fit_model, tests = tests_imputed, obs = tests_imputed[[1]][, 1])
+  rf_model <- fitModel(train_imputed, settings = trainSettings)
+  valid_table <- validate(model = rf_model, tests = tests_imputed, obs = tests_imputed[[1]][, 1])
   rf_metrics <- createTable(valid_table)
 })
 
@@ -207,9 +210,14 @@ rownames(metrics_table) <- c("Logit", "LDA", "QDA", "KNN", "RF")
 ## Save Table
 #########################################
 # Save multiple objects
-file_name <- paste0("../_metrics/metrics-", impute_method, "99.RData")
+file_name <- paste0("../_metrics/metrics-", impute_method, ".RData")
 save(file = file_name,
-     metrics_table
+     metrics_table,
+     logit_model,
+     lda_model,
+     qda_model,
+     knn_model,
+     rf_model
 )
 
 

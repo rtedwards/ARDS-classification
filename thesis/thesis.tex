@@ -202,8 +202,22 @@ measurements.
 
 }
 
-\caption{\label{fig.ensemble-imputation}Outline of the algorithm used to pool predictions from multiple imputation.  (a) Step 1. (b) Step 2. (c) Step 3. (d) Step 4.  (e) Step 5.  (f) Step 6.}\label{fig:ensemble-imputation}
+\caption{\label{fig:ensemble-imputation}Outline of the algorithm used to pool predictions from multiple imputation.  (a) Step 1. (b) Step 2. (c) Step 3. (d) Step 4.  (e) Step 5.  (f) Step 6.}\label{fig:ensemble-imputation}
 \end{figure}
+
+\subsection{PreProcessing}\label{preprocessing}
+
+\begin{itemize}
+\tightlist
+\item
+  Standardizing - only on continuous data
+\item
+  Mean-centering
+\item
+  Scaling
+\item
+  Yeo-Johnson Transformation
+\end{itemize}
 
 \subsection{Validation \&
 Cross-validation}\label{validation-cross-validation}
@@ -713,6 +727,18 @@ with two classes, that give estimates of the a posteriori probabilities
 that sum to one the combination rules arithmetic mean (or the sum) and
 the geometric mean (or the product) are equivalent.
 
+\subsection{Feature Selection}\label{feature-selection}
+
+\begin{itemize}
+\tightlist
+\item
+  PCA for feature selection
+\item
+  Quick description of PCA
+\item
+  Maximizing the Area Under the ROC Curve
+\end{itemize}
+
 \newpage
 
 \section{Results}\label{results}
@@ -722,7 +748,7 @@ the geometric mean (or the product) are equivalent.
 To get an idea of the distribution of the data, the following summary
 statistics were obtained for the categorical variable
 \texttt{ECMO\_Survival} (Table \ref{tab:ECMO_Survival-table}) and for
-the continuous variables (Table \ref{tab:Gender-table}).
+the continuous variables (Table \ref{tab:gender-table}).
 
 \begin{table}[!h]
 
@@ -745,7 +771,7 @@ survived ECMO treatment (341 survived vs 109 did not survive).
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-2}\label{tab:Gender-table} Number of males and females.}
+\caption{\label{tab:unnamed-chunk-2}\label{tab:gender-table} Number of males and females.}
 \centering
 \fontsize{10}{12}\selectfont
 \begin{tabular}{lrr}
@@ -758,13 +784,13 @@ w & 145 & 32.22\\
 \end{tabular}
 \end{table}
 
-Table \ref{tab:Gender-table} shows that out of the 450 individuals, only
+Table \ref{tab:gender-table} shows that out of the 450 individuals, only
 67.78\% of the individuals in the study sample are male (305 male vs 145
 female).
 
 \begin{table}[!h]
 
-\caption{\label{tab:Indications-table}\label{tab:sum3} Number of each disease type indication.}
+\caption{\label{tab:unnamed-chunk-3}\label{tab:indications-table} Number of each disease type indication.}
 \centering
 \fontsize{10}{12}\selectfont
 \begin{tabular}{lrr}
@@ -783,16 +809,16 @@ Indication & n & Percent \%\\
 \end{tabular}
 \end{table}
 
-Table \ref{tab:Indications-table} shows the distribution of each disease
+Table \ref{tab:indications-table} shows the distribution of each disease
 type indication.
 
 \begin{figure}[H]
 
-{\centering \includegraphics[width=1\linewidth]{figure/graphics-violinplot-raw-1} 
+{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-4-1} 
 
 }
 
-\caption{\label{fig:violin}Violin plot of continuous variables.}\label{fig:violinplot-raw}
+\caption{\label{fig:violin-standardized}Violin plot of continuous variables.}\label{fig:unnamed-chunk-4}
 \end{figure}
 
 \subsection{Missing Data Patterns}\label{missing-data-patterns}
@@ -938,7 +964,7 @@ neighbors and random forests were fit with parameters \(K=5\) and
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-3}\label{tab:cc-metrics} Complete case analysis accuracy metrics.  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=11, respectively.}
+\caption{\label{tab:unnamed-chunk-5}\label{tab:cc-metrics} Complete case analysis accuracy metrics.  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=11, respectively.}
 \centering
 \fontsize{10}{12}\selectfont
 \begin{tabular}{lrrrr}
@@ -956,43 +982,43 @@ RF & 0.05 & 0.966 & 0.734 & 0.022\\
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-4}\label{tab:mean-metrics} Mean imputation accuracy metrics.  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=11, respectively.}
+\caption{\label{tab:unnamed-chunk-6}\label{tab:mean-metrics} Mean imputation accuracy metrics.  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=11, respectively.}
 \centering
 \fontsize{10}{12}\selectfont
 \begin{tabular}{lrrrr}
 \toprule
   & Sensitivity & Specificity & Accuracy & Kappa\\
 \midrule
-Logit & 0.259 & 0.871 & 0.723 & 0.147\\
-LDA & 0.222 & 0.859 & 0.705 & 0.091\\
-QDA & 0.111 & 0.906 & 0.714 & 0.021\\
-KNN & 0.259 & 0.835 & 0.696 & 0.102\\
-RF & 0.074 & 0.976 & 0.759 & 0.071\\
+Logit & 0.222 & 0.894 & 0.732 & 0.137\\
+LDA & 0.148 & 0.894 & 0.714 & 0.051\\
+QDA & 0.111 & 0.882 & 0.696 & -0.008\\
+KNN & 0.222 & 0.824 & 0.679 & 0.050\\
+RF & 0.185 & 0.965 & 0.777 & 0.197\\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-5}\label{tab:pmm-metrics} Predictively mean-matching imputation accuracy metrics.  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=13, respectively.}
+\caption{\label{tab:unnamed-chunk-7}\label{tab:pmm-metrics} Predictively mean-matching imputation accuracy metrics.  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=13, respectively.}
 \centering
 \fontsize{10}{12}\selectfont
 \begin{tabular}{lrrrr}
 \toprule
   & Sensitivity & Specificity & Accuracy & Kappa\\
 \midrule
-Logit & 0.259 & 0.882 & 0.732 & 0.162\\
-LDA & 0.259 & 0.882 & 0.732 & 0.162\\
-QDA & 0.111 & 0.906 & 0.714 & 0.021\\
-KNN & 0.259 & 0.859 & 0.714 & 0.131\\
-RF & 0.074 & 0.953 & 0.741 & 0.037\\
+Logit & 0.222 & 0.906 & 0.741 & 0.153\\
+LDA & 0.148 & 0.906 & 0.723 & 0.067\\
+QDA & 0.111 & 0.882 & 0.696 & -0.008\\
+KNN & 0.222 & 0.847 & 0.696 & 0.077\\
+RF & 0.148 & 0.941 & 0.750 & 0.116\\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-6}\label{tab:pmm99-metrics} 99 Predictively mean-matching imputation accuracy metrics.  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=13, respectively.}
+\caption{\label{tab:unnamed-chunk-8}\label{tab:pmm99-metrics} 99 Predictively mean-matching imputation accuracy metrics.  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=13, respectively.}
 \centering
 \fontsize{10}{12}\selectfont
 \begin{tabular}{lrrrr}
@@ -1051,9 +1077,36 @@ after Yeo-Johnson transformation.
   XGBoost, Rotation forest (PCA rotation) may do better
 \end{itemize}
 
-\newpage
+\subsection{Important Features for
+Prediction}\label{important-features-for-prediction}
 
-\section{Conclusion}\label{conclusion}
+\begin{itemize}
+\tightlist
+\item
+  Mention poor model performance
+\item
+  Correlation heatmap
+\item
+  Results from PCA
+\end{itemize}
+
+\begin{figure}[H]
+
+{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-9-1} 
+
+}
+
+\caption{\label{fig:feature-importance-lda}Ordered feature importance from LDA model}\label{fig:unnamed-chunk-9}
+\end{figure}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Refer to Figure \ref{fig:feature-importance} in Appendix A for
+  feature importance plots for the logit model}
+\end{itemize}
+
+\subsection{Conclusion}\label{conclusion}
 
 \begin{itemize}
 \tightlist
@@ -1074,29 +1127,20 @@ Analysis}\label{a.-additional-exploratory-data-analysis}
 
 \begin{figure}[H]
 
-{\centering \includegraphics[width=1\linewidth]{figure/graphics-heatmap-standardized-1} 
+{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-11-1} 
 
 }
 
-\caption{\label{fig.ensemble-imputation}Heatmap of standardized and transformed variables.}\label{fig:heatmap-standardized}
+\caption{\label{fig:heatmap-standardized}Heatmap of standardized and transformed variables.}\label{fig:unnamed-chunk-11}
 \end{figure}
 
 \begin{figure}[H]
 
-{\centering \includegraphics[width=1\linewidth]{images/violinplot} 
+{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-13-1} 
 
 }
 
-\caption{\label{fig.ensemble-imputation}Violin plot of standardized variables.}\label{fig:violin}
-\end{figure}
-
-\begin{figure}[H]
-
-{\centering \includegraphics[width=1\linewidth]{images/violinplot_standardized} 
-
-}
-
-\caption{\label{fig.ensemble-imputation}Violin plot of standardized and transformed variables.}\label{fig:violin-yeojohnson}
+\caption{\label{fig:feature-importance-logit}Ordered feature importance from Logit model}\label{fig:unnamed-chunk-13}
 \end{figure}
 
 \subsection{B. Algorithms}\label{b.-algorithms}
@@ -1166,20 +1210,20 @@ Diagnostics}\label{c.-additional-missing-data-diagnostics}
 
 \begin{figure}[H]
 
-{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-7-1} 
+{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-16-1} 
 
 }
 
-\caption{\label{fig.missing-data-patterns}Missing data patterns.  Each row corresponds to a missing data pattern (1=observed, 0=missing).  Rows and columns are sorted in increasing amounts of missing information.  The last column and row contain row and column counts, respectively.}\label{fig:unnamed-chunk-7}
+\caption{\label{fig:missing-data-patterns}Missing data patterns.  Each row corresponds to a missing data pattern (1=observed, 0=missing).  Rows and columns are sorted in increasing amounts of missing information.  The last column and row contain row and column counts, respectively.}\label{fig:unnamed-chunk-16}
 \end{figure}
 
 \begin{figure}[H]
 
-{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-8-1} 
+{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-17-1} 
 
 }
 
-\caption{\label{fig.missing-data-patterns}Missing data patterns.  Each row corresponds to a missing data pattern (1=observed, 0=missing).  Rows and columns are sorted in increasing amounts of missing information.  The last column and row contain row and column counts, respectively.}\label{fig:unnamed-chunk-8}
+\caption{\label{fig:missing-data-patterns}Missing data patterns.  Each row corresponds to a missing data pattern (1=observed, 0=missing).  Rows and columns are sorted in increasing amounts of missing information.  The last column and row contain row and column counts, respectively.}\label{fig:unnamed-chunk-17}
 \end{figure}
 
 \begin{verbatim}
@@ -1226,20 +1270,20 @@ Imputations}\label{visual-insepction-of-imputations}
 
 \begin{figure}[H]
 
-{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-9-1} 
+{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-18-1} 
 
 }
 
-\caption{\label{fig.xyplot-mean}Scatterplot of each imputed dataset}\label{fig:unnamed-chunk-9}
+\caption{\label{fig:xyplot-mean}Scatterplot of each imputed dataset}\label{fig:unnamed-chunk-18}
 \end{figure}
 
 \begin{figure}[H]
 
-{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-10-1} 
+{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-19-1} 
 
 }
 
-\caption{\label{fig.xyplot-mean}Scatterplot of each imputed dataset}\label{fig:unnamed-chunk-10}
+\caption{\label{fig:xyplot-mean}Scatterplot of each imputed dataset}\label{fig:unnamed-chunk-19}
 \end{figure}
 
 \begin{itemize}

@@ -34,6 +34,7 @@ library(knitr)
 #########################################
 library(ggplot2)
 library(GGally)
+library(gridExtra)
 
 
 #########################################
@@ -41,6 +42,8 @@ library(GGally)
 #########################################
 library(caret)
 library(glmnet)
+library(FactoMineR)
+library(factoextra)
 
 
 #########################################
