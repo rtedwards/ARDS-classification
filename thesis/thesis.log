@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2018.4.16)  22 AUG 2019 22:11
+This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2018.4.16)  23 AUG 2019 16:04
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -671,6 +671,9 @@ LaTeX Warning: Label `fig.ensemble-imputation' multiply defined.
 LaTeX Warning: Label `fig.ensemble-imputation' multiply defined.
 
 
+LaTeX Warning: Label `fig:violin' multiply defined.
+
+
 LaTeX Warning: Label `fig.ensemble-imputation' multiply defined.
 
 )
@@ -796,7 +799,7 @@ e
 ))
 Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: End \AtBeginDocument code.
-<images/GUlogo.png, id=108, 405.515pt x 125.46875pt>
+<images/GUlogo.png, id=100, 405.515pt x 125.46875pt>
 File: images/GUlogo.png Graphic file (type png)
 <use images/GUlogo.png>
 Package pdftex.def Info: images/GUlogo.png  used on input line 114.
@@ -843,100 +846,114 @@ File: mt-msb.cfg 2005/06/01 v1.0 microtype config. file: AMS symbols (b) (RS)
 \openout4 = `thesis.toc'.
 
 [2]
-LaTeX Font Info:    Try loading font information for TS1+lmr on input line 143.
+LaTeX Font Info:    Try loading font information for TS1+lmr on input line 130.
 
 (/usr/local/texlive/2018/texmf-dist/tex/latex/lm/ts1lmr.fd
 File: ts1lmr.fd 2009/10/30 v1.6 Font defs for Latin Modern
-) [3]
-LaTeX Font Info:    Try loading font information for T1+lmtt on input line 213.
+)
+LaTeX Font Info:    Try loading font information for T1+lmtt on input line 165.
 
 (/usr/local/texlive/2018/texmf-dist/tex/latex/lm/t1lmtt.fd
 File: t1lmtt.fd 2009/10/30 v1.6 Font defs for Latin Modern
-)
-Underfull \hbox (badness 3118) in paragraph at lines 212--215
+) [3] [4]
+<images/ensemble-imputation.png, id=152, 1237.62375pt x 1166.3575pt>
+File: images/ensemble-imputation.png Graphic file (type png)
+<use images/ensemble-imputation.png>
+Package pdftex.def Info: images/ensemble-imputation.png  used on input line 200
+.
+(pdftex.def)             Requested size: 469.75426pt x 442.70435pt.
+[5 <./images/ensemble-imputation.png>]
+Underfull \hbox (badness 3118) in paragraph at lines 242--245
 []\T1/lmr/m/n/12 (+20) a train-ing and a test set, re-spec-tively, pre-serv-ing
  class pro-por-tions us-ing the
  []
 
-[4] [5] [6]
-
-LaTeX Warning: `!h' float specifier changed to `!ht'.
-
-[7] [8] [9] [10] [11]
-<images/ensemble-imputation.png, id=255, 1237.62375pt x 1166.3575pt>
-File: images/ensemble-imputation.png Graphic file (type png)
-<use images/ensemble-imputation.png>
-Package pdftex.def Info: images/ensemble-imputation.png  used on input line 634
-.
-(pdftex.def)             Requested size: 469.75426pt x 442.70435pt.
-[12] [13 <./images/ensemble-imputation.png>] [14]
+[6] [7] [8] [9] [10] [11] [12] [13] [14]
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10> on input line 732.
+(Font)              <10> on input line 711.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <7> on input line 732.
+(Font)              <7> on input line 711.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <5> on input line 732.
-
-LaTeX Warning: Reference `tab:missing-statistics' on page 15 undefined on input
- line 795.
-
+(Font)              <5> on input line 711.
+<figure/graphics-violinplot-raw-1.png, id=281, 469.755pt x 325.215pt>
+File: figure/graphics-violinplot-raw-1.png Graphic file (type png)
+<use figure/graphics-violinplot-raw-1.png>
+Package pdftex.def Info: figure/graphics-violinplot-raw-1.png  used on input li
+ne 770.
+(pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
 [15]
-<figure/graphics-missing-data-1.pdf, id=307, 469.755pt x 325.215pt>
+
+LaTeX Warning: Reference `tab:missing-statistics' on page 16 undefined on input
+ line 783.
+
+<figure/graphics-missing-data-1.pdf, id=293, 469.755pt x 325.215pt>
 File: figure/graphics-missing-data-1.pdf Graphic file (type pdf)
 <use figure/graphics-missing-data-1.pdf>
 Package pdftex.def Info: figure/graphics-missing-data-1.pdf  used on input line
- 819.
+ 807.
 (pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
+[16 <./figure/graphics-violinplot-raw-1.png>]
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
-[16 <./figure/graphics-missing-data-1.pdf>] [17]
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
-[18] [19] [20]
-<images/heatmap_standardized.pdf, id=345, 481.8pt x 481.8pt>
-File: images/heatmap_standardized.pdf Graphic file (type pdf)
-<use images/heatmap_standardized.pdf>
-Package pdftex.def Info: images/heatmap_standardized.pdf  used on input line 10
-52.
-(pdftex.def)             Requested size: 469.77148pt x 469.77148pt.
-<images/violinplot.png, id=346, 963.6pt x 542.025pt>
+
+LaTeX Warning: `!h' float specifier changed to `!ht'.
+
+
+LaTeX Warning: `!h' float specifier changed to `!ht'.
+
+
+LaTeX Warning: `!h' float specifier changed to `!ht'.
+
+
+LaTeX Warning: `!h' float specifier changed to `!ht'.
+
+[17 <./figure/graphics-missing-data-1.pdf>] [18] [19] [20] [21]
+<figure/graphics-heatmap-standardized-1.pdf, id=342, 469.755pt x 325.215pt>
+File: figure/graphics-heatmap-standardized-1.pdf Graphic file (type pdf)
+<use figure/graphics-heatmap-standardized-1.pdf>
+Package pdftex.def Info: figure/graphics-heatmap-standardized-1.pdf  used on in
+put line 1040.
+(pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
+<images/violinplot.png, id=343, 963.6pt x 542.025pt>
 File: images/violinplot.png Graphic file (type png)
 <use images/violinplot.png>
-Package pdftex.def Info: images/violinplot.png  used on input line 1061.
+Package pdftex.def Info: images/violinplot.png  used on input line 1049.
 (pdftex.def)             Requested size: 469.75679pt x 264.23819pt.
-[21 <./images/heatmap_standardized.pdf>]
-<images/violinplot_standardized.png, id=353, 963.6pt x 542.025pt>
+[22 <./figure/graphics-heatmap-standardized-1.pdf>]
+<images/violinplot_standardized.png, id=462, 963.6pt x 542.025pt>
 File: images/violinplot_standardized.png Graphic file (type png)
 <use images/violinplot_standardized.png>
 Package pdftex.def Info: images/violinplot_standardized.png  used on input line
- 1070.
+ 1058.
 (pdftex.def)             Requested size: 469.75679pt x 264.23819pt.
-[22 <./images/violinplot.png> <./images/violinplot_standardized.png>] [23] (./t
+[23 <./images/violinplot.png> <./images/violinplot_standardized.png>] [24] (./t
 hesis.bbl)
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 1086.
-[24]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 1086.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 1107.
+[25]
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 1107.
 (./thesis.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 1086.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 1086.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 1107.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 1107.
 
 Package rerunfilecheck Info: File `thesis.out' has not changed.
-(rerunfilecheck)             Checksum: 21C74CF1B884D20F6B087F8EF3CD59D8;3789.
+(rerunfilecheck)             Checksum: 9A9B177B239B937375A2A3BA89B65774;3552.
 
 LaTeX Warning: There were undefined references.
 
 
 LaTeX Warning: There were multiply-defined labels.
 
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 1086.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 1107.
  ) 
 Here is how much of TeX's memory you used:
- 15661 strings out of 492649
- 233453 string characters out of 6129622
- 360326 words of memory out of 5000000
- 19068 multiletter control sequences out of 15000+600000
+ 15671 strings out of 492649
+ 233767 string characters out of 6129622
+ 370480 words of memory out of 5000000
+ 19072 multiletter control sequences out of 15000+600000
  92125 words of font info for 132 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  41i,11n,41p,301b,456s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -958,10 +975,10 @@ ive/2018/texmf-dist/fonts/type1/public/lm/lmri12.pfb></usr/local/texlive/2018/t
 exmf-dist/fonts/type1/public/lm/lmsy10.pfb></usr/local/texlive/2018/texmf-dist/
 fonts/type1/public/lm/lmsy8.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1
 /public/lm/lmtt12.pfb>
-Output written on thesis.pdf (24 pages, 620211 bytes).
+Output written on thesis.pdf (25 pages, 732600 bytes).
 PDF statistics:
- 459 PDF objects out of 1000 (max. 8388607)
- 401 compressed objects within 5 object streams
- 113 named destinations out of 1000 (max. 500000)
- 12527 words of extra memory for PDF output out of 14400 (max. 10000000)
+ 580 PDF objects out of 1000 (max. 8388607)
+ 517 compressed objects within 6 object streams
+ 119 named destinations out of 1000 (max. 500000)
+ 12516 words of extra memory for PDF output out of 14400 (max. 10000000)
 

@@ -122,6 +122,19 @@ Biostatistics
 
 \section{Introduction}\label{introduction}
 
+\subsection{Discussion of the Context}\label{discussion-of-the-context}
+
+\begin{itemize}
+\tightlist
+\item
+  Description of Acute Respiratory Syndrome
+\item
+  Description of ECMO treatment
+\end{itemize}
+
+\subsection{Aims of the Proposed
+Research}\label{aims-of-the-proposed-research}
+
 Prediction in medical data can often be difficult; imbalanced class
 distributions and poor predictive covariates. If the sample size is
 small, then prediction becomes even more difficult. Some of these issues
@@ -134,23 +147,29 @@ analysis or the natural distribution of the data is effected.
 
 Multiple imputation is another method for handling missing data that is
 not yet common in analysis of medical datasets \textbf{(Citation)}. This
-method can
+method both allows retention of observations in the analysis as well as
+accounts for the uncertainty of the imputed value. The advantages come
+at the cost of complexity and increased computation time. Multiple
+datasets must be imputed and results somehow pooled. This paper
+investigates the use of multiple imputation in increasing prediction
+performance in a medical dataset.
 
-\subsection{Aim of the Thesis}\label{aim-of-the-thesis}
+\subsection{Questions of Interest}\label{questions-of-interest}
 
-\begin{itemize}
-\item
-  paragraph about importance of in-sample vs.~out-of-sample prediction
-  accuracy
-\item
-  Cross validation
-\item
-  Over fitting / under fitting
-\item
-  Paragraph about Missing data
-\end{itemize}
+The three main questions of interest this paper aims to answer are:
 
-\subsection{The Clinical Study}\label{the-clinical-study}
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Can ECMO treatment survival (\texttt{ECMO\_Survival}) be accurately
+  predicted by PreECMO biomedical markers?
+\item
+  What is the future expected performance of predictions?
+\item
+  Which biomedical markers are needed for accurate prediction and which
+  can be dropped?
+\end{enumerate}
 
 \subsection{Study Population \& Data
 Description}\label{study-population-data-description}
@@ -158,21 +177,32 @@ Description}\label{study-population-data-description}
 \begin{itemize}
 \tightlist
 \item
-  describe the data:
-\item
-  3 Categorical variables
-\item
-  30 continuous variables
-\item
-  Violin plots in appendix
+  Description of the study and variables invovled
 \end{itemize}
 
-\subsection{The Statistical
-Challenege}\label{the-statistical-challenege}
+The dataset is composed of 450 observations on patients with Acute
+Respiratory Distress Syndrome who underwent ECMO treatment. The response
+variable, \texttt{ECMO\_Survival}, is a binary categorical variable for
+survival indication with levels ``Y'' and ``N''. 33 covariates are
+included in the analysis, two of which are categorical, and 31
+continuous. The binary categorical variable \texttt{Gender} has two
+levels for ``m'', ``f'' and \texttt{Indication} is a seven level disease
+indicator. \texttt{Age} is a contnuous variable included in the
+analysis. The remaining variables are biomedical markers from hospital
+measurements.
 
 \newpage
 
 \section{Methodology}\label{methodology}
+
+\begin{figure}[H]
+
+{\centering \includegraphics[width=1\linewidth]{images/ensemble-imputation} 
+
+}
+
+\caption{\label{fig.ensemble-imputation}Outline of the algorithm used to pool predictions from multiple imputation.  (a) Step 1. (b) Step 2. (c) Step 3. (d) Step 4.  (e) Step 5.  (f) Step 6.}\label{fig:ensemble-imputation}
+\end{figure}
 
 \subsection{Validation \&
 Cross-validation}\label{validation-cross-validation}
@@ -342,33 +372,8 @@ building multiple decision trees, where randomness is introduced during
 the construction of each tree. Predictions are made by classifying a new
 observation to the mode of the multiple decisions tree classifications.
 Random forests often make accurate and robust predictions, even for very
-high-dimensional problems (Biau, 2012).
-
-\begin{algorithm}[H]
-\caption{Random Forest Classifier}
-\DontPrintSemicolon
-\SetAlgoLined
-\BlankLine
-
-\begin{enumerate}
-  \item For ($b=1$ to B):
-    \begin{enumerate}
-      \item Draw a bootstrap sample $\mathbf{Z*}$ of the size $N$ from the training data.
-      \item Grow a random-forest tree $T_b$ to the bootstrapped data, by recursively repreating the following steps for each terminal node of the tree, until the minimum node size $n_{min}$ is reached.
-      \begin{enumerate}
-        \item Select $mtry$ variables at random from the $p$ covariates. 
-        \item Pick the best covariate/split-point among the $mtry$. 
-        \item Split the node into two daughter nodes. 
-      \end{enumerate}
-    \end{enumerate}
-  \item Output the ensemble of trees $\{T_B\}^B_1$
-\end{enumerate}
-\BlankLine
-
-Let $\hat{Y}_b(x)$ be the class prediction of the $b^{\text{th}}$ random-forest tree.  Then a new observation, $x$, is classified as:
-
-$$\hat{Y}^B_{\text{rf}}(x) = \text{majority vote } \left\{ \hat{Y}_b(x) \right\}^B_1$$
-\end{algorithm}
+high-dimensional problems (Biau, 2012). See \textbf{(Appendix X)} for an
+explanation of the random forests algorithm.
 
 \begin{itemize}
 \tightlist
@@ -471,13 +476,6 @@ p_{o,Y} = \frac{a+d}{a+b+c+d} ~\cdot~ \frac{a+c}{a+b+c+d}
 p_{o,N} = \frac{c+d}{a+b+c+d} ~\cdot~ \frac{b+d}{a+b+c+d}
 \]
 
-\newpage
-
-\section{Statistical Methods for the
-Analysis}\label{statistical-methods-for-the-analysis}
-
-\textbf{Describe the methods step-by-step for the analysis}
-
 \subsection{Missing Data}\label{missing-data}
 
 Missing data is a common problem that must be dealt with in machine
@@ -500,7 +498,9 @@ simple approaches to dealing with missing data are only valid under MCAR
 assumption. Modern methods to dealing with missing data begin from the
 MAR assumption.
 
-\subsection{Complete Case Analysis}\label{complete-case-analysis}
+\subsection{Imputation Methods}\label{imputation-methods}
+
+\subsubsection{Complete Case Analysis}\label{complete-case-analysis}
 
 Complete case canalysis is a convenient method for handling missing data
 and is the default method in many statistical packages. If there is a
@@ -514,7 +514,7 @@ means, regression coefficients, and correlations
 The ARDS dataset considered in this paper has 268/450 observations with
 missing data.
 
-\subsection{Mean Imputation}\label{mean-imputation}
+\subsubsection{Mean Imputation}\label{mean-imputation}
 
 Another common method for handling missing data is mean imputation; the
 missing value is replaced by the mean of the covariate or the mode for
@@ -527,7 +527,7 @@ other than the mean \citep{van_buuren_flexible_2012}.
 used only when there are few missing values, and should be generally
 avoided.
 
-\subsection{Multiple Imputation}\label{multiple-imputation}
+\subsubsection{Multiple Imputation}\label{multiple-imputation}
 
 The aim when imputing data is to recreate the dataset and recreate the
 missing data as if it were never missing. Multiple imputation is a
@@ -629,28 +629,7 @@ cross-validation are as follows:
   accuracy metric
 \end{enumerate}
 
-\begin{figure}[H]
-
-{\centering \includegraphics[width=1\linewidth]{images/ensemble-imputation} 
-
-}
-
-\caption{\label{fig.ensemble-imputation}Outline of the algorithm used to pool predictions from multiple imputation.  (a) Step 1. (b) Step 2. (c) Step 3. (d) Step 4.  (e) Step 5.  (f) Step 6.}\label{fig:ensemble-imputation}
-\end{figure}
-
 \subsubsection{Number of Imputations}\label{number-of-imputations}
-
-\begin{itemize}
-\tightlist
-\item
-  Rubin's Rule
-\item
-  Sample size calculator
-\end{itemize}
-
-\[
-\left( \hat{p} - 1.96\sqrt{\frac{0.25}{n}}, ~~\hat{p} + 1.96\sqrt{\frac{0.25}{n}} \right)
-\]
 
 \textbf{Flexible Imputation Book}\\
 ``The classic advice is to use a low number of imputation, somewhere
@@ -785,6 +764,15 @@ Indication & n & Percent \%\\
 
 Table \ref{tab:Indications-table} shows the distribution of each disease
 type indication.
+
+\begin{figure}[H]
+
+{\centering \includegraphics[width=1\linewidth]{figure/graphics-violinplot-raw-1} 
+
+}
+
+\caption{\label{fig:violin}Violin plot of continuous variables.}\label{fig:violinplot-raw}
+\end{figure}
 
 \subsection{Missing Data Patterns}\label{missing-data-patterns}
 
@@ -1045,11 +1033,11 @@ after Yeo-Johnson transformation.
 
 \section{Appendices}\label{appendices}
 
-\subsection{Additional Material}\label{additional-material}
+\subsection{A. Additional Material}\label{a.-additional-material}
 
 \begin{figure}[H]
 
-{\centering \includegraphics[width=1\linewidth]{images/heatmap_standardized} 
+{\centering \includegraphics[width=1\linewidth]{figure/graphics-heatmap-standardized-1} 
 
 }
 
@@ -1074,9 +1062,42 @@ after Yeo-Johnson transformation.
 \caption{\label{fig.ensemble-imputation}Violin plot of standardized and transformed variables.}\label{fig:violin-yeojohnson}
 \end{figure}
 
-\subsection{R Code}\label{r-code}
+\subsection{B. Random Forests
+Algorithm}\label{b.-random-forests-algorithm}
 
-\textbf{Figure showing flow of code}
+\begin{algorithm}[H]
+\caption{Random Forest Classifier}
+\DontPrintSemicolon
+\SetAlgoLined
+\BlankLine
+
+\begin{enumerate}
+  \item For ($b=1$ to B):
+    \begin{enumerate}
+      \item Draw a bootstrap sample $\mathbf{Z*}$ of the size $N$ from the training data.
+      \item Grow a random-forest tree $T_b$ to the bootstrapped data, by recursively repreating the following steps for each terminal node of the tree, until the minimum node size $n_{min}$ is reached.
+      \begin{enumerate}
+        \item Select $mtry$ variables at random from the $p$ covariates. 
+        \item Pick the best covariate/split-point among the $mtry$. 
+        \item Split the node into two daughter nodes. 
+      \end{enumerate}
+    \end{enumerate}
+  \item Output the ensemble of trees $\{T_B\}^B_1$
+\end{enumerate}
+\BlankLine
+
+Let $\hat{Y}_b(x)$ be the class prediction of the $b^{\text{th}}$ random-forest tree.  Then a new observation, $x$, is classified as:
+
+$$\hat{Y}^B_{\text{rf}}(x) = \text{majority vote } \left\{ \hat{Y}_b(x) \right\}^B_1$$
+\end{algorithm}
+
+\subsection{C. R Code}\label{c.-r-code}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Figure showing flow of code}
+\end{itemize}
 
 \newpage
 

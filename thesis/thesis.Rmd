@@ -96,34 +96,44 @@ Biostatistics
 \newpage
 #Introduction
 
+
+##Discussion of the Context
+
++ Description of Acute Respiratory Syndrome
++ Description of ECMO treatment
+
+
+##Aims of the Proposed Research
+
 Prediction in medical data can often be difficult; imbalanced class distributions and poor predictive covariates.  If the sample size is small, then prediction becomes even more difficult.  Some of these issues arise from the experimental design of the study but little can be rememdied post-hoc.  Missing values in the data complicate analysis even further and are often handled either by dropping missing observations or filling in the missing value by the mean.  Both methods can be valid if certain assumptions hold, but useful information is either lost to the analysis or the natural distribution of the data is effected.  
 
-Multiple imputation is another method for handling missing data that is not yet common in analysis of medical datasets **(Citation)**.  This method can 
+Multiple imputation is another method for handling missing data that is not yet common in analysis of medical datasets **(Citation)**.  This method both allows retention of observations in the analysis as well as accounts for the uncertainty of the imputed value.  The advantages come at the cost of complexity and increased computation time.  Multiple datasets must be imputed and results somehow pooled.  This paper investigates the use of multiple imputation in increasing prediction performance in a medical dataset.  
 
-## Aim of the Thesis
 
-+ paragraph about importance of in-sample vs. out-of-sample prediction accuracy
-  + Cross validation
-  + Over fitting / under fitting 
-  
-+ Paragraph about Missing data
+##Questions of Interest
+The three main questions of interest this paper aims to answer are:
 
-## The Clinical Study
+1. Can ECMO treatment survival (`ECMO_Survival`) be accurately predicted by PreECMO biomedical markers?
+2. What is the future expected performance of predictions?
+3. Which biomedical markers are needed for accurate prediction and which can be dropped?
 
-## Study Population & Data Description
 
-+ describe the data:
-  + 3 Categorical variables
-  + 30 continuous variables
-  + Violin plots in appendix
+##Study Population & Data Description
 
-## The Statistical Challenege
++ Description of the study and variables invovled
+
+The dataset is composed of 450 observations on patients with Acute Respiratory Distress Syndrome who underwent ECMO treatment.  The response variable, `ECMO_Survival`, is a binary categorical variable for survival indication with levels "Y" and "N".  33 covariates are included in the analysis, two of which are categorical, and 31 continuous.  The binary categorical variable `Gender` has two levels for "m", "f" and `Indication` is a seven level disease indicator.  `Age` is a contnuous variable included in the analysis.  The remaining variables are biomedical markers from hospital measurements.   
 
 
 
 
 \newpage
 #Methodology
+
+
+```{r ensemble-imputation, echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig.ensemble-imputation}Outline of the algorithm used to pool predictions from multiple imputation.  (a) Step 1. (b) Step 2. (c) Step 3. (d) Step 4.  (e) Step 5.  (f) Step 6."}
+knitr::include_graphics("images/ensemble-imputation.png")
+```
 
 ##Validation & Cross-validation
 
@@ -208,36 +218,10 @@ KNN is sensitive to the local sturcture of the data.  As $K$ increases, the vari
 
 ###Random Forests
 
-Random forests (Brieman, 2001) are one of the most successful general-purpose modern algorithms (Biau and Scornet, 2016).  They are an ensemble learning method that can be applied to a wide range of tasks, namely classification and regression.  A random forest is created by building multiple decision trees, where randomness is introduced during the construction of each tree.  Predictions are made by classifying a new observation to the mode of the multiple decisions tree classifications.  Random forests often make accurate and robust predictions, even for very high-dimensional problems (Biau, 2012). 
-
-
-\begin{algorithm}[H]
-\caption{Random Forest Classifier}
-\DontPrintSemicolon
-\SetAlgoLined
-\BlankLine
-
-\begin{enumerate}
-  \item For ($b=1$ to B):
-    \begin{enumerate}
-      \item Draw a bootstrap sample $\mathbf{Z*}$ of the size $N$ from the training data.
-      \item Grow a random-forest tree $T_b$ to the bootstrapped data, by recursively repreating the following steps for each terminal node of the tree, until the minimum node size $n_{min}$ is reached.
-      \begin{enumerate}
-        \item Select $mtry$ variables at random from the $p$ covariates. 
-        \item Pick the best covariate/split-point among the $mtry$. 
-        \item Split the node into two daughter nodes. 
-      \end{enumerate}
-    \end{enumerate}
-  \item Output the ensemble of trees $\{T_B\}^B_1$
-\end{enumerate}
-\BlankLine
-
-Let $\hat{Y}_b(x)$ be the class prediction of the $b^{\text{th}}$ random-forest tree.  Then a new observation, $x$, is classified as:
-
-$$\hat{Y}^B_{\text{rf}}(x) = \text{majority vote } \left\{ \hat{Y}_b(x) \right\}^B_1$$
-\end{algorithm} 
+Random forests (Brieman, 2001) are one of the most successful general-purpose modern algorithms (Biau and Scornet, 2016).  They are an ensemble learning method that can be applied to a wide range of tasks, namely classification and regression.  A random forest is created by building multiple decision trees, where randomness is introduced during the construction of each tree.  Predictions are made by classifying a new observation to the mode of the multiple decisions tree classifications.  Random forests often make accurate and robust predictions, even for very high-dimensional problems (Biau, 2012).  See **(Appendix X)** for an explanation of the random forests algorithm. 
 
 + **State why random forests are good predictors**
+
 
 
 ##Accuracy Metrics
@@ -311,28 +295,27 @@ $$
 
 
 
-
-
-\newpage
-#Statistical Methods for the Analysis
-
-**Describe the methods step-by-step for the analysis**
-
 ##Missing Data
 
 Missing data is a common problem that must be dealt with in machine learning, statistics, and medicine.  Understanding the missing mechanism for the missing observations is important in the analysis.  [@rubin_inference_1976] defined three types of missing data mechanisms: missing completely at random (MCAR), missing at random (MAR), and missing not at random (MNAR).  The data are said to be missing completely at random (MCAR) if the probability of being missing is the same for all cases.  This implies the causes of the missing data are unrelated to the data itself.  While MCAR is conveinient because it allows many complexities that arise because data are missing to be ignored, it is typically an unrealistic assumption [@van_buuren_flexible_2012].  The data is said to be MAR if the probability of being missing is the same only within groups defined by the observed data.  MAR is a more general and more realistic assumption than MCAR.  If neither MCAR nor MAR applies, then the probability of being missing depends on an unknown mechanism and said to be MNAR.  Most simple approaches to dealing with missing data are only valid under MCAR assumption.  Modern methods to dealing with missing data begin from the MAR assumption.  
 
+##Imputation Methods
 
-##Complete Case Analysis
+###Complete Case Analysis
 Complete case canalysis is a convenient method for handling missing data and is the default method in many statistical packages.  If there is a missing value in an observation, it is dropped from the analysis.  This is often a poor appraoch as complete cases analysis assumes MCAR.  In sparse datasets a complete case analysis can cause an analysis to be underpowered and if MCAR does not hold, can severely bias estimates of means, regression coefficients, and correlations [@van_buuren_flexible_2012].  
 
 The ARDS dataset considered in this paper has `r sum(!complete.cases(data_clean.df))`/`r nrow(data_clean.df)` observations with missing data.
 
 
-##Mean Imputation
+###Mean Imputation
 Another common method for handling missing data is mean imputation; the missing value is replaced by the mean of the covariate or the mode for categorical data.  Mean imputation is a simple and attractive solution because it retains more of the data.  Mean imputation distorts the distribution of the variables toward the mean.  If MCAR assumtion does not hold it will underestimate the variance and produce biased estimates other than the mean [@van_buuren_flexible_2012].  [@van_buuren_flexible_2012] suggests mean imputation should only be used only when there are few missing values, and should be generally avoided.  
 
-##Multiple Imputation
++ Can further distort the distribution if the variable is not normally distributed.  
++ Mean imputatio is implemented in this paper because although it is often a poor method of choice for imputing missing values, it is commonly done.  
++ Variables are transformed via Yeo-Johnson Transformation to reduce distributional distortions.  
+
+
+###Multiple Imputation
 The aim when imputing data is to recreate the dataset and recreate the missing data as if it were never missing.  Multiple imputation is a method that accounts for the uncertainty in the imputed values.  The analysis begins with the observed, incomplete dataset.  The dataset is imputed multiple times to create $m>1$ complete datasets.  The imputed values are drawn from a distribution specifically modeled for each missing entry.  The $m$ datasets are analyzed using the same method that would have been used had the data been complete.  The results will differ because of the variation in the input data caused by the uncertainty in the imputed values.  
 
 Multiple imputation can handle data that is both MAR and MNAR.  
@@ -340,7 +323,7 @@ Multiple imputation can handle data that is both MAR and MNAR.
 There is uncertainty as to the true value of the unseen data, and that uncertainty should be included in the analysis.  Multiple imputation is a method created by Donald Rubin wherein multiple datasets are imputed, the analysis is conducted on each dataset, and the results are pooled using "Rubin's Rules" [@rubin_inference_1976].  
 
 
-###Fully Conditional  Specification
+###Fully Conditional Specification
 
 ###Predictive Mean Matching
 
@@ -370,20 +353,7 @@ The steps in the ensemble approach for multiply imputed data in k-fold cross-val
 
 
 
-
-```{r ensemble-imputation, echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig.ensemble-imputation}Outline of the algorithm used to pool predictions from multiple imputation.  (a) Step 1. (b) Step 2. (c) Step 3. (d) Step 4.  (e) Step 5.  (f) Step 6."}
-knitr::include_graphics("images/ensemble-imputation.png")
-```
-
-
 ###Number of Imputations
-
-+ Rubin's Rule
-+ Sample size calculator
-
-$$
-\left( \hat{p} - 1.96\sqrt{\frac{0.25}{n}}, ~~\hat{p} + 1.96\sqrt{\frac{0.25}{n}} \right)
-$$
 
 **Flexible Imputation Book**  
 "The classic advice is to use a low number of imputation, somewhere between 3 and 5 for moderate amounts of missing information. Several authors investigated the influence of m on various aspects of the results. The picture emerging from this work is that it is often beneficial to set m higher, somewhere in the range of 20-100 imputations. 
@@ -405,7 +375,6 @@ The combination can be implemented using a variety of strategies, among which ma
 There has been some interest on the comparative performance of the sum and product rules (or the arithmetic and geometric means) (Kittler et al., 1996; Tax et al., 1997; Kittler et al., 1998). The arithmetic mean is one of the most frequently used combination rules since it is easy to implement and normally produces good results.
 
 In (Kittler et al., 1998), the authors show that for combination rules based on the sum, such as the arithmetic mean, and for the case of classifiers working in different feature spaces, the arithmetic mean is less sensitive to errors than geometric mean.
-
 
 In fact (Alexandre et al. 2001) show that for classification problems with two classes, that give estimates of the a posteriori probabilities that sum to one the combination rules arithmetic mean (or the sum) and the geometric mean (or the product) are equivalent. 
 
@@ -456,6 +425,37 @@ data_clean.df %>%
 
 Table \ref{tab:Indications-table} shows the distribution of each disease type indication. 
 
+
+```{r violinplot-raw, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, fig.ext='png', out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:violin}Violin plot of continuous variables."}
+feature_names <- colnames(data_clean.df[, 4:ncol(data_clean.df)])
+#data_standard.df <- data_clean.df %>%
+#  dplyr::select(5:ncol(data_clean.df)) %>%
+#  mutate_each_(funs(scale), vars=feature_names)
+
+data_standard.df <- data_clean.df %>% 
+  preProcess( method = c("center", 
+                       "scale"
+#                       "YeoJohnson"  ## Transformation method
+                        )) %>%
+  predict(data_clean.df) ## Generate new dataframe
+
+data_standard.df %>% 
+  select(-ECMO_Survival, -Gender, -Indication) %>%
+  gather(key = Feature, value = Value) %>% 
+  ggplot(aes(x = Feature, y = Value, fill = Feature)) +
+    geom_violin(scale = "width", 
+                draw_quantiles = TRUE,
+                trim = TRUE,
+                show.legend = FALSE) +
+    geom_boxplot(width = 0.2,
+                 outlier.size = 0.5) +
+    xlab("Features") + 
+    ylab("Scaled Value") +
+    theme_bw() +
+    theme(plot.title = element_text(hjust = 0.5),
+          legend.position = "none",
+          axis.text.x = element_text(angle = 60, hjust = 1))  
+```
 
 
 ##Missing Data Patterns
@@ -635,12 +635,25 @@ Can perform better than logistic regression when the covariates are normally dis
 \newpage
 #Appendices
 
-##Additional Material
+##A. Additional Material
 
 
 
 ```{r heatmap-standardized, echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig.ensemble-imputation}Heatmap of standardized and transformed variables."}
-knitr::include_graphics("images/heatmap_standardized.png")
+# Correlation matrix plot
+ggcorr(data_standard.df[, 1:ncol(data_standard.df)], 
+       hjust = 0.95, 
+       size = 2, 
+       label = TRUE, 
+       label_size = 2, 
+       label_alpha = TRUE, 
+       layout.exp = 5, 
+       legend.position = "bottom", 
+       legend.size = 8) +
+  guides(fill = guide_colorbar(barwidth = 10, 
+                               barheight = 0.5, 
+                               title.vjust = 0.75)) 
+#  theme(  plot.margin = margin(1, 1, 1, 1, "cm") ) #top, right, bottom, left
 ```
 
 
@@ -655,11 +668,40 @@ knitr::include_graphics("images/violinplot_standardized.png")
 
 
 
+##B. Random Forests Algorithm
+
+\begin{algorithm}[H]
+\caption{Random Forest Classifier}
+\DontPrintSemicolon
+\SetAlgoLined
+\BlankLine
+
+\begin{enumerate}
+  \item For ($b=1$ to B):
+    \begin{enumerate}
+      \item Draw a bootstrap sample $\mathbf{Z*}$ of the size $N$ from the training data.
+      \item Grow a random-forest tree $T_b$ to the bootstrapped data, by recursively repreating the following steps for each terminal node of the tree, until the minimum node size $n_{min}$ is reached.
+      \begin{enumerate}
+        \item Select $mtry$ variables at random from the $p$ covariates. 
+        \item Pick the best covariate/split-point among the $mtry$. 
+        \item Split the node into two daughter nodes. 
+      \end{enumerate}
+    \end{enumerate}
+  \item Output the ensemble of trees $\{T_B\}^B_1$
+\end{enumerate}
+\BlankLine
+
+Let $\hat{Y}_b(x)$ be the class prediction of the $b^{\text{th}}$ random-forest tree.  Then a new observation, $x$, is classified as:
+
+$$\hat{Y}^B_{\text{rf}}(x) = \text{majority vote } \left\{ \hat{Y}_b(x) \right\}^B_1$$
+\end{algorithm} 
 
 
-##R Code
 
-**Figure showing flow of code**
+
+##C. R Code
+
++ **Figure showing flow of code**
 
 
 

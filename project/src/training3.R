@@ -33,7 +33,7 @@ load("../data/processed-data.RData")
 ## Set up Parallel Processing 
 ## https://cran.r-project.org/web/packages/doParallel/vignettes/gettingstartedParallel.pdf
 #########################################
-numCores <- parallel::detectCores()
+numCores <- parallel::detectCores() -2
 #clusters <- makePSOCKcluster(numCores) # Leave some for other important tasks, like browsing reddit
 #registerDoParallel(clusters)
 #stopCluster(clusters)  ## Stop the cluster
@@ -48,13 +48,13 @@ num_folds <- 10   # Cross-Validation Settings
 metric = "kappa" # good for imbalanced data
 
 ## Imputation Settings
-impute_method <- "complete-case"
+#impute_method <- "complete-case"
 #impute_method <- "mean"
-#impute_method <- "pmm"
+impute_method <- "pmm"
 
 imputeSettings <- list(
   method = impute_method, 
-  m = 1,      # Number of imputed datasets to create
+  m = 99,      # Number of imputed datasets to create
   maxit = 5,  # max number of iterations for imputation convergence
   seed = 123,
   numCores = numCores
@@ -180,7 +180,7 @@ table_rf$xtabs <- table_rf_all$xtabs[[which.max(temp.df$kappa)]]
 ## Save Trained Models 
 #########################################
 # Save multiple objects
-file_name <- paste0("../_trained-models/trained-models-", impute_method, ".RData")
+file_name <- paste0("../_trained-models/trained-models-", impute_method, "99.RData")
 save(file = file_name,
      table_logit,
      table_lda,
