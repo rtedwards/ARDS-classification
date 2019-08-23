@@ -91,6 +91,7 @@ Survival of ECMO Treatment in ARDS Patients}
 \usepackage{multirow} \usepackage{caption}
 \captionsetup[table]{skip=5pt, font=footnotesize}
 \usepackage[font=footnotesize]{caption} \usepackage{algorithm2e}
+\usepackage{amsmath}
 
 \begin{document}
 \maketitle
@@ -527,6 +528,20 @@ other than the mean \citep{van_buuren_flexible_2012}.
 used only when there are few missing values, and should be generally
 avoided.
 
+\begin{itemize}
+\tightlist
+\item
+  Can further distort the distribution if the variable is not normally
+  distributed.\\
+\item
+  Mean imputatio is implemented in this paper because although it is
+  often a poor method of choice for imputing missing values, it is
+  commonly done.\\
+\item
+  Variables are transformed via Yeo-Johnson Transformation to reduce
+  distributional distortions.
+\end{itemize}
+
 \subsubsection{Multiple Imputation}\label{multiple-imputation}
 
 The aim when imputing data is to recreate the dataset and recreate the
@@ -547,6 +562,12 @@ uncertainty should be included in the analysis. Multiple imputation is a
 method created by Donald Rubin wherein multiple datasets are imputed,
 the analysis is conducted on each dataset, and the results are pooled
 using ``Rubin's Rules'' \citep{rubin_inference_1976}.
+
+\begin{itemize}
+\tightlist
+\item
+  Details of the \textbf{MICE} algorithm can be found in Appendix B.
+\end{itemize}
 
 \subsubsection{Fully Conditional
 Specification}\label{fully-conditional-specification}
@@ -811,6 +832,21 @@ highly predictive variables is severely limited by a low outflux value
 \caption{\label{fig.ensemble-imputation}Visual representation of missing observations in the ARDS dataset.}\label{fig:missing-data}
 \end{figure}
 
+\begin{itemize}
+\tightlist
+\item
+  It can be difficult or impossible to determine if the data are MCAR.
+  Figure \ref{fig:missing-data} shows that many missing values occur in
+  observations with other missing values. Missing values could be
+  conditionally dependent on other variables, in which case the data
+  would be MAR. The missing values could also be due to some unknown
+  mechanism at the time of recording (\emph{i.e.} a failure of the
+  measurement device) that happens to effect multiple readings (the
+  biomarkers are measured from blood samples and measurements are likely
+  done in batches). In this case the data would be MCAR. Without more
+  information, this analysis assumes the data is MCAR.
+\end{itemize}
+
 \begin{table}[!h]
 
 \caption{\label{tab:missing-patterns}\label{tab:missing-patterns} Missing pattern statistics for variables in dataset.}
@@ -1033,7 +1069,8 @@ after Yeo-Johnson transformation.
 
 \section{Appendices}\label{appendices}
 
-\subsection{A. Additional Material}\label{a.-additional-material}
+\subsection{A. Additional Exploratory Data
+Analysis}\label{a.-additional-exploratory-data-analysis}
 
 \begin{figure}[H]
 
@@ -1062,10 +1099,15 @@ after Yeo-Johnson transformation.
 \caption{\label{fig.ensemble-imputation}Violin plot of standardized and transformed variables.}\label{fig:violin-yeojohnson}
 \end{figure}
 
-\subsection{B. Random Forests
-Algorithm}\label{b.-random-forests-algorithm}
+\subsection{B. Algorithms}\label{b.-algorithms}
+
+\subsubsection{Random Forests Algorithm}\label{random-forests-algorithm}
+
+The random forests algorithm depicted is adapted from
+\citep{hastie_elements_2009}.
 
 \begin{algorithm}[H]
+
 \caption{Random Forest Classifier}
 \DontPrintSemicolon
 \SetAlgoLined
@@ -1089,9 +1131,143 @@ Algorithm}\label{b.-random-forests-algorithm}
 Let $\hat{Y}_b(x)$ be the class prediction of the $b^{\text{th}}$ random-forest tree.  Then a new observation, $x$, is classified as:
 
 $$\hat{Y}^B_{\text{rf}}(x) = \text{majority vote } \left\{ \hat{Y}_b(x) \right\}^B_1$$
+
 \end{algorithm}
 
-\subsection{C. R Code}\label{c.-r-code}
+\subsubsection{MICE Algorithm}\label{mice-algorithm}
+
+The MICE algorithm is adapted from \citep{van_buuren_flexible_2012}.
+
+\begin{algorithm}[H]
+
+\caption{Multiple Imputation via Chained Equations}
+\DontPrintSemicolon
+\SetAlgoLined
+\BlankLine
+
+\begin{enumerate}
+  \item Specify an imputation model $P(Y^{\text{mis}}_j \vert Y^{\text{obs}}_j, Y_{-j}, R)$ for variable $Y_j$ with $j=1,...,p$
+  \item For each $j$, fill in starting imputation $Y^0_j$ by random draws from $Y^{\text{obs}}_j$
+  \item Repeat for $t=1,...,T:$
+  \item Repeat for $j=1,...,p:$
+  \item Define $Y^t_{-j} = (Y^t_1,...,T^t_{j-1}, Y^{t-1}_{j+1},..., Y^{t-1}_p)$ as the currently complete data except $Y_j$ 
+  \item Draw $\phi^t_j \sim P(\phi^t_j \vert Y^{\text{obs}}_j, Y^t_{-j}, R)$.
+  \item Draw imputations from $Y^t_j \sim P(Y^{ \text{mis} }_j \vert Y^{ \text{obs} }_j, Y^t_{-j}, R, \phi^t_j)$.
+  \item End repeat $j$.
+  \item End repeat $t$.
+
+\end{enumerate}
+\BlankLine
+
+\end{algorithm}
+
+\subsection{C. Additional Missing Data
+Diagnostics}\label{c.-additional-missing-data-diagnostics}
+
+\begin{figure}[H]
+
+{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-7-1} 
+
+}
+
+\caption{\label{fig.missing-data-patterns}Missing data patterns.  Each row corresponds to a missing data pattern (1=observed, 0=missing).  Rows and columns are sorted in increasing amounts of missing information.  The last column and row contain row and column counts, respectively.}\label{fig:unnamed-chunk-7}
+\end{figure}
+
+\begin{figure}[H]
+
+{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-8-1} 
+
+}
+
+\caption{\label{fig.missing-data-patterns}Missing data patterns.  Each row corresponds to a missing data pattern (1=observed, 0=missing).  Rows and columns are sorted in increasing amounts of missing information.  The last column and row contain row and column counts, respectively.}\label{fig:unnamed-chunk-8}
+\end{figure}
+
+\begin{verbatim}
+
+ Variables sorted by number of missings: 
+           Variable       Count
+    PreECMO_Albumin 0.464444444
+      PreECMO_ATIII 0.060000000
+        PreECMO_CRP 0.055555556
+         PreECMO_CK 0.051111111
+      PreECMO_siIL2 0.051111111
+     PreECMO_Ddimer 0.046666667
+ PreECMO_Fibrinogen 0.044444444
+         PreECMO_RR 0.033333333
+         PreECMO_Vt 0.033333333
+      PreECMO_Ppeak 0.033333333
+  PreECMO_Bilirubin 0.033333333
+       PreECMO_PEEP 0.031111111
+      PreECMO_Pmean 0.024444444
+       PreECMO_TNFa 0.022222222
+       PreECMO_Urea 0.020000000
+        PreECMO_IL8 0.020000000
+        PreECMO_MAP 0.011111111
+    PreECMO_Lactate 0.002222222
+ PreECMO_Leukocytes 0.002222222
+      ECMO_Survival 0.000000000
+             Gender 0.000000000
+         Indication 0.000000000
+                Age 0.000000000
+       PreECMO_FiO2 0.000000000
+         PreECMO_PF 0.000000000
+       PreECMO_SpO2 0.000000000
+      PreECMO_PaCO2 0.000000000
+         PreECMO_pH 0.000000000
+         PreECMO_BE 0.000000000
+     PreECMO_NAdose 0.000000000
+ PreECMO_Creatinine 0.000000000
+  PreECMO_Platelets 0.000000000
+        PreECMO_IL6 0.000000000
+\end{verbatim}
+
+\subsubsection{Visual Insepction of
+Imputations}\label{visual-insepction-of-imputations}
+
+\begin{figure}[H]
+
+{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-9-1} 
+
+}
+
+\caption{\label{fig.xyplot-mean}Scatterplot of each imputed dataset}\label{fig:unnamed-chunk-9}
+\end{figure}
+
+\begin{figure}[H]
+
+{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-10-1} 
+
+}
+
+\caption{\label{fig.xyplot-mean}Scatterplot of each imputed dataset}\label{fig:unnamed-chunk-10}
+\end{figure}
+
+\begin{itemize}
+\item
+  \textbf{xyplot checking distributions of original and imputed data for
+  MEAN imputation}
+\item
+  \textbf{xyplot checking distributions of original and imputed data for
+  PMM imputation}
+\item
+  \textbf{density plot of original and imputed data for MEAN imputation}
+\item
+  \textbf{density plot of original and imputed data for PMM imputation}
+\end{itemize}
+
+This plot compares the density of observed data with the ones of imputed
+data. We expect them to be similar (though not identical) under MAR
+assumption.
+
+\subsubsection{Convergence Monitoring}\label{convergence-monitoring}
+
+\begin{itemize}
+\tightlist
+\item
+  **
+\end{itemize}
+
+\subsection{D. R Code}\label{d.-r-code}
 
 \begin{itemize}
 \tightlist

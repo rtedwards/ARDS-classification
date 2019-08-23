@@ -44,6 +44,7 @@ header-includes:
   \captionsetup[table]{skip=5pt, font=footnotesize} 
   \usepackage[font=footnotesize]{caption} 
   \usepackage{algorithm2e}
+  \usepackage{amsmath}
 ---
 
 ```{r setup, include=FALSE, echo = FALSE, eval = TRUE}
@@ -134,6 +135,13 @@ The dataset is composed of 450 observations on patients with Acute Respiratory D
 ```{r ensemble-imputation, echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig.ensemble-imputation}Outline of the algorithm used to pool predictions from multiple imputation.  (a) Step 1. (b) Step 2. (c) Step 3. (d) Step 4.  (e) Step 5.  (f) Step 6."}
 knitr::include_graphics("images/ensemble-imputation.png")
 ```
+
+##PreProcessing
+
++ Standardizing - only on continuous data
+  + Mean-centering
+  + Scaling
+  + Yeo-Johnson Transformation 
 
 ##Validation & Cross-validation
 
@@ -322,6 +330,8 @@ Multiple imputation can handle data that is both MAR and MNAR.
 
 There is uncertainty as to the true value of the unseen data, and that uncertainty should be included in the analysis.  Multiple imputation is a method created by Donald Rubin wherein multiple datasets are imputed, the analysis is conducted on each dataset, and the results are pooled using "Rubin's Rules" [@rubin_inference_1976].  
 
++ Details of the **MICE** algorithm can be found in Appendix B.  
+
 
 ###Fully Conditional Specification
 
@@ -379,6 +389,10 @@ In (Kittler et al., 1998), the authors show that for combination rules based on 
 In fact (Alexandre et al. 2001) show that for classification problems with two classes, that give estimates of the a posteriori probabilities that sum to one the combination rules arithmetic mean (or the sum) and the geometric mean (or the product) are equivalent. 
 
 
+##Principal Component Analysis
+
++ PCA for feature selection
++ Quick description of PCA
 
 
 
@@ -450,7 +464,7 @@ data_standard.df %>%
     geom_boxplot(width = 0.2,
                  outlier.size = 0.5) +
     xlab("Features") + 
-    ylab("Scaled Value") +
+    ylab("Standardized Value") +
     theme_bw() +
     theme(plot.title = element_text(hjust = 0.5),
           legend.position = "none",
@@ -469,6 +483,8 @@ load("../project/data/processed-data.RData")
 vis_miss(data_clean.df, sort_miss = TRUE) +
   theme(  plot.margin = ggplot2::margin(0.125, 2, 0.5, 1, "cm") ) #top, right, bottom, left
 ```
+
++ It can be difficult or impossible to determine if the data are MCAR.  Figure \ref{fig:missing-data} shows that many missing values occur in observations with other missing values.  Missing values could be conditionally dependent on other variables, in which case the data would be MAR.  The missing values could also be due to some unknown mechanism at the time of recording (*i.e.* a failure of the measurement device) that happens to effect multiple readings (the biomarkers are measured from blood samples and measurements are likely done in batches).  In this case the data would be MCAR.  Without more information, this analysis assumes the data is MCAR.  
 
 ```{r missing-patterns, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H"}
 
@@ -624,8 +640,15 @@ Can perform better than logistic regression when the covariates are normally dis
 + XGBoost, Rotation forest (PCA rotation) may do better
 
 
+##Important Features for Prediction
+
++ Mention poor model performance 
++ Correlation heatmap
++ Results from PCA
+
+
 \newpage
-#Conclusion
+##Conclusion
 
 + Summary of proceedure
 + Summary of results
@@ -635,8 +658,7 @@ Can perform better than logistic regression when the covariates are normally dis
 \newpage
 #Appendices
 
-##A. Additional Material
-
+##A. Additional Exploratory Data Analysis
 
 
 ```{r heatmap-standardized, echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig.ensemble-imputation}Heatmap of standardized and transformed variables."}
@@ -657,20 +679,87 @@ ggcorr(data_standard.df[, 1:ncol(data_standard.df)],
 ```
 
 
-```{r violin, echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig.ensemble-imputation}Violin plot of standardized variables."}
-knitr::include_graphics("images/violinplot.png")
+```{r , echo = FALSE, eval = FALSE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig.density}Density plots of standardized variables."}
+data_clean.df %>% 
+  na.omit() %>%
+  select(-Gender, -Indication) %>%
+#  gather(key = Feature, value = Value) %>% 
+#  ggplot(aes(x = Feature, y = Value, fill = ECMO_Survival)) +
+  gather(type, value, 1:20) %>%
+  ggplot(aes(x = value, fill = ECMO_Survival)) + 
+    geom_density(alpha=0.3) + 
+#    plotTheme() + 
+    facet_wrap(~ type, scales = "free") + 
+    theme(axis.text.x = element_text(angle = 90, vjust = 1)) + 
+    labs(title = "Density Plots of Data across Variables")
+```
+
+```{r , echo = FALSE, eval = FALSE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig.feature-importance}Ordered feature importance from LDA model"}
+registerDoParallel()
+data_complete_case.df <- data_clean.df %>%
+  select(-"PreECMO_Albumin") %>% # remove variables with >40% missing obs
+  drop_na()  # drop rows with missing obs
+
+control <- trainControl(method = "repeatedcv", 
+                        number=10, 
+                        repeats = 10)
+model <- train(ECMO_Survival ~ ., 
+               data = data_complete_case.df, 
+               method = "lda", 
+               preProcess = c("scale", "center"), 
+               trControl = control)
+
+importance <- varImp(model, scale = T)
+imp_df1 <- importance$importance
+imp_df1$group <- rownames(imp_df1)
+
+imp_df1 %>%
+  ggplot( aes(x=reorder(group, Y), y = Y), size=2 ) + 
+  geom_bar(stat = "identity") + theme(axis.text.x = element_text(vjust=1,angle=90)) + 
+  labs(x = "Variable", 
+       y = "Overall Importance", 
+       title = "Scaled Feature Importance")
+```
+
+```{r , echo = FALSE, eval = FALSE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig.feature-importance}Ordered feature importance from LDA model"}
+registerDoParallel()
+data_complete_case.df <- data_clean.df %>%
+  select(-"PreECMO_Albumin") %>% # remove variables with >40% missing obs
+  drop_na()  # drop rows with missing obs
+
+control <- trainControl(method = "repeatedcv", 
+                        number=10, 
+                        repeats = 10)
+model <- train(ECMO_Survival ~ ., 
+               data = data_complete_case.df, 
+               method = "lda", 
+               preProcess = c("scale", "center", "YeoJohnson"), 
+               trControl = control)
+
+importance <- varImp(model, scale = T)
+imp_df1 <- importance$importance
+imp_df1$group <- rownames(imp_df1)
+
+imp_df1 %>%
+  ggplot( aes(x=reorder(group, Y), y = Y), size=2 ) + 
+  geom_bar(stat = "identity") + theme(axis.text.x = element_text(vjust=1,angle=90)) + 
+  labs(x = "Variable", 
+       y = "Overall Importance", 
+       title = "Scaled Feature Importance")
 ```
 
 
-```{r violin-yeojohnson, echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig.ensemble-imputation}Violin plot of standardized and transformed variables."}
-knitr::include_graphics("images/violinplot_standardized.png")
-```
 
 
 
-##B. Random Forests Algorithm
+##B. Algorithms
+
+###Random Forests Algorithm
+
+The random forests algorithm depicted is adapted from [@hastie_elements_2009].  
 
 \begin{algorithm}[H]
+
 \caption{Random Forest Classifier}
 \DontPrintSemicolon
 \SetAlgoLined
@@ -694,12 +783,111 @@ knitr::include_graphics("images/violinplot_standardized.png")
 Let $\hat{Y}_b(x)$ be the class prediction of the $b^{\text{th}}$ random-forest tree.  Then a new observation, $x$, is classified as:
 
 $$\hat{Y}^B_{\text{rf}}(x) = \text{majority vote } \left\{ \hat{Y}_b(x) \right\}^B_1$$
+
+\end{algorithm} 
+
+
+###MICE Algorithm
+
+The MICE algorithm is adapted from [@van_buuren_flexible_2012].
+
+\begin{algorithm}[H]
+
+\caption{Multiple Imputation via Chained Equations}
+\DontPrintSemicolon
+\SetAlgoLined
+\BlankLine
+
+\begin{enumerate}
+  \item Specify an imputation model $P(Y^{\text{mis}}_j \vert Y^{\text{obs}}_j, Y_{-j}, R)$ for variable $Y_j$ with $j=1,...,p$
+  \item For each $j$, fill in starting imputation $Y^0_j$ by random draws from $Y^{\text{obs}}_j$
+  \item Repeat for $t=1,...,T:$
+  \item Repeat for $j=1,...,p:$
+  \item Define $Y^t_{-j} = (Y^t_1,...,T^t_{j-1}, Y^{t-1}_{j+1},..., Y^{t-1}_p)$ as the currently complete data except $Y_j$ 
+  \item Draw $\phi^t_j \sim P(\phi^t_j \vert Y^{\text{obs}}_j, Y^t_{-j}, R)$.
+  \item Draw imputations from $Y^t_j \sim P(Y^{ \text{mis} }_j \vert Y^{ \text{obs} }_j, Y^t_{-j}, R, \phi^t_j)$.
+  \item End repeat $j$.
+  \item End repeat $t$.
+
+\end{enumerate}
+\BlankLine
+
 \end{algorithm} 
 
 
 
 
-##C. R Code
+
+##C. Additional Missing Data Diagnostics
+
+```{r , echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig.missing-data-patterns}Missing data patterns.  Each row corresponds to a missing data pattern (1=observed, 0=missing).  Rows and columns are sorted in increasing amounts of missing information.  The last column and row contain row and column counts, respectively."}
+missing_data_patterns <- md.pattern(data_clean.df, plot = TRUE, rotate.names = TRUE) +
+  theme_bw()
+#  theme(  text = element_text(size = 1),
+#          plot.margin = margin(4, 1, 1, 1, "cm") ) #top, right, bottom, left
+```
+
+
+```{r , echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig.missing-data-patterns}Missing data patterns.  Each row corresponds to a missing data pattern (1=observed, 0=missing).  Rows and columns are sorted in increasing amounts of missing information.  The last column and row contain row and column counts, respectively."}
+missing_data_patterns2 <- aggr(data_clean.df, col=mdc(1:2), numbers=TRUE, sortVars=TRUE, labels=names(data_clean.df), cex.axis=.7, gap=3, ylab=c("Proportion of missingness","Missingness Pattern")) +
+  theme_bw()
+```
+
+###Visual Insepction of Imputations
+
+```{r , echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig.xyplot-mean}Scatterplot of each imputed dataset"}
+## Impute concatenated train and test sets
+data_standard.df <- data_clean.df %>% 
+  preProcess( method = c("center", 
+                       "scale",
+                       "YeoJohnson"  ## Transformation method
+                        )) %>%
+  predict(data_clean.df) ## Generate new dataframe
+
+imp_mean <- micemd::mice.par(data_standard.df, 
+                         nnodes = 8,
+                         meth = "mean", 
+                         m = 5,
+                         maxit = 5, 
+                         seed = 123, 
+                         printFlag = FALSE
+                         )
+
+#  imp <- complete(imp6, action = "all") # create list of imputed datasets
+
+xyplot(imp_mean, PreECMO_Albumin ~ PreECMO_ATIII | c(1:6), pch = 20, cex = 0.5)
+```
+
+```{r , echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig.xyplot-mean}Scatterplot of each imputed dataset"}
+## Impute concatenated train and test sets
+imp_pmm <- micemd::mice.par(data_standard.df, 
+                         nnodes = 8,
+                         meth = "pmm", 
+                         m = 5,
+                         maxit = 5, 
+                         seed = 123, 
+                         printFlag = FALSE
+                         )
+
+#  imp <- complete(imp6, action = "all") # create list of imputed datasets
+
+xyplot(imp_pmm, PreECMO_Albumin ~ PreECMO_ATIII | .imp, pch = 20, cex = 0.5)
+```
+
++ **xyplot checking distributions of original and imputed data for MEAN imputation**
++ **xyplot checking distributions of original and imputed data for PMM imputation**
+
++ **density plot of original and imputed data for MEAN imputation**
++ **density plot of original and imputed data for PMM imputation**
+
+This plot compares the density of observed data with the ones of imputed data. We expect them
+to be similar (though not identical) under MAR assumption.
+
+###Convergence Monitoring
+
++ **
+
+##D. R Code
 
 + **Figure showing flow of code**
 
