@@ -29,11 +29,11 @@ load("../data/processed-data.RData")
 #load("../_trained-models/trained-models-mean.RData")
 #impute_method <- "mean"
 
-load("../_trained-models/trained-models-pmm.RData")
-impute_method <- "pmm"
-
-#load("../_trained-models/trained-models-pmm99.RData")
+#load("../_trained-models/trained-models-pmm.RData")
 #impute_method <- "pmm"
+
+load("../_trained-models/trained-models-pmm99.RData")
+impute_method <- "pmm"
 
 #########################################
 ## Settings
@@ -45,8 +45,8 @@ metric = "kappa" # good for imbalanced data
 ## Imputation Settings
 imputeSettings <- list(
   method = impute_method, 
-  m = 9,      # Number of imputed datasets to create
-  maxit = 10,  # max number of iterations for imputation convergence
+  m = 99,      # Number of imputed datasets to create
+  maxit = 5,  # max number of iterations for imputation convergence
   seed = 123,
   numCores = numCores
 )
@@ -210,7 +210,7 @@ rownames(metrics_table) <- c("Logit", "LDA", "QDA", "KNN", "RF")
 ## Save Table
 #########################################
 # Save multiple objects
-file_name <- paste0("../_metrics/metrics-", impute_method, ".RData")
+file_name <- paste0("../_metrics/metrics-", impute_method, "99.RData")
 save(file = file_name,
      metrics_table,
      logit_model,

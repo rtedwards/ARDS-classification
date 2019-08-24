@@ -175,7 +175,7 @@ save(file = "../data/processed-data.RData",
      train_index,
      train,
      test,
-     data
+     data_raw.df,
      data_clean.df
      # train.complete.df,
      # test.complete.df,
@@ -191,8 +191,9 @@ save(file = "../data/processed-data.RData",
 #########################################
 ## Cleanup variables
 #########################################
-rm(data.raw.df)
+#rm(data.raw.df)
 rm(data.df)
+rm(data_clean.df)
 rm(train_index)
 rm(train)
 rm(test)

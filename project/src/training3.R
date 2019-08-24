@@ -27,13 +27,13 @@ source("../_data_preprocessing/preprocess.R")
 ## Load Data
 #########################################
 load("../data/processed-data.RData")
-
+load("../_trained-models/trained-models-pmm99.RData")
 
 #########################################
 ## Set up Parallel Processing 
 ## https://cran.r-project.org/web/packages/doParallel/vignettes/gettingstartedParallel.pdf
 #########################################
-numCores <- parallel::detectCores() -2
+numCores <- parallel::detectCores()
 #clusters <- makePSOCKcluster(numCores) # Leave some for other important tasks, like browsing reddit
 #registerDoParallel(clusters)
 #stopCluster(clusters)  ## Stop the cluster
@@ -55,7 +55,7 @@ impute_method <- "pmm"
 imputeSettings <- list(
   method = impute_method, 
   m = 99,      # Number of imputed datasets to create
-  maxit = 10,  # max number of iterations for imputation convergence
+  maxit = 5,  # max number of iterations for imputation convergence
   seed = 123,
   numCores = numCores
 )
