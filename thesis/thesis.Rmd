@@ -89,10 +89,31 @@ Biostatistics
 \end{center}
 
 
+\newpage
+\begin{center}
+~
+ 
+\vspace{5cm}
+Acknowledgements 
+
+\vspace{3cm}
+To my peers, alone we were sinking but together we swam.
+
+\vspace{1cm}
+To my family, for keeping me sane in the bipolar Scottish weather. 
+
+\vspace{1cm}
+To Google, you da best. 
+
+\end{center}
+
+
 \newpage 
 \setcounter{tocdepth}{2}
 \tableofcontents  
-\newpage
+
+
+
 
 \newpage
 #Introduction
@@ -316,11 +337,19 @@ The ARDS dataset considered in this paper has `r sum(!complete.cases(data_clean.
 
 
 ###Mean Imputation
-Another common method for handling missing data is mean imputation; the missing value is replaced by the mean of the covariate or the mode for categorical data.  Mean imputation is a simple and attractive solution because it retains more of the data.  Mean imputation distorts the distribution of the variables toward the mean.  If MCAR assumtion does not hold it will underestimate the variance and produce biased estimates other than the mean [@van_buuren_flexible_2012].  [@van_buuren_flexible_2012] suggests mean imputation should only be used only when there are few missing values, and should be generally avoided.  
+Another common method for handling missing data is mean imputation; the missing value is replaced by the mean of the observed values (the mode for categorical data).  This approach is satisfactory for a moderate amount of MCAR-generated  missing  values.  However, it  distorts  the distribution of the data by reducing the variance of the imputed variables and the correlations between variables **(Little and Rubin 2002)**.  [@van_buuren_flexible_2012] suggests mean imputation should only be used only when there are few missing values, and should be generally avoided.  
 
 + Can further distort the distribution if the variable is not normally distributed.  
-+ Mean imputatio is implemented in this paper because although it is often a poor method of choice for imputing missing values, it is commonly done.  
++ Mean imputation is implemented in this paper because although it is often a poor method of choice for imputing missing values, it is commonly done.  
 + Variables are transformed via Yeo-Johnson Transformation to reduce distributional distortions.  
+
+
+###Fully Conditional Specification
+
+###Predictive Mean Matching
+
+Predictive Mean Matching (PMM) is a semi-parametric imputation approach. It is similar to the regression method except that for each missing value, it fills in a value randomly from among the a observed donor values from an observation whose regression-predicted values are closest to the regression-predicted value for the missing value from the simulated regression model (Heitjan and Little 1991; Schenker and Taylor 1996).
+The PMM method ensures that imputed values are plausible; it might be more appropriate than the regression method (which assumes a joint multivariate normal distribution) if the normality assumption is violated (Horton and Lipsitz 2001, p. 246). PMM is fairly robust to transformations of the target variables [@van_buuren_flexible_2012], yielding similar results for a Yeo-Johnson transformation or no transformation. 
 
 
 ###Multiple Imputation
@@ -332,13 +361,6 @@ There is uncertainty as to the true value of the unseen data, and that uncertain
 
 + Details of the **MICE** algorithm can be found in Appendix B.  
 
-
-###Fully Conditional Specification
-
-###Predictive Mean Matching
-
-Predictive Mean Matching (PMM) is a semi-parametric imputation approach. It is similar to the regression method except that for each missing value, it fills in a value randomly from among the a observed donor values from an observation whose regression-predicted values are closest to the regression-predicted value for the missing value from the simulated regression model (Heitjan and Little 1991; Schenker and Taylor 1996).
-The PMM method ensures that imputed values are plausible; it might be more appropriate than the regression method (which assumes a joint multivariate normal distribution) if the normality assumption is violated (Horton and Lipsitz 2001, p. 246). PMM is fairly robust to transformations of the target variables [@van_buuren_flexible_2012], yielding similar results for a Yeo-Johnson transformation or no transformation.  
 
 
 ##Ensemble Multiple Imputation
@@ -390,6 +412,12 @@ In fact (Alexandre et al. 2001) show that for classification problems with two c
 
 
 ##Feature Selection
+
+One of the goals of this analysis is to identify the variables most useful for accurate prediction.  There are various methods that can be used for feature selection: stepwise selection, Recursive Feature Elimination (RFE), LASSO regularization, and Principal Component Analysis.  However, some of these methods are highly criticized, not applicable to all classifications methods considered, or cannot be integrated into the ensemble cross-validation approach used.  Stepwise selection, while very common, is only applicable to regression models and it is often criticised [@kemp_applied_2003]; problems include falsely narrow confidence intervals for effects and predicted values [@altman_bootstrap_1989] and multiple hypothesis testing inflating risks of capitalising on chance features of the data [@altman_practical_1991], such as noise covariates gaining entry into the model when the number of candidate variables is large [@derksen_backward_1992].  
+
+RFE is an iterative procedure analogous of backward feature selection [@guyon_gene_2002].  
+
+Both logistic regression with LASSO regularization [@tibshirani_regression_1996] and the analogous Sparse Discriminant Analysis [@clemmensen_sparse_2011] are embedded feature selection methods that are dependent on the classification method.  
 
 + PCA for feature selection
 + Quick description of PCA
@@ -563,6 +591,7 @@ metrics_table %>%
         caption = cap,
         booktabs = TRUE, 
         format = "latex") %>%
+  row_spec(4, bold = T) %>%
   kable_styling(font_size = 10, 
                 latex_options = "hold_position")
 ```
@@ -581,6 +610,7 @@ metrics_table %>%
         caption = cap,
         booktabs = TRUE, 
         format = "latex") %>%
+  row_spec(5, bold = T) %>%
   kable_styling(font_size = 10, 
                 latex_options = "hold_position")
 ```
@@ -599,6 +629,7 @@ metrics_table %>%
         caption = cap,
         booktabs = TRUE, 
         format = "latex") %>%
+  row_spec(1, bold = T) %>%
   kable_styling(font_size = 10, 
                 latex_options = "hold_position")
 ```
@@ -617,6 +648,7 @@ metrics_table %>%
         caption = cap,
         booktabs = TRUE, 
         format = "latex") %>%
+  row_spec(1, bold = T) %>%
   kable_styling(font_size = 10, 
                 latex_options = "hold_position")
 ```
@@ -635,6 +667,11 @@ For complete-case analysis, mean imputation, and predictive mean-matching, logis
 
 **LDA**  
 Can perform better than logistic regression when the covariates are normally distributed **(CITATION)**, which they are in this case after Yeo-Johnson transformation.  
+
+**QDA**
+
+
+**K-Nearest Neighbors**
 
 
 **Random Forests Fails**  
@@ -655,86 +692,6 @@ Can perform better than logistic regression when the covariates are normally dis
 + Results from PCA
 
 
-```{r , echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig:feature-importance-lda}Ordered feature importance from LDA model"}
-## Create feature importance plots
-# Imputation method: Complete Case
-load("../project/_metrics/metrics-complete-case.RData")
-
-importance <- varImp(lda_model, scale = T)
-imp_df1 <- importance$importance
-imp_df1$group <- rownames(imp_df1)
-
-pca1 <- imp_df1 %>%
-  ggplot( aes(x=reorder(group, Y), y = Y), size=2 ) + 
-  geom_bar(stat = "identity", position = "dodge2") + 
-  theme(axis.text.y = element_text(vjust=1, angle=0, size=4),
-        axis.title.y.left = element_text(size = 5),
-        plot.margin=unit(c(0,0,0,0), "cm")) + 
-  coord_flip() +
-  labs(x = "", 
-       y = "", 
-       title = "Complete Case")
-
-# Imputation method: Mean m=1
-load("../project/_metrics/metrics-mean.RData")
-
-importance <- varImp(lda_model, scale = T)
-imp_df1 <- importance$importance
-imp_df1$group <- rownames(imp_df1)
-
-pca2 <- imp_df1 %>%
-  ggplot( aes(x=reorder(group, Y), y = Y), size=2 ) + 
-  geom_bar(stat = "identity", position = "dodge2") + 
-  theme(axis.text.y = element_text(vjust=1, angle=0, size=4),
-        axis.title.y.left = element_text(size = 5),
-        plot.margin=unit(c(0,0,0,0), "cm")) + 
-  coord_flip() +
-  labs(x = "", 
-       y = "", 
-       title = "Mean") 
-
-# Imputation method: PMM  m=9
-load("../project/_metrics/metrics-pmm.RData")
-
-importance <- varImp(lda_model, scale = T)
-imp_df1 <- importance$importance
-imp_df1$group <- rownames(imp_df1)
-
-pca3 <- imp_df1 %>%
-  ggplot( aes(x=reorder(group, Y), y = Y), size=2 ) + 
-  geom_bar(stat = "identity", position = "dodge2") + 
-  theme(axis.text.y = element_text(vjust=1, angle=0, size=4),
-        axis.title.y.left = element_text(size = 5),
-        plot.margin=unit(c(0,0,0,0), "cm")) + 
-  coord_flip() +
-  labs(x = "", 
-       y = "", 
-       title = "PMM m=9")
-
-# Imputation method: PMM  m=99
-load("../project/_metrics/metrics-pmm99.RData")
-
-importance <- varImp(lda_model, scale = T)
-imp_df1 <- importance$importance
-imp_df1$group <- rownames(imp_df1)
-
-pca4 <- imp_df1 %>%
-  ggplot( aes(x=reorder(group, Y), y = Y), size=2 ) +
-  geom_bar(stat = "identity", position = "dodge2") + 
-  theme(axis.text.y = element_text(vjust=1, angle=0, size=4 ),
-        axis.title.y.left = element_text(size = 5),
-        plot.margin=unit(c(0,0,0,0), "cm")) +
-  coord_flip() +
-  labs(x = "", 
-       y = "",
-       title = "PMM m=99")
-        
-## Create Multiplot
-require(gridExtra)
-grid.arrange(pca1, pca2, pca3, pca4, ncol = 2, top = "Scaled Feature Importance")
-
-```
-
 + **Refer to Figure \ref{fig:feature-importance} in Appendix A for feature importance plots for the logit model**
 
 
@@ -743,7 +700,7 @@ grid.arrange(pca1, pca2, pca3, pca4, ncol = 2, top = "Scaled Feature Importance"
 require(FactoMineR) 
 
 #scale all the features,  ncp: number of dimensions kept in the results (by default 5)
-pca <- PCA(data_clean.df[, 4:ncol(data_clean.df)], graph=FALSE)
+pca <- PCA(data_clean.df[, 4:ncol(data_clean.df)], graph=FALSE, ncp=20)
 #print(pca)
 
 #This line of code will sort the variables the most linked to each PC. It is very useful when you have many variables.
@@ -754,10 +711,10 @@ pca <- PCA(data_clean.df[, 4:ncol(data_clean.df)], graph=FALSE)
 ## The amount of variation retained by each PC is called eigenvalues. 
 ## The first PC corresponds to the direction with the maximum amount of variation in the data set.
 eigenvalues <- pca$eig
-head(eigenvalues[, 1:2])
+head(eigenvalues, 20)
 
 ## Scree Plot
-fviz_screeplot(pca, ncp=10)
+fviz_screeplot(pca, ncp=20)
 
 ### Coordinates of variables
 head(pca$var$coord)
@@ -876,7 +833,8 @@ data_clean.df %>%
     labs(title = "Density Plots of Data across Variables")
 ```
 
-```{r , echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig:feature-importance-logit}Ordered feature importance from Logit model"}
+```{r , echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig:rfe-logit}Ordered feature importance from Logit model"}
+## Recursive Feature Elimination
 ## Create feature importance plots
 # Imputation method: Complete Case
 load("../project/_metrics/metrics-complete-case.RData")
@@ -885,7 +843,7 @@ importance <- varImp(logit_model, scale = T)
 imp_df1 <- importance$importance
 imp_df1$group <- rownames(imp_df1)
 
-pca1 <- imp_df1 %>%
+imp1 <- imp_df1 %>%
   ggplot( aes(x=reorder(group, Overall), y = Overall), size=2 ) + 
   geom_bar(stat = "identity", position = "dodge") + 
   theme(axis.text.y = element_text(vjust=1, angle=0, size=4),
@@ -903,7 +861,7 @@ importance <- varImp(logit_model, scale = T)
 imp_df1 <- importance$importance
 imp_df1$group <- rownames(imp_df1)
 
-pca2 <- imp_df1 %>%
+imp2 <- imp_df1 %>%
   ggplot( aes(x=reorder(group, Overall), y = Overall), size=2 ) + 
   geom_bar(stat = "identity", position = "dodge") + 
   theme(axis.text.y = element_text(vjust=1, angle=0, size=4),
@@ -921,7 +879,7 @@ importance <- varImp(logit_model, scale = T)
 imp_df1 <- importance$importance
 imp_df1$group <- rownames(imp_df1)
 
-pca3 <- imp_df1 %>%
+imp3 <- imp_df1 %>%
   ggplot( aes(x=reorder(group, Overall), y = Overall), size=2 ) + 
   geom_bar(stat = "identity", position = "dodge") + 
   theme(axis.text.y = element_text(vjust=1, angle=0, size=4),
@@ -939,7 +897,7 @@ importance <- varImp(logit_model, scale = T)
 imp_df1 <- importance$importance
 imp_df1$group <- rownames(imp_df1)
 
-pca4 <- imp_df1 %>%
+imp4 <- imp_df1 %>%
   ggplot( aes(x=reorder(group, Overall), y = Overall), size=2 ) +
   geom_bar(stat = "identity", position = "dodge") + 
   theme(axis.text.y = element_text(vjust=1, angle=0, size=4 ),
@@ -952,7 +910,7 @@ pca4 <- imp_df1 %>%
         
 ## Create Multiplot
 require(gridExtra)
-grid.arrange(pca1, pca2, pca3, pca4, ncol = 2, top = "Scaled Feature Importance")
+grid.arrange(imp1, imp2, imp3, imp4, ncol = 2, top = "Scaled Feature Importance")
 
 ```
 
@@ -1081,7 +1039,7 @@ imp_mean <- micemd::mice.par(data_standard.df,
 
 #  imp <- complete(imp6, action = "all") # create list of imputed datasets
 
-xyplot(imp_mean, PreECMO_Albumin ~ PreECMO_ATIII | c(1:6), pch = 20, cex = 0.5)
+xyplot(imp_mean, PreECMO_Albumin ~ PreECMO_ATIII | .imp, pch = 20, cex = 0.5)
 ```
 
 ```{r , echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig:xyplot-mean}Scatterplot of each imputed dataset"}
@@ -1115,9 +1073,13 @@ to be similar (though not identical) under MAR assumption.
 + **Plot of convergence**
 
 
-##D. R Code
+##D. Code Structure
 
-+ **Figure showing flow of code**
+The code organization is described in Figure \ref{fig:r-code-chart}.  `libraries.R` contains all the libraries used in the analysis.  `functions.R` contains functions used in `training.R` and `model-evaluation.R`.  The ensemble cross-validation algorithm is done in the `crossValidation()` function.  The data is initially cleaned and split into test and training sets in `preprocess.R`.  The cleaned datasets are saved to `processed-data.RData` for use in `training.R` and in creating tables and figures in the thesis rmarkdown.  The training data is loaded into `training.R` where each of the five classification methods are trained via ensemble cross-validation.  This is done for the four imputation methods: complete case analysis, mean imputation, MICE using PMM for $m=9$, and MICE using PMM for $m=99$ imputed datasets.  The trained models for each imputation method are saved into separate `trained-models.RData`.  The methods are then then fit to the full training set in `model-evaluation.R` using the trained parameters found in `training.R`.  The final fitted models are evaluated on the test set and the fitted models and performance metrics are saved to `metrics.RData`.  
+
+```{r , echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig:r-code-chart}Flowchart of code structure."}
+knitr::include_graphics("images/r-code-chart.png")
+```
 
 
 

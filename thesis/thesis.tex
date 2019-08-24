@@ -115,9 +115,28 @@ Biostatistics
   \includegraphics[height = 1.5cm]{images/GUlogo.png}
 \end{center}
 
+\newpage
+
+\begin{center}
+~
+ 
+\vspace{5cm}
+Acknowledgements 
+
+\vspace{3cm}
+To my peers, alone we were sinking but together we swam.
+
+\vspace{1cm}
+To my family, for keeping me sane in the bipolar Scottish weather. 
+
+\vspace{1cm}
+To Google, you da best. 
+
+\end{center}
+
 \newpage 
 
-\setcounter{tocdepth}{2} \tableofcontents   \newpage
+\setcounter{tocdepth}{2} \tableofcontents  
 
 \newpage
 
@@ -974,7 +993,7 @@ neighbors and random forests were fit with parameters \(K=5\) and
 Logit & 0.20 & 0.814 & 0.658 & 0.015\\
 LDA & 0.20 & 0.847 & 0.684 & 0.054\\
 QDA & 0.00 & 0.966 & 0.722 & -0.048\\
-KNN & 0.30 & 0.847 & 0.709 & 0.161\\
+\textbf{KNN} & \textbf{0.30} & \textbf{0.847} & \textbf{0.709} & \textbf{0.161}\\
 RF & 0.05 & 0.966 & 0.734 & 0.022\\
 \bottomrule
 \end{tabular}
@@ -982,7 +1001,7 @@ RF & 0.05 & 0.966 & 0.734 & 0.022\\
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-6}\label{tab:mean-metrics} Mean imputation accuracy metrics.  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=11, respectively.}
+\caption{\label{tab:unnamed-chunk-6}\label{tab:mean-metrics} Mean imputation accuracy metrics (m=1).  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=11, respectively.}
 \centering
 \fontsize{10}{12}\selectfont
 \begin{tabular}{lrrrr}
@@ -993,21 +1012,21 @@ Logit & 0.222 & 0.894 & 0.732 & 0.137\\
 LDA & 0.148 & 0.894 & 0.714 & 0.051\\
 QDA & 0.111 & 0.882 & 0.696 & -0.008\\
 KNN & 0.222 & 0.824 & 0.679 & 0.050\\
-RF & 0.185 & 0.965 & 0.777 & 0.197\\
+\textbf{RF} & \textbf{0.185} & \textbf{0.965} & \textbf{0.777} & \textbf{0.197}\\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-7}\label{tab:pmm-metrics} Predictively mean-matching imputation accuracy metrics.  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=13, respectively.}
+\caption{\label{tab:unnamed-chunk-7}\label{tab:pmm-metrics} MICE via predictive mean matching accuracy metrics (m=91).  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=13, respectively.}
 \centering
 \fontsize{10}{12}\selectfont
 \begin{tabular}{lrrrr}
 \toprule
   & Sensitivity & Specificity & Accuracy & Kappa\\
 \midrule
-Logit & 0.222 & 0.906 & 0.741 & 0.153\\
+\textbf{Logit} & \textbf{0.222} & \textbf{0.906} & \textbf{0.741} & \textbf{0.153}\\
 LDA & 0.148 & 0.906 & 0.723 & 0.067\\
 QDA & 0.111 & 0.882 & 0.696 & -0.008\\
 KNN & 0.222 & 0.847 & 0.696 & 0.077\\
@@ -1018,14 +1037,14 @@ RF & 0.148 & 0.941 & 0.750 & 0.116\\
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-8}\label{tab:pmm99-metrics} 99 Predictively mean-matching imputation accuracy metrics.  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=13 and mtry=15, respectively.}
+\caption{\label{tab:unnamed-chunk-8}\label{tab:pmm99-metrics} MICE via predictive mean matching accuracy metrics (m=99).  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=13 and mtry=15, respectively.}
 \centering
 \fontsize{10}{12}\selectfont
 \begin{tabular}{lrrrr}
 \toprule
   & Sensitivity & Specificity & Accuracy & Kappa\\
 \midrule
-Logit & 0.333 & 0.906 & 0.768 & 0.274\\
+\textbf{Logit} & \textbf{0.333} & \textbf{0.906} & \textbf{0.768} & \textbf{0.274}\\
 LDA & 0.185 & 0.906 & 0.732 & 0.111\\
 QDA & 0.111 & 0.894 & 0.705 & 0.006\\
 KNN & 0.185 & 0.882 & 0.714 & 0.080\\
@@ -1051,6 +1070,10 @@ observations of the least frequent class per covariate.
 Can perform better than logistic regression when the covariates are
 normally distributed \textbf{(CITATION)}, which they are in this case
 after Yeo-Johnson transformation.
+
+\textbf{QDA}
+
+\textbf{K-Nearest Neighbors}
 
 \textbf{Random Forests Fails}
 
@@ -1313,11 +1336,34 @@ assumption.
 
 \subsection{D. R Code}\label{d.-r-code}
 
-\begin{itemize}
-\tightlist
-\item
-  \textbf{Figure showing flow of code}
-\end{itemize}
+The code organization is described in Figure \ref{fig:r-code-chart}.
+\texttt{libraries.R} contains all the libraries used in the analysis.
+\texttt{functions.R} contains functions used in \texttt{training.R} and
+\texttt{model-evaluation.R}. The ensemble cross-validation algorithm is
+done in the \texttt{crossValidation()} function. The data is initially
+cleaned and split into test and training sets in \texttt{preprocess.R}.
+The cleaned datasets are saved to \texttt{processed-data.RData} for use
+in \texttt{training.R} and in creating tables and figures in the thesis
+rmarkdown. The training data is loaded into \texttt{training.R} where
+each of the five classification methods are trained via ensemble
+cross-validation. This is done for the four imputation methods: complete
+case analysis, mean imputation, MICE using PMM for \(m=9\), and MICE
+using PMM for \(m=99\) imputed datasets. The trained models for each
+imputation method are saved into separate \texttt{trained-models.RData}.
+The methods are then then fit to the full training set in
+\texttt{model-evaluation.R} using the trained parameters found in
+\texttt{training.R}. The final fitted models are evaluated on the test
+set and the fitted models and performance metrics are saved to
+\texttt{metrics.RData}.
+
+\begin{figure}[H]
+
+{\centering \includegraphics[width=1\linewidth]{images/r-code-chart} 
+
+}
+
+\caption{\label{fig:r-code-chart}Flowchart of code structure.}\label{fig:unnamed-chunk-20}
+\end{figure}
 
 \newpage
 
