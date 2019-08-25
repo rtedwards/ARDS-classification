@@ -529,10 +529,10 @@ likelihood of the class percentages.
 
 \subsubsection{Cohen's Kappa}\label{cohens-kappa}
 
-Kappa or Cohen's Kappa is like classification accuracy, except that it
-is normalized at the baseline of random chance on your dataset. It is a
-useful performance measure on problems with imbalanced classes. Cohen's
-Kappa is defined as:
+Kappa or Cohen's Kappa \citep{cohen_coefficient_1960} is like
+classification accuracy, except that it is normalized at the baseline of
+random chance on your dataset. It is a useful performance measure on
+problems with imbalanced classes. Cohen's Kappa is defined as:
 
 \[
 \kappa = \frac{p_o - p_e}{1 - p_e}
@@ -627,8 +627,7 @@ Multiple imputation can handle data that is both MAR and MNAR.
 There is uncertainty as to the true value of the unseen data, and that
 uncertainty should be included in the analysis. Multiple imputation is a
 method created by Donald Rubin wherein multiple datasets are imputed,
-the analysis is conducted on each dataset, and the results are pooled
-using ``Rubin's Rules'' \citep{rubin_inference_1976}.
+the analysis is conducted on each dataset, and the results are pooled.
 
 \begin{itemize}
 \tightlist
@@ -658,26 +657,29 @@ Yeo-Johnson transformation or no transformation.
 \begin{itemize}
 \tightlist
 \item
-  \textbf{Equations for Predictive MEan Matching}
+  \textbf{Equations for Predictive Mean Matching}
 \end{itemize}
 
 \subsection{Ensemble Multiple
 Imputation}\label{ensemble-multiple-imputation}
 
-Two approaches have been proposed for pooling results from several SVMs
-\textbf{(Belache et al. 2014)} and Cox regression \textbf{(Zavrakidis
-2017)} from multiply imputed datasets. The method is to concatenate the
-\(m\) imputed datasets and fit a classifier, and optimize, to the
-resulting set; this accounts for the variability of the parameter
-estimates as well as the variability of the training observations in
-relation to the imputed values \textbf{(Belache et al. 2014)}. The
-second proceedure fits separate classifiers to each imputed data set and
-get the pooled (i.e.~avereaged) performance of the \(m\) classifiers.
-Results from both studies either show similar results between appraoches
+While the topic of multiple imputation has been widely researched, how
+to best use multiple imputation in conjunction with cross-validation has
+not. Two approaches have been proposed for pooling results from several
+SVMs \citep{belanche_handling_2014} and Cox regression
+\textbf{(Zavrakidis 2017)} from multiply imputed datasets. The method is
+to concatenate the \(m\) imputed datasets and fit a classifier, and
+optimize, to the resulting set; this accounts for the variability of the
+parameter estimates as well as the variability of the training
+observations in relation to the imputed values
+\citeyearpar{belanche_handling_2014}. The second proceedure fits
+separate classifiers to each imputed data set and get the pooled
+(i.e.~avereaged) performance of the \(m\) classifiers. Results from both
+studies either show similar results between appraoches
 \textbf{(Zavrakidis 2017)} or slightly better performance with the first
-approach \textbf{(Belache et al. 2014)}. For simplicity and the sake of
-computational costs, this paper, only considers the first approach as
-outlined in Figure \ref{fig:ensemble-imputation}.
+approach \citeyearpar{belanche_handling_2014}. For simplicity and the
+sake of computational costs, this paper, only considers the first
+approach as outlined in Figure \ref{fig:ensemble-imputation}.
 
 \begin{figure}[H]
 
@@ -689,13 +691,14 @@ outlined in Figure \ref{fig:ensemble-imputation}.
 \end{figure}
 
 The following steps describe the ensemble approach for multiply imputed
-data in k-fold cross-validation.
+data in k-fold cross-validation:
 
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
 \tightlist
 \item
-  Randomly partition the training data into \(k\) folds
+  Randomly partition the training data into \(k\) folds while retaining
+  class proportions
 \item
   Define the \(k^{th}\) as the test set and the remaining \(k-1\) folds
   as the training set
@@ -907,72 +910,52 @@ and \(mtry=13\), respectively, and on \(m=99\) imputed datasets were
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-6}\label{tab:cc-metrics} Complete case analysis accuracy metrics.  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=11, respectively.}
+\caption{\label{tab:unnamed-chunk-6}\label{tab:metrics} Pooled performance results of trained models validated on test set.}
 \centering
 \fontsize{10}{12}\selectfont
-\begin{tabular}{lrrrr}
+\begin{tabular}{lccccc}
 \toprule
-  & Sensitivity & Specificity & Accuracy & Kappa\\
+ &  & Sensitivity & Specificity & Accuracy & Kappa\\
 \midrule
-Logit & 0.20 & 0.814 & 0.658 & 0.015\\
-LDA & 0.20 & 0.847 & 0.684 & 0.054\\
-QDA & 0.00 & 0.966 & 0.722 & -0.048\\
-\textbf{KNN} & \textbf{0.30} & \textbf{0.847} & \textbf{0.709} & \textbf{0.161}\\
-RF & 0.05 & 0.966 & 0.734 & 0.022\\
-\bottomrule
-\end{tabular}
-\end{table}
+ & Logit & 0.200 & 0.814 & 0.658 & 0.015\\
 
-\begin{table}[!h]
+ & LDA & 0.200 & 0.847 & 0.684 & 0.054\\
 
-\caption{\label{tab:unnamed-chunk-7}\label{tab:mean-metrics} Mean imputation accuracy metrics (m=1).  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=11, respectively.}
-\centering
-\fontsize{10}{12}\selectfont
-\begin{tabular}{lrrrr}
-\toprule
-  & Sensitivity & Specificity & Accuracy & Kappa\\
-\midrule
-Logit & 0.222 & 0.894 & 0.732 & 0.137\\
-LDA & 0.148 & 0.894 & 0.714 & 0.051\\
-QDA & 0.111 & 0.882 & 0.696 & -0.008\\
-KNN & 0.222 & 0.824 & 0.679 & 0.050\\
-\textbf{RF} & \textbf{0.185} & \textbf{0.965} & \textbf{0.777} & \textbf{0.197}\\
-\bottomrule
-\end{tabular}
-\end{table}
+ & QDA & 0.000 & 0.966 & 0.722 & -0.048\\
 
-\begin{table}[!h]
+ & KNN & 0.300 & 0.847 & 0.709 & 0.161\\
 
-\caption{\label{tab:unnamed-chunk-8}\label{tab:pmm-metrics} MICE via predictive mean matching accuracy metrics (m=9).  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=13, respectively.}
-\centering
-\fontsize{10}{12}\selectfont
-\begin{tabular}{lrrrr}
-\toprule
-  & Sensitivity & Specificity & Accuracy & Kappa\\
-\midrule
-\textbf{Logit} & \textbf{0.222} & \textbf{0.906} & \textbf{0.741} & \textbf{0.153}\\
-LDA & 0.148 & 0.906 & 0.723 & 0.067\\
-QDA & 0.111 & 0.882 & 0.696 & -0.008\\
-KNN & 0.222 & 0.847 & 0.696 & 0.077\\
-RF & 0.148 & 0.941 & 0.750 & 0.116\\
-\bottomrule
-\end{tabular}
-\end{table}
+\multirow{-5}{*}{\raggedright\arraybackslash Complete Case} & RF & 0.050 & 0.966 & 0.734 & 0.022\\
+\cmidrule{1-6}
+ & Logit & 0.222 & 0.894 & 0.732 & 0.137\\
 
-\begin{table}[!h]
+ & LDA & 0.148 & 0.894 & 0.714 & 0.051\\
 
-\caption{\label{tab:unnamed-chunk-9}\label{tab:pmm99-metrics} MICE via predictive mean matching accuracy metrics (m=99).  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=13 and mtry=15, respectively.}
-\centering
-\fontsize{10}{12}\selectfont
-\begin{tabular}{lrrrr}
-\toprule
-  & Sensitivity & Specificity & Accuracy & Kappa\\
-\midrule
-\textbf{Logit} & \textbf{0.333} & \textbf{0.906} & \textbf{0.768} & \textbf{0.274}\\
-LDA & 0.185 & 0.906 & 0.732 & 0.111\\
-QDA & 0.111 & 0.894 & 0.705 & 0.006\\
-KNN & 0.185 & 0.882 & 0.714 & 0.080\\
-RF & 0.185 & 0.929 & 0.750 & 0.144\\
+ & QDA & 0.111 & 0.882 & 0.696 & -0.008\\
+
+ & KNN & 0.222 & 0.824 & 0.679 & 0.050\\
+
+\multirow{-5}{*}{\raggedright\arraybackslash Mean} & RF & 0.185 & 0.965 & 0.777 & 0.197\\
+\cmidrule{1-6}
+ & Logit & 0.222 & 0.906 & 0.741 & 0.153\\
+
+ & LDA & 0.148 & 0.906 & 0.723 & 0.067\\
+
+ & QDA & 0.111 & 0.882 & 0.696 & -0.008\\
+
+ & KNN & 0.222 & 0.847 & 0.696 & 0.077\\
+
+\multirow{-5}{*}{\raggedright\arraybackslash PMM (m=9)} & RF & 0.148 & 0.941 & 0.750 & 0.116\\
+\cmidrule{1-6}
+ & Logit & 0.333 & 0.906 & 0.768 & 0.274\\
+
+ & LDA & 0.185 & 0.906 & 0.732 & 0.111\\
+
+ & QDA & 0.111 & 0.894 & 0.705 & 0.006\\
+
+ & KNN & 0.185 & 0.882 & 0.714 & 0.080\\
+
+\multirow{-5}{*}{\raggedright\arraybackslash PMM (m=99)} & RF & 0.185 & 0.929 & 0.750 & 0.144\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -989,6 +972,15 @@ expected value would be \(\frac{1}{\text{no. of variables}} =\) 0.03.
 For a given component, an observation with a contribution larger than
 this cutoff could be considered as important in contributing to the
 component.
+
+\begin{figure}[H]
+
+{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-7-1} 
+
+}
+
+\caption{\label{fig:feature-importance-pca}Contribution of variables to the principal components whose cumulative sum explains >80\% of the variation in the data.}\label{fig:unnamed-chunk-7}
+\end{figure}
 
 \newpage
 
@@ -1082,11 +1074,11 @@ Analysis}\label{a.-additional-exploratory-data-analysis}
 
 \begin{figure}[H]
 
-{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-11-1} 
+{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-8-1} 
 
 }
 
-\caption{\label{fig:heatmap-standardized}Heatmap of standardized and transformed variables.}\label{fig:unnamed-chunk-11}
+\caption{\label{fig:heatmap-standardized}Heatmap of standardized and transformed variables.}\label{fig:unnamed-chunk-8}
 \end{figure}
 
 \subsection{B. Algorithms}\label{b.-algorithms}
@@ -1175,20 +1167,20 @@ Diagnostics}\label{c.-additional-missing-data-diagnostics}
 
 \begin{figure}[H]
 
-{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-13-1} 
+{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-10-1} 
 
 }
 
-\caption{\label{fig:missing-data-patterns1}Missing data patterns.  Each row corresponds to a missing data pattern (1=observed, 0=missing).  Rows and columns are sorted in increasing amounts of missing information.  The last column and row contain row and column counts, respectively.}\label{fig:unnamed-chunk-13}
+\caption{\label{fig:missing-data-patterns1}Missing data patterns.  Each row corresponds to a missing data pattern (1=observed, 0=missing).  Rows and columns are sorted in increasing amounts of missing information.  The last column and row contain row and column counts, respectively.}\label{fig:unnamed-chunk-10}
 \end{figure}
 
 \begin{figure}[H]
 
-{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-14-1} 
+{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-11-1} 
 
 }
 
-\caption{\label{fig:missing-data-patterns2}Missing data patterns.  Each row corresponds to a missing data pattern (1=observed, 0=missing).  Rows and columns are sorted in increasing amounts of missing information.  The last column and row contain row and column counts, respectively.}\label{fig:unnamed-chunk-14}
+\caption{\label{fig:missing-data-patterns2}Missing data patterns.  Each row corresponds to a missing data pattern (1=observed, 0=missing).  Rows and columns are sorted in increasing amounts of missing information.  The last column and row contain row and column counts, respectively.}\label{fig:unnamed-chunk-11}
 \end{figure}
 
 \begin{verbatim}
@@ -1235,7 +1227,7 @@ Imputations}\label{visual-insepction-of-imputations}
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-15}\label{tab:missing-statistics} Missing pattern statistics for variables in dataset.}
+\caption{\label{tab:unnamed-chunk-12}\label{tab:missing-statistics} Missing pattern statistics for variables in dataset.}
 \centering
 \fontsize{10}{12}\selectfont
 \begin{tabular}{lrrr}
@@ -1287,20 +1279,20 @@ PreECMO\_siIL2 & 0.95 & 0.05 & 0.87\\
 
 \begin{figure}[H]
 
-{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-16-1} 
+{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-13-1} 
 
 }
 
-\caption{\label{fig:xyplot-mean}Scatterplot of each imputed dataset}\label{fig:unnamed-chunk-16}
+\caption{\label{fig:xyplot-mean}Scatterplot of each imputed dataset}\label{fig:unnamed-chunk-13}
 \end{figure}
 
 \begin{figure}[H]
 
-{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-17-1} 
+{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-14-1} 
 
 }
 
-\caption{\label{fig:xyplot-pmm}Scatterplot of each imputed dataset}\label{fig:unnamed-chunk-17}
+\caption{\label{fig:xyplot-pmm}Scatterplot of each imputed dataset}\label{fig:unnamed-chunk-14}
 \end{figure}
 
 \begin{itemize}
@@ -1332,11 +1324,11 @@ assumption.
 
 \begin{figure}[H]
 
-{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-18-1} 
+{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-15-1} 
 
 }
 
-\caption{\label{fig:rfe-logit}Ordered feature importance from Logit model}\label{fig:unnamed-chunk-18}
+\caption{\label{fig:rfe-logit}Ordered feature importance from Logit model}\label{fig:unnamed-chunk-15}
 \end{figure}
 
 \subsection{E. Code Structure}\label{e.-code-structure}
@@ -1367,10 +1359,82 @@ set and the fitted models and performance metrics are saved to
 
 }
 
-\caption{\label{fig:r-code-chart}Flowchart of code structure.}\label{fig:unnamed-chunk-19}
+\caption{\label{fig:r-code-chart}Flowchart of code structure.}\label{fig:unnamed-chunk-16}
 \end{figure}
 
 \subsection{F. OLD PLOTS \& FIGURES}\label{f.-old-plots-figures}
+
+\begin{table}[!h]
+
+\caption{\label{tab:unnamed-chunk-20}\label{tab:cc-metrics} Complete case analysis accuracy metrics.  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=11, respectively.}
+\centering
+\fontsize{10}{12}\selectfont
+\begin{tabular}{lrrrr}
+\toprule
+  & Sensitivity & Specificity & Accuracy & Kappa\\
+\midrule
+Logit & 0.20 & 0.814 & 0.658 & 0.015\\
+LDA & 0.20 & 0.847 & 0.684 & 0.054\\
+QDA & 0.00 & 0.966 & 0.722 & -0.048\\
+\textbf{KNN} & \textbf{0.30} & \textbf{0.847} & \textbf{0.709} & \textbf{0.161}\\
+RF & 0.05 & 0.966 & 0.734 & 0.022\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[!h]
+
+\caption{\label{tab:unnamed-chunk-21}\label{tab:mean-metrics} Mean imputation accuracy metrics (m=1).  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=11, respectively.}
+\centering
+\fontsize{10}{12}\selectfont
+\begin{tabular}{lrrrr}
+\toprule
+  & Sensitivity & Specificity & Accuracy & Kappa\\
+\midrule
+Logit & 0.222 & 0.894 & 0.732 & 0.137\\
+LDA & 0.148 & 0.894 & 0.714 & 0.051\\
+QDA & 0.111 & 0.882 & 0.696 & -0.008\\
+KNN & 0.222 & 0.824 & 0.679 & 0.050\\
+\textbf{RF} & \textbf{0.185} & \textbf{0.965} & \textbf{0.777} & \textbf{0.197}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[!h]
+
+\caption{\label{tab:unnamed-chunk-22}\label{tab:pmm-metrics} MICE via predictive mean matching accuracy metrics (m=9).  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=13, respectively.}
+\centering
+\fontsize{10}{12}\selectfont
+\begin{tabular}{lrrrr}
+\toprule
+  & Sensitivity & Specificity & Accuracy & Kappa\\
+\midrule
+\textbf{Logit} & \textbf{0.222} & \textbf{0.906} & \textbf{0.741} & \textbf{0.153}\\
+LDA & 0.148 & 0.906 & 0.723 & 0.067\\
+QDA & 0.111 & 0.882 & 0.696 & -0.008\\
+KNN & 0.222 & 0.847 & 0.696 & 0.077\\
+RF & 0.148 & 0.941 & 0.750 & 0.116\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[!h]
+
+\caption{\label{tab:unnamed-chunk-23}\label{tab:pmm99-metrics} MICE via predictive mean matching accuracy metrics (m=99).  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=13 and mtry=15, respectively.}
+\centering
+\fontsize{10}{12}\selectfont
+\begin{tabular}{lrrrr}
+\toprule
+  & Sensitivity & Specificity & Accuracy & Kappa\\
+\midrule
+\textbf{Logit} & \textbf{0.333} & \textbf{0.906} & \textbf{0.768} & \textbf{0.274}\\
+LDA & 0.185 & 0.906 & 0.732 & 0.111\\
+QDA & 0.111 & 0.894 & 0.705 & 0.006\\
+KNN & 0.185 & 0.882 & 0.714 & 0.080\\
+RF & 0.185 & 0.929 & 0.750 & 0.144\\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \newpage
 

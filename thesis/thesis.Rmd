@@ -364,7 +364,7 @@ where sensitivity is a measure of how accurately non-survival is predicted,  spe
 
 ###Cohen's Kappa
 
-Kappa or Cohen’s Kappa is like classification accuracy, except that it is normalized at the baseline of random chance on your dataset. It is a useful performance measure on problems with imbalanced classes.  Cohen's Kappa is defined as:
+Kappa or Cohen’s Kappa [@cohen_coefficient_1960] is like classification accuracy, except that it is normalized at the baseline of random chance on your dataset. It is a useful performance measure on problems with imbalanced classes.  Cohen's Kappa is defined as:
 
 $$
 \kappa = \frac{p_o - p_e}{1 - p_e}
@@ -409,7 +409,7 @@ Multiple imputation is a method that accounts for the uncertainty in the imputed
 
 Multiple imputation can handle data that is both MAR and MNAR.  
 
-There is uncertainty as to the true value of the unseen data, and that uncertainty should be included in the analysis.  Multiple imputation is a method created by Donald Rubin wherein multiple datasets are imputed, the analysis is conducted on each dataset, and the results are pooled using "Rubin's Rules" [@rubin_inference_1976].  
+There is uncertainty as to the true value of the unseen data, and that uncertainty should be included in the analysis.  Multiple imputation is a method created by Donald Rubin wherein multiple datasets are imputed, the analysis is conducted on each dataset, and the results are pooled.  
 
 + Details of the **MICE** algorithm can be found in **Appendix B**.  
 
@@ -420,20 +420,20 @@ There is uncertainty as to the true value of the unseen data, and that uncertain
 
 Predictive Mean Matching (PMM) is a semi-parametric imputation approach to imputing missing values.  It fills in a value randomly from among the a observed donor values from an observation whose regression-predicted values are closest to the regression-predicted value for the missing value from the simulated regression model (Heitjan and Little 1991; Schenker and Taylor 1996).  PMM method ensures that imputed values are plausible; it might be more appropriate than the regression method (which assumes a joint multivariate normal distribution) if the normality assumption is violated (Horton and Lipsitz 2001, p. 246). PMM is fairly robust to transformations of the target variables [@van_buuren_flexible_2012], yielding similar results for a Yeo-Johnson transformation or no transformation. 
 
-+ **Equations for Predictive MEan Matching**
++ **Equations for Predictive Mean Matching**
 
 
 ##Ensemble Multiple Imputation
 
-Two approaches have been proposed for pooling results from several SVMs **(Belache et al. 2014)** and Cox regression **(Zavrakidis 2017)** from multiply imputed datasets.  The method is to concatenate the $m$ imputed datasets and fit a classifier, and optimize, to the resulting set; this accounts for the variability of the parameter estimates as well as the variability of the training observations in relation to the imputed values **(Belache et al. 2014)**.  The second proceedure fits separate classifiers to each imputed data set and get the pooled (i.e. avereaged) performance of the $m$ classifiers.  Results from both studies either show similar results between appraoches **(Zavrakidis 2017)** or slightly better performance with the first approach **(Belache et al. 2014)**.  For simplicity and the sake of computational costs, this paper, only considers the first approach as outlined in Figure \ref{fig:ensemble-imputation}.     
+While the topic of multiple imputation has been widely researched, how to best use multiple imputation in conjunction with cross-validation has not.  Two approaches have been proposed for pooling results from several SVMs [@belanche_handling_2014] and Cox regression **(Zavrakidis 2017)** from multiply imputed datasets.  The method is to concatenate the $m$ imputed datasets and fit a classifier, and optimize, to the resulting set; this accounts for the variability of the parameter estimates as well as the variability of the training observations in relation to the imputed values [-@belanche_handling_2014].  The second proceedure fits separate classifiers to each imputed data set and get the pooled (i.e. avereaged) performance of the $m$ classifiers.  Results from both studies either show similar results between appraoches **(Zavrakidis 2017)** or slightly better performance with the first approach [-@belanche_handling_2014].  For simplicity and the sake of computational costs, this paper, only considers the first approach as outlined in Figure \ref{fig:ensemble-imputation}.     
 
 ```{r , echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig:ensemble-imputation}Outline of the algorithm used to pool predictions from multiple imputation.  (a) Step 1. (b) Step 2. (c) Step 3. (d) Step 4.  (e) Step 5.  (f) Step 6."}
 knitr::include_graphics("images/ensemble-imputation.png")
 ```
 
-The following steps describe the ensemble approach for multiply imputed data in k-fold cross-validation.
+The following steps describe the ensemble approach for multiply imputed data in k-fold cross-validation: 
 
-1. Randomly partition the training data into $k$ folds
+1. Randomly partition the training data into $k$ folds while retaining class proportions
 2. Define the $k^{th}$ as the test set and the remaining $k-1$ folds as the training set
 3. Impute the training set $m$ times, with the response variable `ECMO_Survival` included, to create $m$ imputed training sets
 4. Concatenate the $m$ imputed training sets into one extended training set
@@ -537,83 +537,63 @@ Table \ref{tab:cv-kappa} shows the averaged Kappa from each analysis in 10-fold 
 
 Using the parameters values learned from 10-fold cross-validation in Table \ref{tab:cv-kappa}, models were fit to the full training set and validated against the test set.  Trained parameters for K-nearest neighbors and random forests on $m=9$ imputed datasets were  $K=5$ and $mtry=13$, respectively, and on $m=99$ imputed datasets were $K=13$ and $mtry=15$, respectively.  
 
-
-
-
 ```{r echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%'}
 load("../project/_metrics/metrics-complete-case.RData")
 load("../project/_trained-models/trained-models-complete-case.RData")
-
-cap <- paste0('\\label{tab:cc-metrics} Complete case analysis accuracy metrics.  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=', table_knn$kmax, ' and mtry=', table_rf$mtry, ', respectively.')
-
-metrics_table %>%
-  round(3) %>%
-  select(sensitivity, specificity, accuracy, kappa) %>%
-  kable(col.names = c("Sensitivity", "Specificity", "Accuracy", "Kappa"), 
-        caption = cap,
-        booktabs = TRUE, 
-        format = "latex") %>%
-  row_spec(4, bold = T) %>%
-  kable_styling(font_size = 10, 
-                latex_options = "hold_position")
-```
+model_names <- rbind("Logit", "LDA", "QDA", "KNN", "RF")
+metrics_table_cc <- metrics_table 
+metrics_table_cc <- cbind("Complete Case", model_names, metrics_table_cc)
+colnames(metrics_table_cc)[1:2] <- c("Method", "Model")
+rownames(metrics_table_cc) <- NULL
 
 
-```{r echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '50%'}
 load("../project/_metrics/metrics-mean.RData")
 load("../project/_trained-models/trained-models-mean.RData")
-
-cap <- paste0('\\label{tab:mean-metrics} Mean imputation accuracy metrics (m=1).  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=', table_knn$kmax, ' and mtry=', table_rf$mtry, ', respectively.')
-
-metrics_table %>%
-  round(3) %>%
-  select(sensitivity, specificity, accuracy, kappa) %>%
-  kable(col.names = c("Sensitivity", "Specificity", "Accuracy", "Kappa"), 
-        caption = cap,
-        booktabs = TRUE, 
-        format = "latex") %>%
-  row_spec(5, bold = T) %>%
-  kable_styling(font_size = 10, 
-                latex_options = "hold_position")
-```
+metrics_table_mean <- metrics_table 
+metrics_table_mean <- cbind("Mean", model_names, metrics_table_mean)
+colnames(metrics_table_mean)[1:2] <- c("Method", "Model")
+rownames(metrics_table_mean) <- NULL
 
 
-```{r echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '50%'}
 load("../project/_metrics/metrics-pmm.RData")
 load("../project/_trained-models/trained-models-pmm.RData")
+metrics_table_pmm <- metrics_table 
+metrics_table_pmm <- cbind("PMM (m=9)", model_names, metrics_table_pmm)
+colnames(metrics_table_pmm)[1:2] <- c("Method", "Model")
+rownames(metrics_table_pmm) <- NULL
 
-cap <- paste0('\\label{tab:pmm-metrics} MICE via predictive mean matching accuracy metrics (m=9).  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=', table_knn$kmax, ' and mtry=', table_rf$mtry, ', respectively.')
-
-metrics_table %>%
-  round(3) %>%
-  select(sensitivity, specificity, accuracy, kappa) %>%
-  kable(col.names = c("Sensitivity", "Specificity", "Accuracy", "Kappa"), 
-        caption = cap,
-        booktabs = TRUE, 
-        format = "latex") %>%
-  row_spec(1, bold = T) %>%
-  kable_styling(font_size = 10, 
-                latex_options = "hold_position")
-```
-
-
-```{r echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '50%'}
 load("../project/_metrics/metrics-pmm99.RData")
 load("../project/_trained-models/trained-models-pmm99.RData")
+metrics_table_pmm99 <- metrics_table 
+metrics_table_pmm99 <- cbind("PMM (m=99)", model_names, metrics_table_pmm99)
+colnames(metrics_table_pmm99)[1:2] <- c("Method", "Model")
+rownames(metrics_table_pmm99) <- NULL
 
-cap <- paste0('\\label{tab:pmm99-metrics} MICE via predictive mean matching accuracy metrics (m=99).  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=', table_knn$kmax, ' and mtry=', table_rf$mtry, ', respectively.')
+metrics <- rbind(metrics_table_cc, metrics_table_mean, metrics_table_pmm, metrics_table_pmm99)
+#metrics <- round(metrics[, 3:ncol(metrics)], 3)
 
-metrics_table %>%
-  round(3) %>%
-  select(sensitivity, specificity, accuracy, kappa) %>%
-  kable(col.names = c("Sensitivity", "Specificity", "Accuracy", "Kappa"), 
-        caption = cap,
+metrics %>%
+  select(Method, Model, sensitivity, specificity, accuracy, kappa) %>%
+  mutate(accuracy = round(accuracy, 3),
+         kappa = round(kappa, 3),
+         sensitivity = round(sensitivity, 3),
+         specificity = round(specificity, 3)) %>% 
+
+  kable(caption = '\\label{tab:metrics} Pooled performance results of trained models validated on test set.', 
+        col.names = c("", "", "Sensitivity", "Specificity", "Accuracy", "Kappa"),
         booktabs = TRUE, 
+        align = c("l", "c", "c", "c", "c", "c"),
         format = "latex") %>%
-  row_spec(1, bold = T) %>%
   kable_styling(font_size = 10, 
-                latex_options = "hold_position")
+                latex_options = "hold_position", "striped") %>% 
+#  column_spec(2, width = "4em") %>%
+  # row_spec(4, bold = T) %>%
+  # row_spec(9, bold = T) %>%
+  # row_spec(11, bold = T) %>%
+  # row_spec(16, bold = T) %>%
+  collapse_rows(columns = 1:2, valign = "middle", latex_hline = "major") 
 ```
+
 
 
 
@@ -621,7 +601,10 @@ metrics_table %>%
 
 The number of principal components retained is based on the proportion of variance.  At least 16 principal components are needed to explain 80% of the variance in the imputed training data and at least 15 principal components for the complete case analysis.  The red dashed lines in Figure \ref{fig:feature-importance-pca} indicate the expected average contribution.  If the contribution of the variables were uniform, the expected value would be $\frac{1}{\text{no. of variables}} =$ `r round(1/30, 2)`.   For a given component, an observation with a contribution larger than this cutoff could be considered as important in contributing to the component.
 
-```{r , echo = FALSE, eval = FALSE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig:feature-importance-pca}Contribution of variables to the principal components whose cumulative sum >80%."}
+
+
+```{r , echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig:feature-importance-pca}Contribution of variables to the principal components whose cumulative sum explains >80\\% of the variation in the data."}
+
 load("../project/data/processed-data.RData")
 require(FactoMineR) 
 require(factoextra)
@@ -634,17 +617,19 @@ eigenvalues <- pca_cc$eig
 ## CONTRIBUTIONS OF VARIABLES ON PC1 AND PC2
 pca_var1 <- fviz_pca_contrib(pca_cc, 
                              choice = "var", 
-                             axes = 1:15, 
+                             axes = 1:16, 
                              sortcontrib = "desc",
                              title = "Complete Case",
                              fill = "gray",
                              color = "darkgray",
                              top = 20,
                              xtickslab.rt = 45,
-                             ggtheme = theme(axis.text.x = element_text(vjust=1, angle=0, size=6),
-                                             axis.text.y = element_text(vjust=1, angle=0, size=6),
-                                             axis.title.y = element_text(size = 5),
-                                             title = element_text(size = 8))
+                             ggtheme = theme(axis.text.x = element_text(vjust=1, angle=0, size=7),
+                                             axis.text.y = element_text(vjust=1, angle=0, size=7),
+                                             axis.title.y = element_text(size = 7),
+                                             title = element_text(size = 8),
+                                             plot.margin = margin(0.25, 0.5, 0.125, 0.75, "cm") #top, right, bottom, left
+                                             )
                              )# + coord_flip()
 
 ## Imputation Method: Mean
@@ -666,10 +651,12 @@ pca_var2 <- fviz_pca_contrib(pca_mean,
                              color = "darkgray",
                              top = 20,
                              xtickslab.rt = 45,
-                             ggtheme = theme(axis.text.x = element_text(vjust=1, angle=0, size=6),
-                                             axis.text.y = element_text(vjust=1, angle=0, size=6),
-                                             axis.title.y = element_text(size = 5),
-                                             title = element_text(size = 8))
+                             ggtheme = theme(axis.text.x = element_text(vjust=1, angle=0, size=7),
+                                             axis.text.y = element_text(vjust=1, angle=0, size=7),
+                                             axis.title.y = element_text(size = 7),
+                                             title = element_text(size = 8),
+                                             plot.margin = margin(0.25, 0.5, 0.125, 0.5, "cm") #top, right, bottom, left
+                                             )
                              )# + coord_flip()
 
 
@@ -686,15 +673,17 @@ pca_var3 <- fviz_pca_contrib(pca_pmm9,
                              choice = "var", 
                              axes = 1:16, 
                              sortcontrib = "desc",
-                             title = "PMM m=9",
+                             title = "PMM (m=9)",
                              fill = "gray",
                              color = "darkgray",
                              xtickslab.rt = 45,
                              top = 20,
-                             ggtheme = theme(axis.text.x = element_text(vjust=1, angle=0, size=6),
-                                             axis.text.y = element_text(vjust=1, angle=0, size=6),
-                                             axis.title.y = element_text(size = 5),
-                                             title = element_text(size = 8))
+                             ggtheme = theme(axis.text.x = element_text(vjust=1, angle=0, size=7),
+                                             axis.text.y = element_text(vjust=1, angle=0, size=7),
+                                             axis.title.y = element_text(size = 7),
+                                             title = element_text(size = 8),
+                                             plot.margin = margin(0.125, 0.5, 0.25, 0.75, "cm") #top, right, bottom, left
+                                            )
                              )# + coord_flip()
 
 
@@ -712,22 +701,24 @@ pca_var4 <- fviz_pca_contrib(pca_pmm99,
                              choice = "var", 
                              axes = 1:16, 
                              sortcontrib = "desc",
-                             title = "PMM m=99",
+                             title = "PMM (m=99)",
                              fill = "gray",
                              color = "darkgray",
                              xtickslab.rt = 45,
                              top = 20,
-                             ggtheme = theme(axis.text.x = element_text(vjust=1, angle=0, size=6),
-                                             axis.text.y = element_text(vjust=1, angle=0, size=6),
-                                             axis.title.y = element_text(size = 5),
-                                             title = element_text(size = 8)) 
+                             ggtheme = theme(axis.text.x = element_text(vjust=1, angle=0, size=7),
+                                             axis.text.y = element_text(vjust=1, angle=0, size=7),
+                                             axis.title.y = element_text(size = 7),
+                                             title = element_text(size = 8),
+                                             plot.margin = margin(0.125, 0.5, 0.25, 0.5, "cm") #top, right, bottom, left
+                                             ) 
                              )# + coord_flip()
 
 ## Create Multiplot
 require(gridExtra)
 grid.arrange(pca_var1, pca_var2, pca_var3, pca_var4, ncol = 2, top = "Variable Contributions to Principal Components")
-```
 
+```
 
 
 
@@ -1125,6 +1116,88 @@ data_clean.df %>%
         caption = '\\label{tab:indications-table} Number of each disease type indication.', booktabs = TRUE, format = "latex") %>%
   kable_styling(font_size = 10, latex_options = "hold_position")
 ```
+
+
+```{r echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%'}
+load("../project/_metrics/metrics-complete-case.RData")
+load("../project/_trained-models/trained-models-complete-case.RData")
+
+cap <- paste0('\\label{tab:cc-metrics} Complete case analysis accuracy metrics.  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=', table_knn$kmax, ' and mtry=', table_rf$mtry, ', respectively.')
+
+metrics_table %>%
+  round(3) %>%
+  select(sensitivity, specificity, accuracy, kappa) %>%
+  kable(col.names = c("Sensitivity", "Specificity", "Accuracy", "Kappa"), 
+        caption = cap,
+        booktabs = TRUE, 
+        format = "latex") %>%
+  row_spec(4, bold = T) %>%
+  kable_styling(font_size = 10, 
+                latex_options = "hold_position")
+```
+
+
+```{r echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '50%'}
+load("../project/_metrics/metrics-mean.RData")
+load("../project/_trained-models/trained-models-mean.RData")
+
+cap <- paste0('\\label{tab:mean-metrics} Mean imputation accuracy metrics (m=1).  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=', table_knn$kmax, ' and mtry=', table_rf$mtry, ', respectively.')
+
+metrics_table %>%
+  round(3) %>%
+  select(sensitivity, specificity, accuracy, kappa) %>%
+  kable(col.names = c("Sensitivity", "Specificity", "Accuracy", "Kappa"), 
+        caption = cap,
+        booktabs = TRUE, 
+        format = "latex") %>%
+  row_spec(5, bold = T) %>%
+  kable_styling(font_size = 10, 
+                latex_options = "hold_position")
+```
+
+
+```{r echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '50%'}
+load("../project/_metrics/metrics-pmm.RData")
+load("../project/_trained-models/trained-models-pmm.RData")
+
+cap <- paste0('\\label{tab:pmm-metrics} MICE via predictive mean matching accuracy metrics (m=9).  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=', table_knn$kmax, ' and mtry=', table_rf$mtry, ', respectively.')
+
+metrics_table %>%
+  round(3) %>%
+  select(sensitivity, specificity, accuracy, kappa) %>%
+  kable(col.names = c("Sensitivity", "Specificity", "Accuracy", "Kappa"), 
+        caption = cap,
+        booktabs = TRUE, 
+        format = "latex") %>%
+  row_spec(1, bold = T) %>%
+  kable_styling(font_size = 10, 
+                latex_options = "hold_position")
+```
+
+
+```{r echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '50%'}
+load("../project/_metrics/metrics-pmm99.RData")
+load("../project/_trained-models/trained-models-pmm99.RData")
+
+cap <- paste0('\\label{tab:pmm99-metrics} MICE via predictive mean matching accuracy metrics (m=99).  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=', table_knn$kmax, ' and mtry=', table_rf$mtry, ', respectively.')
+
+metrics_table %>%
+  round(3) %>%
+  select(sensitivity, specificity, accuracy, kappa) %>%
+  kable(col.names = c("Sensitivity", "Specificity", "Accuracy", "Kappa"), 
+        caption = cap,
+        booktabs = TRUE, 
+        format = "latex") %>%
+  row_spec(1, bold = T) %>%
+  kable_styling(font_size = 10, 
+                latex_options = "hold_position")
+```
+
+
+
+
+
+
 
 
 
