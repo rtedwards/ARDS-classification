@@ -96,7 +96,7 @@ Survival of ECMO Treatment in ARDS Patients}
 \begin{document}
 \maketitle
 
-\vspace{2cm}
+\vspace{4cm}
 
 \begin{center}
 Robert Edwards 
@@ -106,12 +106,12 @@ Robert Edwards
 
 
 \vspace{1cm}
-MASTER THESIS 
+MASTERS THESIS 
 
 \vspace{0.125cm}
 Biostatistics
 
-\vspace{10cm}
+\vspace{9cm}
   \includegraphics[height = 1.5cm]{images/GUlogo.png}
 \end{center}
 
@@ -124,13 +124,16 @@ Biostatistics
 Acknowledgements 
 
 \vspace{3cm}
-To my peers, alone we were sinking but together we swam.
+To my peers, alone we sink but together we swim.
 
 \vspace{1cm}
 To my family, for keeping me sane in the bipolar Scottish weather. 
 
 \vspace{1cm}
-To Google, you da best. 
+To my friends, for your unbiased indulgence in my regressive statistical puns. 
+
+\vspace{1cm}
+To Google, couldin'a donnit wit' out ya. 
 
 \end{center}
 
@@ -152,45 +155,6 @@ To Google, you da best.
   Description of ECMO treatment
 \end{itemize}
 
-\subsection{Aims of the Proposed
-Research}\label{aims-of-the-proposed-research}
-
-Prediction in medical data can often be difficult; imbalanced class
-distributions and poor predictive covariates. If the sample size is
-small, then prediction becomes even more difficult. Some of these issues
-arise from the experimental design of the study but little can be
-rememdied post-hoc. Missing values in the data complicate analysis even
-further and are often handled either by dropping missing observations or
-filling in the missing value by the mean. Both methods can be valid if
-certain assumptions hold, but useful information is either lost to the
-analysis or the natural distribution of the data is effected.
-
-Multiple imputation is another method for handling missing data that is
-not yet common in analysis of medical datasets \textbf{(Citation)}. This
-method both allows retention of observations in the analysis as well as
-accounts for the uncertainty of the imputed value. The advantages come
-at the cost of complexity and increased computation time. Multiple
-datasets must be imputed and results somehow pooled. This paper
-investigates the use of multiple imputation in increasing prediction
-performance in a medical dataset.
-
-\subsection{Questions of Interest}\label{questions-of-interest}
-
-The three main questions of interest this paper aims to answer are:
-
-\begin{enumerate}
-\def\labelenumi{\arabic{enumi}.}
-\tightlist
-\item
-  Can ECMO treatment survival (\texttt{ECMO\_Survival}) be accurately
-  predicted by PreECMO biomedical markers?
-\item
-  What is the future expected performance of predictions?
-\item
-  Which biomedical markers are needed for accurate prediction and which
-  can be dropped?
-\end{enumerate}
-
 \subsection{Study Population \& Data
 Description}\label{study-population-data-description}
 
@@ -211,18 +175,107 @@ indicator. \texttt{Age} is a contnuous variable included in the
 analysis. The remaining variables are biomedical markers from hospital
 measurements.
 
-\newpage
+To get an idea of the distribution of the data, the following summary
+statistics were obtained for the categorical variables in Table
+\ref{tab:categorical-summaries} and for the continuous variables in
+Figure \ref{fig:violin-standardized}.
 
-\section{Methodology}\label{methodology}
+\begin{table}[!h]
+
+\caption{\label{tab:unnamed-chunk-1}\label{tab:categorical-summaries} Summary statistics for categorical variables.}
+\centering
+\fontsize{10}{12}\selectfont
+\begin{tabular}{lccc}
+\toprule
+Variable & Level & n & \%\\
+\midrule
+ & N & 109 & 24.22\\
+
+\multirow{-2}{*}{\raggedright\arraybackslash ECMO\_Survival} & Y & 341 & 75.78\\
+\cmidrule{1-4}
+ & m & 305 & 67.78\\
+
+\multirow{-2}{*}{\raggedright\arraybackslash Gender} & w & 145 & 32.22\\
+\cmidrule{1-4}
+ & 1 & 66 & 14.67\\
+
+ & 2 & 181 & 40.22\\
+
+ & 3 & 31 & 6.89\\
+
+ & 4 & 28 & 6.22\\
+
+ & 5 & 71 & 15.78\\
+
+ & 6 & 12 & 2.67\\
+
+\multirow{-7}{*}{\raggedright\arraybackslash Indication} & 7 & 61 & 13.56\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table \ref{tab:categorical-summaries} shows that the repsonse variable
+\texttt{ECMO\_Survival} is imbalanced; of the 450 individuals, only
+75.78\% in the study sample survived ECMO treatment (341 survived vs 109
+did not survive). The variable \texttt{Gender} is also imbalanced with
+only 67.78\% of the individuals in the study sample are male (305 male
+vs 145 female). The distribution disease indication, \texttt{Indication}
+shows a majority are of level 2 and levels 3, 4, and 6 relatively rare
+occurances in this dataset.
 
 \begin{figure}[H]
 
-{\centering \includegraphics[width=1\linewidth]{images/ensemble-imputation} 
+{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-2-1} 
 
 }
 
-\caption{\label{fig:ensemble-imputation}Outline of the algorithm used to pool predictions from multiple imputation.  (a) Step 1. (b) Step 2. (c) Step 3. (d) Step 4.  (e) Step 5.  (f) Step 6.}\label{fig:unnamed-chunk-1}
+\caption{\label{fig:violin-standardized}Violin plot of continuous variables.}\label{fig:unnamed-chunk-2}
 \end{figure}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Short blurb about Figure \ref{fig:violin-standardized}.}
+\end{itemize}
+
+\subsection{Aims of the Proposed
+Research}\label{aims-of-the-proposed-research}
+
+The main questions of interest in this paper are:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Can ECMO treatment survival (\texttt{ECMO\_Survival}) be accurately
+  predicted by PreECMO biomedical markers?
+\item
+  What is the future expected performance of predictions?
+\item
+  Which biomedical markers are needed for accurate prediction and which
+  can be dropped?
+\end{enumerate}
+
+Prediction in medical data can often be difficult; imbalanced class
+distributions and poor predictive covariates. If the sample size is
+small, then prediction becomes even more difficult. Some of these issues
+arise from the experimental design of the study but little can be
+rememdied post-hoc. Missing values in the data complicate analysis even
+further and are often handled either by dropping missing observations or
+filling in the missing value by the mean. Both methods can be valid if
+certain assumptions hold, but useful information is either lost to the
+analysis or the natural distribution of the data is effected.
+
+To further the goals of this paper multiple imputation is investigated
+for increasing prediction performance on ECMO treatment survival. This
+method both allows retention of observations in the analysis as well as
+accounts for the uncertainty of the imputed value. The advantages come
+at the cost of complexity and increased computation time. Multiple
+datasets must be imputed and results somehow pooled.
+
+\newpage
+
+\section{Methodology}\label{methodology}
 
 \subsection{PreProcessing}\label{preprocessing}
 
@@ -439,7 +492,7 @@ scores, bottom end, throughout?)
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-2}\label{tab:confusion-matrix} Confusion matrix for two classes.}
+\caption{\label{tab:unnamed-chunk-3}\label{tab:confusion-matrix} Confusion matrix for two classes.}
 \centering
 \fontsize{12}{14}\selectfont
 \begin{tabular}{lc|cc}
@@ -478,14 +531,23 @@ likelihood of the class percentages.
 
 Kappa or Cohen's Kappa is like classification accuracy, except that it
 is normalized at the baseline of random chance on your dataset. It is a
-more useful measure to use on problems that have an imbalance in the
-classes. Let \(p_o\) be the accuracy, the relative observed agreement
-between observed and predicted classes and let \(p_e\) be the
-probability of chance agreement based on the class probabilities.
-Cohen's Kappa is defined as:
+useful performance measure on problems with imbalanced classes. Cohen's
+Kappa is defined as:
 
 \[
 \kappa = \frac{p_o - p_e}{1 - p_e}
+\] where \(p_o\) is simply the accuracy, the relative observed agreement
+between observed and predicted classes and \(p_e\) is the probability of
+chance agreement based on the class probabilities. \[
+p_o = \frac{a+d}{a+b+c+d}  ~~~~~\text{and}~~~~~ p_e = p_{o,Y} + p_{o,N} 
+\]
+
+where \[
+p_{o,Y} = \frac{a+d}{a+b+c+d} ~\cdot~ \frac{a+c}{a+b+c+d}
+\]
+
+\[
+p_{o,N} = \frac{c+d}{a+b+c+d} ~\cdot~ \frac{b+d}{a+b+c+d}
 \]
 
 If all the observations are predicted correctly then \(\kappa=1\). If
@@ -495,20 +557,6 @@ predicted incorrectly, then \(\kappa=-1\). A positive \(\kappa\)
 indicates that the model predicts better than would be expected by
 chance whereas a negative \(\kappa\) indicates that the model predicts
 worse than would be expected by chance.
-
-\[
-p_o = \frac{a+d}{a+b+c+d}
-\] \[
-p_e = p_{o,Y} + p_{o,N} 
-\]
-
-\[
-p_{o,Y} = \frac{a+d}{a+b+c+d} ~\cdot~ \frac{a+c}{a+b+c+d}
-\]
-
-\[
-p_{o,N} = \frac{c+d}{a+b+c+d} ~\cdot~ \frac{b+d}{a+b+c+d}
-\]
 
 \subsection{Missing Data}\label{missing-data}
 
@@ -607,6 +655,12 @@ is fairly robust to transformations of the target variables
 \citep{van_buuren_flexible_2012}, yielding similar results for a
 Yeo-Johnson transformation or no transformation.
 
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Equations for Predictive MEan Matching}
+\end{itemize}
+
 \subsection{Ensemble Multiple
 Imputation}\label{ensemble-multiple-imputation}
 
@@ -622,10 +676,20 @@ get the pooled (i.e.~avereaged) performance of the \(m\) classifiers.
 Results from both studies either show similar results between appraoches
 \textbf{(Zavrakidis 2017)} or slightly better performance with the first
 approach \textbf{(Belache et al. 2014)}. For simplicity and the sake of
-computational costs, this paper, only considers the first approach.
+computational costs, this paper, only considers the first approach as
+outlined in Figure \ref{fig:ensemble-imputation}.
 
-The steps in the ensemble approach for multiply imputed data in k-fold
-cross-validation are as follows:
+\begin{figure}[H]
+
+{\centering \includegraphics[width=1\linewidth]{images/ensemble-imputation} 
+
+}
+
+\caption{\label{fig:ensemble-imputation}Outline of the algorithm used to pool predictions from multiple imputation.  (a) Step 1. (b) Step 2. (c) Step 3. (d) Step 4.  (e) Step 5.  (f) Step 6.}\label{fig:unnamed-chunk-4}
+\end{figure}
+
+The following steps describe the ensemble approach for multiply imputed
+data in k-fold cross-validation.
 
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
@@ -750,84 +814,6 @@ among all the \(\text{C}_j\) for \(j=1,2,...p\), variables.
 
 \section{Results}\label{results}
 
-\subsection{Exploratory Data Analysis}\label{exploratory-data-analysis}
-
-To get an idea of the distribution of the data, the following summary
-statistics were obtained for the categorical variable
-\texttt{ECMO\_Survival} (Table \ref{tab:ECMO_Survival-table}) and for
-the continuous variables (Table \ref{tab:gender-table}).
-
-\begin{table}[!h]
-
-\caption{\label{tab:unnamed-chunk-3}\label{tab:ECMO_Survival-table} Numbers of survivors and nonsurvivors of ECMO treatment.}
-\centering
-\fontsize{10}{12}\selectfont
-\begin{tabular}{lrr}
-\toprule
-ECMO\_Survival & n & Percent \%\\
-\midrule
-N & 109 & 24.22\\
-Y & 341 & 75.78\\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Table \ref{tab:ECMO_Survival-table} shows that out of the 450
-individuals, only 75.78\% of the individuals in the study sample
-survived ECMO treatment (341 survived vs 109 did not survive).
-
-\begin{table}[!h]
-
-\caption{\label{tab:unnamed-chunk-4}\label{tab:gender-table} Number of males and females.}
-\centering
-\fontsize{10}{12}\selectfont
-\begin{tabular}{lrr}
-\toprule
-Gender & n & Percent \%\\
-\midrule
-m & 305 & 67.78\\
-w & 145 & 32.22\\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Table \ref{tab:gender-table} shows that out of the 450 individuals, only
-67.78\% of the individuals in the study sample are male (305 male vs 145
-female).
-
-\begin{table}[!h]
-
-\caption{\label{tab:unnamed-chunk-5}\label{tab:indications-table} Number of each disease type indication.}
-\centering
-\fontsize{10}{12}\selectfont
-\begin{tabular}{lrr}
-\toprule
-Indication & n & Percent \%\\
-\midrule
-1 & 66 & 14.67\\
-2 & 181 & 40.22\\
-3 & 31 & 6.89\\
-4 & 28 & 6.22\\
-5 & 71 & 15.78\\
-\addlinespace
-6 & 12 & 2.67\\
-7 & 61 & 13.56\\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Table \ref{tab:indications-table} shows the distribution of each disease
-type indication.
-
-\begin{figure}[H]
-
-{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-6-1} 
-
-}
-
-\caption{\label{fig:violin-standardized}Violin plot of continuous variables.}\label{fig:unnamed-chunk-6}
-\end{figure}
-
 \subsection{Missing Data Patterns}\label{missing-data-patterns}
 
 Before imputation, and indeed multiple imputation, it is important to
@@ -890,7 +876,7 @@ imputation via the MICE algorithm implemented with PMM.
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-7}\label{tab:cv-kappa} Averaged Cohen's Kappa for each model fitted in cross-validation.  The tuned parameters for K-Nearest Neighbors and Random Forests are (a) K=5 and mtry=13 (b) K=13 and mtry=15, respectively.}
+\caption{\label{tab:unnamed-chunk-5}\label{tab:cv-kappa} Averaged Cohen's Kappa for each model fitted in cross-validation.  The tuned parameters for K-Nearest Neighbors and Random Forests are (a) K=5 and mtry=13 (b) K=13 and mtry=15, respectively.}
 \centering
 \fontsize{10}{12}\selectfont
 \begin{tabular}{lrrrrr}
@@ -921,7 +907,7 @@ and \(mtry=13\), respectively, and on \(m=99\) imputed datasets were
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-8}\label{tab:cc-metrics} Complete case analysis accuracy metrics.  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=11, respectively.}
+\caption{\label{tab:unnamed-chunk-6}\label{tab:cc-metrics} Complete case analysis accuracy metrics.  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=11, respectively.}
 \centering
 \fontsize{10}{12}\selectfont
 \begin{tabular}{lrrrr}
@@ -939,7 +925,7 @@ RF & 0.05 & 0.966 & 0.734 & 0.022\\
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-9}\label{tab:mean-metrics} Mean imputation accuracy metrics (m=1).  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=11, respectively.}
+\caption{\label{tab:unnamed-chunk-7}\label{tab:mean-metrics} Mean imputation accuracy metrics (m=1).  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=11, respectively.}
 \centering
 \fontsize{10}{12}\selectfont
 \begin{tabular}{lrrrr}
@@ -957,7 +943,7 @@ KNN & 0.222 & 0.824 & 0.679 & 0.050\\
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-10}\label{tab:pmm-metrics} MICE via predictive mean matching accuracy metrics (m=9).  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=13, respectively.}
+\caption{\label{tab:unnamed-chunk-8}\label{tab:pmm-metrics} MICE via predictive mean matching accuracy metrics (m=9).  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=13, respectively.}
 \centering
 \fontsize{10}{12}\selectfont
 \begin{tabular}{lrrrr}
@@ -975,7 +961,7 @@ RF & 0.148 & 0.941 & 0.750 & 0.116\\
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-11}\label{tab:pmm99-metrics} MICE via predictive mean matching accuracy metrics (m=99).  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=13 and mtry=15, respectively.}
+\caption{\label{tab:unnamed-chunk-9}\label{tab:pmm99-metrics} MICE via predictive mean matching accuracy metrics (m=99).  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=13 and mtry=15, respectively.}
 \centering
 \fontsize{10}{12}\selectfont
 \begin{tabular}{lrrrr}
@@ -1096,11 +1082,11 @@ Analysis}\label{a.-additional-exploratory-data-analysis}
 
 \begin{figure}[H]
 
-{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-13-1} 
+{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-11-1} 
 
 }
 
-\caption{\label{fig:heatmap-standardized}Heatmap of standardized and transformed variables.}\label{fig:unnamed-chunk-13}
+\caption{\label{fig:heatmap-standardized}Heatmap of standardized and transformed variables.}\label{fig:unnamed-chunk-11}
 \end{figure}
 
 \subsection{B. Algorithms}\label{b.-algorithms}
@@ -1189,20 +1175,20 @@ Diagnostics}\label{c.-additional-missing-data-diagnostics}
 
 \begin{figure}[H]
 
-{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-15-1} 
+{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-13-1} 
 
 }
 
-\caption{\label{fig:missing-data-patterns1}Missing data patterns.  Each row corresponds to a missing data pattern (1=observed, 0=missing).  Rows and columns are sorted in increasing amounts of missing information.  The last column and row contain row and column counts, respectively.}\label{fig:unnamed-chunk-15}
+\caption{\label{fig:missing-data-patterns1}Missing data patterns.  Each row corresponds to a missing data pattern (1=observed, 0=missing).  Rows and columns are sorted in increasing amounts of missing information.  The last column and row contain row and column counts, respectively.}\label{fig:unnamed-chunk-13}
 \end{figure}
 
 \begin{figure}[H]
 
-{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-16-1} 
+{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-14-1} 
 
 }
 
-\caption{\label{fig:missing-data-patterns2}Missing data patterns.  Each row corresponds to a missing data pattern (1=observed, 0=missing).  Rows and columns are sorted in increasing amounts of missing information.  The last column and row contain row and column counts, respectively.}\label{fig:unnamed-chunk-16}
+\caption{\label{fig:missing-data-patterns2}Missing data patterns.  Each row corresponds to a missing data pattern (1=observed, 0=missing).  Rows and columns are sorted in increasing amounts of missing information.  The last column and row contain row and column counts, respectively.}\label{fig:unnamed-chunk-14}
 \end{figure}
 
 \begin{verbatim}
@@ -1249,7 +1235,7 @@ Imputations}\label{visual-insepction-of-imputations}
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-17}\label{tab:missing-statistics} Missing pattern statistics for variables in dataset.}
+\caption{\label{tab:unnamed-chunk-15}\label{tab:missing-statistics} Missing pattern statistics for variables in dataset.}
 \centering
 \fontsize{10}{12}\selectfont
 \begin{tabular}{lrrr}
@@ -1301,20 +1287,20 @@ PreECMO\_siIL2 & 0.95 & 0.05 & 0.87\\
 
 \begin{figure}[H]
 
-{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-18-1} 
+{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-16-1} 
 
 }
 
-\caption{\label{fig:xyplot-mean}Scatterplot of each imputed dataset}\label{fig:unnamed-chunk-18}
+\caption{\label{fig:xyplot-mean}Scatterplot of each imputed dataset}\label{fig:unnamed-chunk-16}
 \end{figure}
 
 \begin{figure}[H]
 
-{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-19-1} 
+{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-17-1} 
 
 }
 
-\caption{\label{fig:xyplot-pmm}Scatterplot of each imputed dataset}\label{fig:unnamed-chunk-19}
+\caption{\label{fig:xyplot-pmm}Scatterplot of each imputed dataset}\label{fig:unnamed-chunk-17}
 \end{figure}
 
 \begin{itemize}
@@ -1346,11 +1332,11 @@ assumption.
 
 \begin{figure}[H]
 
-{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-20-1} 
+{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-18-1} 
 
 }
 
-\caption{\label{fig:rfe-logit}Ordered feature importance from Logit model}\label{fig:unnamed-chunk-20}
+\caption{\label{fig:rfe-logit}Ordered feature importance from Logit model}\label{fig:unnamed-chunk-18}
 \end{figure}
 
 \subsection{E. Code Structure}\label{e.-code-structure}
@@ -1381,8 +1367,10 @@ set and the fitted models and performance metrics are saved to
 
 }
 
-\caption{\label{fig:r-code-chart}Flowchart of code structure.}\label{fig:unnamed-chunk-21}
+\caption{\label{fig:r-code-chart}Flowchart of code structure.}\label{fig:unnamed-chunk-19}
 \end{figure}
+
+\subsection{F. OLD PLOTS \& FIGURES}\label{f.-old-plots-figures}
 
 \newpage
 

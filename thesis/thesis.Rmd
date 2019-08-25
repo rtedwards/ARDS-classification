@@ -70,7 +70,7 @@ load("../project/data/processed-data.RData")
 ```
 
 
-\vspace{2cm}
+\vspace{4cm}
 \begin{center}
 Robert Edwards 
 
@@ -79,12 +79,12 @@ Robert Edwards
 
 
 \vspace{1cm}
-MASTER THESIS 
+MASTERS THESIS 
 
 \vspace{0.125cm}
 Biostatistics
 
-\vspace{10cm}
+\vspace{9cm}
   \includegraphics[height = 1.5cm]{images/GUlogo.png}
 \end{center}
 
@@ -97,13 +97,16 @@ Biostatistics
 Acknowledgements 
 
 \vspace{3cm}
-To my peers, alone we were sinking but together we swam.
+To my peers, alone we sink but together we swim.
 
 \vspace{1cm}
 To my family, for keeping me sane in the bipolar Scottish weather. 
 
 \vspace{1cm}
-To Google, you da best. 
+To my friends, for your unbiased indulgence in my regressive statistical puns. 
+
+\vspace{1cm}
+To Google, couldin'a donnit wit' out ya. 
 
 \end{center}
 
@@ -125,37 +128,100 @@ To Google, you da best.
 + Description of ECMO treatment
 
 
-##Aims of the Proposed Research
-
-Prediction in medical data can often be difficult; imbalanced class distributions and poor predictive covariates.  If the sample size is small, then prediction becomes even more difficult.  Some of these issues arise from the experimental design of the study but little can be rememdied post-hoc.  Missing values in the data complicate analysis even further and are often handled either by dropping missing observations or filling in the missing value by the mean.  Both methods can be valid if certain assumptions hold, but useful information is either lost to the analysis or the natural distribution of the data is effected.  
-
-Multiple imputation is another method for handling missing data that is not yet common in analysis of medical datasets **(Citation)**.  This method both allows retention of observations in the analysis as well as accounts for the uncertainty of the imputed value.  The advantages come at the cost of complexity and increased computation time.  Multiple datasets must be imputed and results somehow pooled.  This paper investigates the use of multiple imputation in increasing prediction performance in a medical dataset.  
-
-
-##Questions of Interest
-The three main questions of interest this paper aims to answer are:
-
-1. Can ECMO treatment survival (`ECMO_Survival`) be accurately predicted by PreECMO biomedical markers?
-2. What is the future expected performance of predictions?
-3. Which biomedical markers are needed for accurate prediction and which can be dropped?
-
-
 ##Study Population & Data Description
 
 + Description of the study and variables invovled
 
 The dataset is composed of 450 observations on patients with Acute Respiratory Distress Syndrome who underwent ECMO treatment.  The response variable, `ECMO_Survival`, is a binary categorical variable for survival indication with levels "Y" and "N".  33 covariates are included in the analysis, two of which are categorical, and 31 continuous.  The binary categorical variable `Gender` has two levels for "m", "f" and `Indication` is a seven level disease indicator.  `Age` is a contnuous variable included in the analysis.  The remaining variables are biomedical markers from hospital measurements.   
+  
+To get an idea of the distribution of the data, the following summary statistics were obtained for the categorical variables in Table \ref{tab:categorical-summaries} and for the continuous variables in Figure \ref{fig:violin-standardized}.
 
+```{r , echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
+survival <- data_clean.df %>%
+  group_by(ECMO_Survival) %>%
+  summarise(n(), round(100*n()/nrow(data_clean.df), 2))
+survival <- cbind("ECMO_Survival", survival)
+names(survival) <- c("Variable", "Level", "n", "%")
+  
+gender <- data_clean.df %>%
+  group_by(Gender) %>%
+  summarise(n(), round(100*n()/nrow(data_clean.df), 2))  
+gender <- cbind("Gender", gender)
+names(gender) <- c("Variable", "Level", "n", "%")
+
+indication <- data_clean.df %>%
+  group_by(Indication) %>%
+  summarise(n(), round(100*n()/nrow(data_clean.df), 2))
+indication <- cbind("Indication", indication)
+names(indication) <- c("Variable", "Level", "n", "%")
+
+cat_vars <- rbind(survival, gender, indication)
+
+cat_vars %>%
+  kable(col.names = c("Variable", "Level", "n", "%"),
+        caption = '\\label{tab:categorical-summaries} Summary statistics for categorical variables.', 
+        booktabs = TRUE, 
+        align = c("l", "c", "c", "c"),
+        format = "latex") %>%
+  kable_styling(font_size = 10, 
+                latex_options = "hold_position", "striped") %>% 
+#  column_spec(2, width = "4em") %>%
+  collapse_rows(columns = 1:2, valign = "middle", latex_hline = "major") 
+  
+
+```
+
+Table \ref{tab:categorical-summaries} shows that the repsonse variable `ECMO_Survival` is imbalanced; of the `r nrow(data_clean.df)` individuals, only `r round(100*sum(data_clean.df$ECMO_Survival=="Y")/nrow(data_clean.df), 2)`% in the study sample survived ECMO treatment (`r sum(data_clean.df$ECMO_Survival=="Y")` survived vs `r sum(data_clean.df$ECMO_Survival=="N")` did not survive).  The variable `Gender` is also imbalanced with only `r round(100*sum(data_clean.df$Gender == "m")/nrow(data_clean.df), 2)`% of the individuals in the study sample are male (`r sum(data_clean.df$Gender == "m")` male vs `r sum(data_clean.df$Gender == "w")` female).  The distribution disease indication, `Indication` shows a majority are of level 2 and levels 3, 4, and 6 relatively rare occurances in this dataset. 
+
+
+```{r, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, fig.ext='png', out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:violin-standardized}Violin plot of continuous variables."}
+feature_names <- colnames(data_clean.df[, 4:ncol(data_clean.df)])
+
+data_standard.df <- data_clean.df %>% 
+  preProcess( method = c("center", 
+                       "scale"
+#                       "YeoJohnson"  ## Transformation method
+                        )) %>%
+  predict(data_clean.df) ## Generate new dataframe
+
+data_standard.df %>% 
+  select(-ECMO_Survival, -Gender, -Indication) %>%
+  gather(key = Feature, value = Value) %>% 
+  ggplot(aes(x = Feature, y = Value, fill = Feature)) +
+    geom_violin(scale = "width", 
+                draw_quantiles = TRUE,
+                trim = TRUE,
+                show.legend = FALSE) +
+    geom_boxplot(width = 0.2,
+                 outlier.size = 0.5) +
+    xlab("Features") + 
+    ylab("Standardized Value") +
+    theme_bw() +
+    theme(plot.title = element_text(hjust = 0.5),
+          legend.position = "none",
+          axis.text.x = element_text(angle = 60, hjust = 1))  
+```
+
++ **Short blurb about Figure \ref{fig:violin-standardized}.**
+
+
+##Aims of the Proposed Research
+
+The main questions of interest in this paper are:
+
+1. Can ECMO treatment survival (`ECMO_Survival`) be accurately predicted by PreECMO biomedical markers?
+2. What is the future expected performance of predictions?
+3. Which biomedical markers are needed for accurate prediction and which can be dropped?
+
+Prediction in medical data can often be difficult; imbalanced class distributions and poor predictive covariates.  If the sample size is small, then prediction becomes even more difficult.  Some of these issues arise from the experimental design of the study but little can be rememdied post-hoc.  Missing values in the data complicate analysis even further and are often handled either by dropping missing observations or filling in the missing value by the mean.  Both methods can be valid if certain assumptions hold, but useful information is either lost to the analysis or the natural distribution of the data is effected.  
+
+To further the goals of this paper multiple imputation is investigated for increasing prediction performance on ECMO treatment survival.  This method both allows retention of observations in the analysis as well as accounts for the uncertainty of the imputed value.  The advantages come at the cost of complexity and increased computation time.  Multiple datasets must be imputed and results somehow pooled.  
 
 
 
 \newpage
 #Methodology
 
-
-```{r , echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig:ensemble-imputation}Outline of the algorithm used to pool predictions from multiple imputation.  (a) Step 1. (b) Step 2. (c) Step 3. (d) Step 4.  (e) Step 5.  (f) Step 6."}
-knitr::include_graphics("images/ensemble-imputation.png")
-```
 
 ##PreProcessing
 
@@ -298,22 +364,17 @@ where sensitivity is a measure of how accurately non-survival is predicted,  spe
 
 ###Cohen's Kappa
 
-Kappa or Cohen’s Kappa is like classification accuracy, except that it is normalized at the baseline of random chance on your dataset. It is a more useful measure to use on problems that have an imbalance in the classes.  Let $p_o$ be the accuracy, the relative observed agreement between observed and predicted classes and let $p_e$ be the probability of chance agreement based on the class probabilities.  Cohen's Kappa is defined as:
+Kappa or Cohen’s Kappa is like classification accuracy, except that it is normalized at the baseline of random chance on your dataset. It is a useful performance measure on problems with imbalanced classes.  Cohen's Kappa is defined as:
 
 $$
 \kappa = \frac{p_o - p_e}{1 - p_e}
 $$
-
-If all the observations are predicted correctly then $\kappa=1$.  If the observations are predicted no better than expected by the class probabilities, $p_e$ then $\kappa=0$.  If all the observations are predicted incorrectly, then $\kappa=-1$.  A positive $\kappa$ indicates that the model predicts better than would be expected by chance whereas a negative $\kappa$ indicates that the model predicts worse than would be expected by chance.  
-
+where $p_o$ is simply the accuracy, the relative observed agreement between observed and predicted classes and $p_e$ is the probability of chance agreement based on the class probabilities.
 $$
-p_o = \frac{a+d}{a+b+c+d}
-$$
-$$
-p_e = p_{o,Y} + p_{o,N} 
+p_o = \frac{a+d}{a+b+c+d}  ~~~~~\text{and}~~~~~ p_e = p_{o,Y} + p_{o,N} 
 $$
 
-
+where
 $$
 p_{o,Y} = \frac{a+d}{a+b+c+d} ~\cdot~ \frac{a+c}{a+b+c+d}
 $$
@@ -321,6 +382,9 @@ $$
 $$
 p_{o,N} = \frac{c+d}{a+b+c+d} ~\cdot~ \frac{b+d}{a+b+c+d}
 $$
+
+If all the observations are predicted correctly then $\kappa=1$.  If the observations are predicted no better than expected by the class probabilities, $p_e$ then $\kappa=0$.  If all the observations are predicted incorrectly, then $\kappa=-1$.  A positive $\kappa$ indicates that the model predicts better than would be expected by chance whereas a negative $\kappa$ indicates that the model predicts worse than would be expected by chance.  
+
 
 
 
@@ -356,13 +420,18 @@ There is uncertainty as to the true value of the unseen data, and that uncertain
 
 Predictive Mean Matching (PMM) is a semi-parametric imputation approach to imputing missing values.  It fills in a value randomly from among the a observed donor values from an observation whose regression-predicted values are closest to the regression-predicted value for the missing value from the simulated regression model (Heitjan and Little 1991; Schenker and Taylor 1996).  PMM method ensures that imputed values are plausible; it might be more appropriate than the regression method (which assumes a joint multivariate normal distribution) if the normality assumption is violated (Horton and Lipsitz 2001, p. 246). PMM is fairly robust to transformations of the target variables [@van_buuren_flexible_2012], yielding similar results for a Yeo-Johnson transformation or no transformation. 
 
++ **Equations for Predictive MEan Matching**
 
 
 ##Ensemble Multiple Imputation
 
-Two approaches have been proposed for pooling results from several SVMs **(Belache et al. 2014)** and Cox regression **(Zavrakidis 2017)** from multiply imputed datasets.  The method is to concatenate the $m$ imputed datasets and fit a classifier, and optimize, to the resulting set; this accounts for the variability of the parameter estimates as well as the variability of the training observations in relation to the imputed values **(Belache et al. 2014)**.  The second proceedure fits separate classifiers to each imputed data set and get the pooled (i.e. avereaged) performance of the $m$ classifiers.  Results from both studies either show similar results between appraoches **(Zavrakidis 2017)** or slightly better performance with the first approach **(Belache et al. 2014)**.  For simplicity and the sake of computational costs, this paper, only considers the first approach.    
+Two approaches have been proposed for pooling results from several SVMs **(Belache et al. 2014)** and Cox regression **(Zavrakidis 2017)** from multiply imputed datasets.  The method is to concatenate the $m$ imputed datasets and fit a classifier, and optimize, to the resulting set; this accounts for the variability of the parameter estimates as well as the variability of the training observations in relation to the imputed values **(Belache et al. 2014)**.  The second proceedure fits separate classifiers to each imputed data set and get the pooled (i.e. avereaged) performance of the $m$ classifiers.  Results from both studies either show similar results between appraoches **(Zavrakidis 2017)** or slightly better performance with the first approach **(Belache et al. 2014)**.  For simplicity and the sake of computational costs, this paper, only considers the first approach as outlined in Figure \ref{fig:ensemble-imputation}.     
 
-The steps in the ensemble approach for multiply imputed data in k-fold cross-validation are as follows:
+```{r , echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig:ensemble-imputation}Outline of the algorithm used to pool predictions from multiple imputation.  (a) Step 1. (b) Step 2. (c) Step 3. (d) Step 4.  (e) Step 5.  (f) Step 6."}
+knitr::include_graphics("images/ensemble-imputation.png")
+```
+
+The following steps describe the ensemble approach for multiply imputed data in k-fold cross-validation.
 
 1. Randomly partition the training data into $k$ folds
 2. Define the $k^{th}$ as the test set and the remaining $k-1$ folds as the training set
@@ -406,78 +475,6 @@ The $\text{C}_j$ are sorted in descending order where $\text{C}_1$ contributes t
 
 \newpage
 #Results
-
-## Exploratory Data Analysis
-
-  
-To get an idea of the distribution of the data, the following summary statistics were obtained for the categorical variable `ECMO_Survival` (Table \ref{tab:ECMO_Survival-table}) and for the continuous variables (Table \ref{tab:gender-table}).
-
-```{r , echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
-data_clean.df %>%
-  group_by(ECMO_Survival) %>%
-  summarise(n(), round(100*n()/nrow(data_clean.df), 2)) %>%
-  kable(col.names = c("ECMO_Survival", "n", "Percent %"),
-        caption = '\\label{tab:ECMO_Survival-table} Numbers of survivors and nonsurvivors of ECMO treatment.', booktabs = TRUE, format = "latex") %>%
-  kable_styling(font_size = 10, latex_options = "hold_position")
-```
-
-Table \ref{tab:ECMO_Survival-table} shows that out of the `r nrow(data_clean.df)` individuals, only `r round(100*sum(data_clean.df$ECMO_Survival=="Y")/nrow(data_clean.df), 2)`% of the individuals in the study sample survived ECMO treatment (`r sum(data_clean.df$ECMO_Survival=="Y")` survived vs `r sum(data_clean.df$ECMO_Survival=="N")` did not survive).  
-
-
-```{r, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
-data_clean.df %>%
-  group_by(Gender) %>%
-  summarise(n(), round(100*n()/nrow(data_clean.df), 2)) %>%
-  kable(col.names = c("Gender", "n", "Percent %"),
-        caption = '\\label{tab:gender-table} Number of males and females.', booktabs = TRUE, format = "latex") %>%
-  kable_styling(font_size = 10, latex_options = "hold_position")
-```
-
-Table \ref{tab:gender-table} shows that out of the `r nrow(data_clean.df)` individuals, only `r round(100*sum(data_clean.df$Gender == "m")/nrow(data_clean.df), 2)`% of the individuals in the study sample are male (`r sum(data_clean.df$Gender == "m")` male vs `r sum(data_clean.df$Gender == "w")` female).  
-
-```{r, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
-data_clean.df %>%
-  group_by(Indication) %>%
-  summarise(n(), round(100*n()/nrow(data_clean.df), 2)) %>%
-  kable(col.names = c("Indication", "n", "Percent %"),
-        caption = '\\label{tab:indications-table} Number of each disease type indication.', booktabs = TRUE, format = "latex") %>%
-  kable_styling(font_size = 10, latex_options = "hold_position")
-```
-
-Table \ref{tab:indications-table} shows the distribution of each disease type indication. 
-
-
-```{r, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, fig.ext='png', out.width = '100%', fig.align="center", fig.pos="H", fig.cap = "\\label{fig:violin-standardized}Violin plot of continuous variables."}
-feature_names <- colnames(data_clean.df[, 4:ncol(data_clean.df)])
-#data_standard.df <- data_clean.df %>%
-#  dplyr::select(5:ncol(data_clean.df)) %>%
-#  mutate_each_(funs(scale), vars=feature_names)
-
-data_standard.df <- data_clean.df %>% 
-  preProcess( method = c("center", 
-                       "scale"
-#                       "YeoJohnson"  ## Transformation method
-                        )) %>%
-  predict(data_clean.df) ## Generate new dataframe
-
-data_standard.df %>% 
-  select(-ECMO_Survival, -Gender, -Indication) %>%
-  gather(key = Feature, value = Value) %>% 
-  ggplot(aes(x = Feature, y = Value, fill = Feature)) +
-    geom_violin(scale = "width", 
-                draw_quantiles = TRUE,
-                trim = TRUE,
-                show.legend = FALSE) +
-    geom_boxplot(width = 0.2,
-                 outlier.size = 0.5) +
-    xlab("Features") + 
-    ylab("Standardized Value") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5),
-          legend.position = "none",
-          axis.text.x = element_text(angle = 60, hjust = 1))  
-```
-
 
 ##Missing Data Patterns
 
@@ -1096,6 +1093,38 @@ knitr::include_graphics("images/r-code-chart.png")
 ```
 
 
+
+
+##F. OLD PLOTS & FIGURES
+
+```{r , echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE}
+data_clean.df %>%
+  group_by(ECMO_Survival) %>%
+  summarise(n(), round(100*n()/nrow(data_clean.df), 2)) %>%
+  kable(col.names = c("ECMO_Survival", "n", "Percent %"),
+        caption = '\\label{tab:ECMO_Survival-table} Numbers of survivors and nonsurvivors of ECMO treatment.', booktabs = TRUE, format = "latex") %>%
+  kable_styling(font_size = 10, latex_options = "hold_position")
+```
+
+
+```{r, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE}
+data_clean.df %>%
+  group_by(Gender) %>%
+  summarise(n(), round(100*n()/nrow(data_clean.df), 2)) %>%
+  kable(col.names = c("Gender", "n", "Percent %"),
+        caption = '\\label{tab:gender-table} Number of males and females.', booktabs = TRUE, format = "latex") %>%
+  kable_styling(font_size = 10, latex_options = "hold_position")
+```
+
+
+```{r, echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE}
+data_clean.df %>%
+  group_by(Indication) %>%
+  summarise(n(), round(100*n()/nrow(data_clean.df), 2)) %>%
+  kable(col.names = c("Indication", "n", "Percent %"),
+        caption = '\\label{tab:indications-table} Number of each disease type indication.', booktabs = TRUE, format = "latex") %>%
+  kable_styling(font_size = 10, latex_options = "hold_position")
+```
 
 
 
