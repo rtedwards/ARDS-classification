@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2018.4.16)  24 AUG 2019 13:11
+This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2018.4.16)  25 AUG 2019 17:31
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -653,22 +653,7 @@ Package: relsize 2013/03/29 ver 4.1
 \algocf@algobox=\box43
 ) (./thesis.aux
 
-LaTeX Warning: Label `fig:ensemble-imputation' multiply defined.
-
-
-LaTeX Warning: Label `tab:confusion-matrix' multiply defined.
-
-
-LaTeX Warning: Label `tab:missing-patterns' multiply defined.
-
-
-LaTeX Warning: Label `tab:cv-kappa' multiply defined.
-
-
-LaTeX Warning: Label `fig:missing-data-patterns' multiply defined.
-
-
-LaTeX Warning: Label `fig:xyplot-mean' multiply defined.
+LaTeX Warning: Label `fig:missing-data' multiply defined.
 
 )
 \openout1 = `thesis.aux'.
@@ -793,7 +778,7 @@ e
 ))
 Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: End \AtBeginDocument code.
-<images/GUlogo.png, id=116, 405.515pt x 125.46875pt>
+<images/GUlogo.png, id=120, 405.515pt x 125.46875pt>
 File: images/GUlogo.png Graphic file (type png)
 <use images/GUlogo.png>
 Package pdftex.def Info: images/GUlogo.png  used on input line 115.
@@ -850,7 +835,7 @@ LaTeX Font Info:    Try loading font information for T1+lmtt on input line 185.
 (/usr/local/texlive/2018/texmf-dist/tex/latex/lm/t1lmtt.fd
 File: t1lmtt.fd 2009/10/30 v1.6 Font defs for Latin Modern
 ) [4] [5]
-<images/ensemble-imputation.png, id=177, 1237.62375pt x 1166.3575pt>
+<images/ensemble-imputation.png, id=182, 1237.62375pt x 1166.3575pt>
 File: images/ensemble-imputation.png Graphic file (type png)
 <use images/ensemble-imputation.png>
 Package pdftex.def Info: images/ensemble-imputation.png  used on input line 220
@@ -862,133 +847,123 @@ Underfull \hbox (badness 3118) in paragraph at lines 276--279
  class pro-por-tions us-ing the
  []
 
-[7] [8] [9] [10] [11]
-Underfull \hbox (badness 10000) in paragraph at lines 567--570
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 570--574
-
- []
-
-[12] [13] [14] [15]
+[7] [8] [9] [10] [11] [12] [13] [14] [15]
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10> on input line 777.
+(Font)              <10> on input line 765.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <7> on input line 777.
+(Font)              <7> on input line 765.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <5> on input line 777.
-<figure/graphics-unnamed-chunk-4-1.png, id=306, 469.755pt x 325.215pt>
-File: figure/graphics-unnamed-chunk-4-1.png Graphic file (type png)
-<use figure/graphics-unnamed-chunk-4-1.png>
-Package pdftex.def Info: figure/graphics-unnamed-chunk-4-1.png  used on input l
-ine 836.
+(Font)              <5> on input line 765.
+<figure/graphics-unnamed-chunk-6-1.png, id=341, 469.755pt x 325.215pt>
+File: figure/graphics-unnamed-chunk-6-1.png Graphic file (type png)
+<use figure/graphics-unnamed-chunk-6-1.png>
+Package pdftex.def Info: figure/graphics-unnamed-chunk-6-1.png  used on input l
+ine 824.
 (pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
 [16]
 
-LaTeX Warning: Reference `tab:missing-statistics' on page 17 undefined on input
- line 849.
+LaTeX Warning: Reference `tab:missing-patterns' on page 17 undefined on input l
+ine 852.
 
-<figure/graphics-missing-data-1.pdf, id=317, 469.755pt x 325.215pt>
+<figure/graphics-missing-data-1.pdf, id=352, 469.755pt x 325.215pt>
 File: figure/graphics-missing-data-1.pdf Graphic file (type pdf)
 <use figure/graphics-missing-data-1.pdf>
 Package pdftex.def Info: figure/graphics-missing-data-1.pdf  used on input line
- 873.
+ 861.
 (pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
-[17 <./figure/graphics-unnamed-chunk-4-1.png>]
+[17 <./figure/graphics-unnamed-chunk-6-1.png>]
+
+LaTeX Warning: `!h' float specifier changed to `!ht'.
+
+[18 <./figure/graphics-missing-data-1.pdf>]
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
 
-LaTeX Warning: `!h' float specifier changed to `!ht'.
+LaTeX Warning: Reference `fig:feature-importance-pca' on page 19 undefined on i
+nput line 1000.
 
-[18 <./figure/graphics-missing-data-1.pdf>] [19] [20]
-<figure/graphics-unnamed-chunk-9-1.pdf, id=359, 469.755pt x 325.215pt>
-File: figure/graphics-unnamed-chunk-9-1.pdf Graphic file (type pdf)
-<use figure/graphics-unnamed-chunk-9-1.pdf>
-Package pdftex.def Info: figure/graphics-unnamed-chunk-9-1.pdf  used on input l
-ine 1118.
-(pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
-[21]
+[19] [20]
 
-LaTeX Warning: Reference `fig:feature-importance' on page 22 undefined on input
- line 1129.
+LaTeX Warning: Reference `fig:feature-importance-pca' on page 21 undefined on i
+nput line 1067.
 
-[22 <./figure/graphics-unnamed-chunk-9-1.pdf>]
-<figure/graphics-unnamed-chunk-11-1.pdf, id=374, 469.755pt x 325.215pt>
-File: figure/graphics-unnamed-chunk-11-1.pdf Graphic file (type pdf)
-<use figure/graphics-unnamed-chunk-11-1.pdf>
-Package pdftex.def Info: figure/graphics-unnamed-chunk-11-1.pdf  used on input 
-line 1153.
-(pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
-<figure/graphics-unnamed-chunk-13-1.pdf, id=375, 469.755pt x 325.215pt>
+[21] [22]
+<figure/graphics-unnamed-chunk-13-1.pdf, id=404, 469.755pt x 325.215pt>
 File: figure/graphics-unnamed-chunk-13-1.pdf Graphic file (type pdf)
 <use figure/graphics-unnamed-chunk-13-1.pdf>
 Package pdftex.def Info: figure/graphics-unnamed-chunk-13-1.pdf  used on input 
-line 1162.
+line 1099.
 (pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
-[23 <./figure/graphics-unnamed-chunk-11-1.pdf>] [24 <./figure/graphics-unnamed-
-chunk-13-1.pdf>]
-<figure/graphics-unnamed-chunk-16-1.pdf, id=509, 469.755pt x 325.215pt>
+[23 <./figure/graphics-unnamed-chunk-13-1.pdf>] [24]
+<figure/graphics-unnamed-chunk-15-1.pdf, id=555, 469.755pt x 325.215pt>
+File: figure/graphics-unnamed-chunk-15-1.pdf Graphic file (type pdf)
+<use figure/graphics-unnamed-chunk-15-1.pdf>
+Package pdftex.def Info: figure/graphics-unnamed-chunk-15-1.pdf  used on input 
+line 1192.
+(pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
+<figure/graphics-unnamed-chunk-16-1.pdf, id=556, 469.755pt x 325.215pt>
 File: figure/graphics-unnamed-chunk-16-1.pdf Graphic file (type pdf)
 <use figure/graphics-unnamed-chunk-16-1.pdf>
 Package pdftex.def Info: figure/graphics-unnamed-chunk-16-1.pdf  used on input 
-line 1236.
+line 1201.
 (pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
-[25]
-<figure/graphics-unnamed-chunk-17-1.pdf, id=538, 469.755pt x 325.215pt>
-File: figure/graphics-unnamed-chunk-17-1.pdf Graphic file (type pdf)
-<use figure/graphics-unnamed-chunk-17-1.pdf>
-Package pdftex.def Info: figure/graphics-unnamed-chunk-17-1.pdf  used on input 
-line 1245.
-(pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
-[26 <./figure/graphics-unnamed-chunk-16-1.pdf>] [27 <./figure/graphics-unnamed-
-chunk-17-1.pdf>]
-<figure/graphics-unnamed-chunk-18-1.pdf, id=565, 469.755pt x 325.215pt>
+[25 <./figure/graphics-unnamed-chunk-15-1.pdf>] [26 <./figure/graphics-unnamed-
+chunk-16-1.pdf>]
+
+LaTeX Warning: `!h' float specifier changed to `!ht'.
+
+<figure/graphics-unnamed-chunk-18-1.pdf, id=584, 469.755pt x 325.215pt>
 File: figure/graphics-unnamed-chunk-18-1.pdf Graphic file (type pdf)
 <use figure/graphics-unnamed-chunk-18-1.pdf>
 Package pdftex.def Info: figure/graphics-unnamed-chunk-18-1.pdf  used on input 
-line 1296.
+line 1304.
 (pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
-[28]
-<figure/graphics-unnamed-chunk-19-1.pdf, id=570, 469.755pt x 325.215pt>
+[27] [28]
+<figure/graphics-unnamed-chunk-19-1.pdf, id=594, 469.755pt x 325.215pt>
 File: figure/graphics-unnamed-chunk-19-1.pdf Graphic file (type pdf)
 <use figure/graphics-unnamed-chunk-19-1.pdf>
 Package pdftex.def Info: figure/graphics-unnamed-chunk-19-1.pdf  used on input 
-line 1305.
+line 1313.
 (pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
-[29 <./figure/graphics-unnamed-chunk-18-1.pdf>] [30 <./figure/graphics-unnamed-
-chunk-19-1.pdf>]
-<images/r-code-chart.png, id=602, 926.46124pt x 490.83376pt>
+[29 <./figure/graphics-unnamed-chunk-18-1.pdf>]
+<figure/graphics-unnamed-chunk-20-1.pdf, id=609, 469.755pt x 325.215pt>
+File: figure/graphics-unnamed-chunk-20-1.pdf Graphic file (type pdf)
+<use figure/graphics-unnamed-chunk-20-1.pdf>
+Package pdftex.def Info: figure/graphics-unnamed-chunk-20-1.pdf  used on input 
+line 1349.
+(pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
+[30 <./figure/graphics-unnamed-chunk-19-1.pdf>]
+<images/r-code-chart.png, id=626, 926.46124pt x 490.83376pt>
 File: images/r-code-chart.png Graphic file (type png)
 <use images/r-code-chart.png>
-Package pdftex.def Info: images/r-code-chart.png  used on input line 1361.
+Package pdftex.def Info: images/r-code-chart.png  used on input line 1380.
 (pdftex.def)             Requested size: 469.7606pt x 248.87642pt.
-[31 <./images/r-code-chart.png>] (./thesis.bbl)
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 1373.
-[32]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 1373.
+[31 <./figure/graphics-unnamed-chunk-20-1.pdf>] [32 <./images/r-code-chart.png>
+] (./thesis.bbl [33])
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 1392.
+[34]
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 1392.
 (./thesis.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 1373.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 1373.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 1392.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 1392.
 
 Package rerunfilecheck Info: File `thesis.out' has not changed.
-(rerunfilecheck)             Checksum: D29B222B3265FFE229619C26F58BA95C;4342.
+(rerunfilecheck)             Checksum: F5256F05AF4D1A092FA0E6A1761B6AAF;4596.
 
 LaTeX Warning: There were undefined references.
 
 
 LaTeX Warning: There were multiply-defined labels.
 
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 1373.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 1392.
  ) 
 Here is how much of TeX's memory you used:
- 15755 strings out of 492649
- 235834 string characters out of 6129622
- 364427 words of memory out of 5000000
- 19117 multiletter control sequences out of 15000+600000
- 92503 words of font info for 136 fonts, out of 8000000 for 9000
+ 15814 strings out of 492649
+ 237001 string characters out of 6129622
+ 365563 words of memory out of 5000000
+ 19148 multiletter control sequences out of 15000+600000
+ 93543 words of font info for 144 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  41i,11n,41p,375b,460s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/local/texlive/2018/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc}{/usr/local/
@@ -1009,10 +984,10 @@ ive/2018/texmf-dist/fonts/type1/public/lm/lmri12.pfb></usr/local/texlive/2018/t
 exmf-dist/fonts/type1/public/lm/lmsy10.pfb></usr/local/texlive/2018/texmf-dist/
 fonts/type1/public/lm/lmsy8.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1
 /public/lm/lmtt12.pfb>
-Output written on thesis.pdf (32 pages, 757719 bytes).
+Output written on thesis.pdf (34 pages, 822728 bytes).
 PDF statistics:
- 710 PDF objects out of 1000 (max. 8388607)
- 629 compressed objects within 7 object streams
- 150 named destinations out of 1000 (max. 500000)
- 12573 words of extra memory for PDF output out of 14400 (max. 10000000)
+ 764 PDF objects out of 1000 (max. 8388607)
+ 683 compressed objects within 7 object streams
+ 162 named destinations out of 1000 (max. 500000)
+ 12576 words of extra memory for PDF output out of 14400 (max. 10000000)
 

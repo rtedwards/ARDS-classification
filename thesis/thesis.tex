@@ -221,7 +221,7 @@ measurements.
 
 }
 
-\caption{\label{fig:ensemble-imputation}Outline of the algorithm used to pool predictions from multiple imputation.  (a) Step 1. (b) Step 2. (c) Step 3. (d) Step 4.  (e) Step 5.  (f) Step 6.}\label{fig:ensemble-imputation}
+\caption{\label{fig:ensemble-imputation}Outline of the algorithm used to pool predictions from multiple imputation.  (a) Step 1. (b) Step 2. (c) Step 3. (d) Step 4.  (e) Step 5.  (f) Step 6.}\label{fig:unnamed-chunk-1}
 \end{figure}
 
 \subsection{PreProcessing}\label{preprocessing}
@@ -439,7 +439,7 @@ scores, bottom end, throughout?)
 
 \begin{table}[!h]
 
-\caption{\label{tab:confusion-matrix}\label{tab:confusion-matrix} Confusion matrix for two classes.}
+\caption{\label{tab:unnamed-chunk-2}\label{tab:confusion-matrix} Confusion matrix for two classes.}
 \centering
 \fontsize{12}{14}\selectfont
 \begin{tabular}{lc|cc}
@@ -551,42 +551,28 @@ missing data.
 \subsubsection{Mean Imputation}\label{mean-imputation}
 
 Another common method for handling missing data is mean imputation; the
-missing value is replaced by the mean of the covariate or the mode for
-categorical data. Mean imputation is a simple and attractive solution
-because it retains more of the data. Mean imputation distorts the
-distribution of the variables toward the mean. If MCAR assumtion does
-not hold it will underestimate the variance and produce biased estimates
-other than the mean \citep{van_buuren_flexible_2012}.
-\citep{van_buuren_flexible_2012} suggests mean imputation should only be
-used only when there are few missing values, and should be generally
-avoided.
-
-\begin{itemize}
-\tightlist
-\item
-  Can further distort the distribution if the variable is not normally
-  distributed.\\
-\item
-  Mean imputatio is implemented in this paper because although it is
-  often a poor method of choice for imputing missing values, it is
-  commonly done.\\
-\item
-  Variables are transformed via Yeo-Johnson Transformation to reduce
-  distributional distortions.
-\end{itemize}
+missing value is replaced by the mean of the observed values (the mode
+for categorical data). This approach is satisfactory for a moderate
+amount of MCAR-generated missing values. However, it distorts the
+distribution of the data by reducing the variance of the imputed
+variables and the correlations between variables
+\citep{little_bayes_2014}. Van Buuren suggests mean imputation should
+only be used only when there are few missing values, and should be
+generally avoided \citep{van_buuren_flexible_2012}. Mean imputation is
+considered in this paper because although it is often a poor method of
+choice for imputing missing values, it is commonly done in medical
+datasets \textbf{(Citation)}.
 
 \subsubsection{Multiple Imputation}\label{multiple-imputation}
 
-The aim when imputing data is to recreate the dataset and recreate the
-missing data as if it were never missing. Multiple imputation is a
-method that accounts for the uncertainty in the imputed values. The
-analysis begins with the observed, incomplete dataset. The dataset is
-imputed multiple times to create \(m>1\) complete datasets. The imputed
-values are drawn from a distribution specifically modeled for each
-missing entry. The \(m\) datasets are analyzed using the same method
-that would have been used had the data been complete. The results will
-differ because of the variation in the input data caused by the
-uncertainty in the imputed values.
+Multiple imputation is a method that accounts for the uncertainty in the
+imputed values. The observed dataset is imputed multiple times to create
+\(m>1\) complete datasets. The imputed values are drawn from a
+distribution specifically modeled for each missing entry. The \(m\)
+datasets are analyzed using the same method that would have been used
+had the data been complete. The results will differ because of the
+variation in the input data caused by the uncertainty in the imputed
+values.
 
 Multiple imputation can handle data that is both MAR and MNAR.
 
@@ -599,7 +585,8 @@ using ``Rubin's Rules'' \citep{rubin_inference_1976}.
 \begin{itemize}
 \tightlist
 \item
-  Details of the \textbf{MICE} algorithm can be found in Appendix B.
+  Details of the \textbf{MICE} algorithm can be found in
+  \textbf{Appendix B}.
 \end{itemize}
 
 \subsubsection{Fully Conditional
@@ -607,17 +594,16 @@ Specification}\label{fully-conditional-specification}
 
 \subsubsection{Predictive Mean Matching}\label{predictive-mean-matching}
 
-Predictive Mean Matching (PMM) is a semi-parametric imputation approach.
-It is similar to the regression method except that for each missing
-value, it fills in a value randomly from among the a observed donor
-values from an observation whose regression-predicted values are closest
-to the regression-predicted value for the missing value from the
-simulated regression model (Heitjan and Little 1991; Schenker and Taylor
-1996). The PMM method ensures that imputed values are plausible; it
-might be more appropriate than the regression method (which assumes a
-joint multivariate normal distribution) if the normality assumption is
-violated (Horton and Lipsitz 2001, p.~246). PMM is fairly robust to
-transformations of the target variables
+Predictive Mean Matching (PMM) is a semi-parametric imputation approach
+to imputing missing values. It fills in a value randomly from among the
+a observed donor values from an observation whose regression-predicted
+values are closest to the regression-predicted value for the missing
+value from the simulated regression model (Heitjan and Little 1991;
+Schenker and Taylor 1996). PMM method ensures that imputed values are
+plausible; it might be more appropriate than the regression method
+(which assumes a joint multivariate normal distribution) if the
+normality assumption is violated (Horton and Lipsitz 2001, p.~246). PMM
+is fairly robust to transformations of the target variables
 \citep{van_buuren_flexible_2012}, yielding similar results for a
 Yeo-Johnson transformation or no transformation.
 
@@ -680,83 +666,85 @@ cross-validation are as follows:
   training set against the test set for each fold
 \item
   Average the \(k\) calculated Cohen's Kappas as the estimated in-sample
-  accuracy metric
+  performance
 \end{enumerate}
 
-\subsubsection{Number of Imputations}\label{number-of-imputations}
+``Rubin's Rules'' \citep{rubin_inference_1976} provide a simple method
+for pooling parameters estimates from multiple imputation for linear and
+generalized linear models but to the author's knowledge, there has been
+insufficient work on estimating the required number of imputations for
+estimating posterior probabilities in classification problems. The
+classic advice for the choice of \(m\) is between 3 and 5 for moderate
+amounts of missing information but it is often beneficial to set \(m\)
+higher and create between 20-100 imputations
+\citep{van_buuren_flexible_2012}.
 
-\textbf{Flexible Imputation Book}\\
-``The classic advice is to use a low number of imputation, somewhere
-between 3 and 5 for moderate amounts of missing information. Several
-authors investigated the influence of m on various aspects of the
-results. The picture emerging from this work is that it is often
-beneficial to set m higher, somewhere in the range of 20-100
-imputations.
-
-``Rubin's Rules'' provide a simple method for pooling parameters
-estimates from multiple imputation for linear and generalized linear
-models but to the author's knowledge, there has been insufficient work
-on estimating the required number of imputations for estimating
-posterior probabilities in classification problems. In his book,
-\textbf{(Van Buuren)} states
-
-\begin{quote}
-``Theoretically it is always better to use higher m, but this involves
-more computation and storage. Setting m very high (say m=200) may be
-useful for low-level estimands that are very uncertain, and for which we
-want to approximate the full distribution, or for parameters that are
-notoriously different to estimates, like variance components. On the
-other hand, setting m high may not be worth the extra wait if the
-primary interest is on the point estimates (and not on standard errors,
-p-values, and so on). In that case using m=5-20 will be enough under
-moderate missingness.''
-\end{quote}
-
-\subsection{Voting}\label{voting}
-
-There has been sufficient exploration into pooling of posterior
-probabilities resulting from classification problems \textbf{(Citation
-1)} \textbf{(Citation 2)} \textbf{Citation 3)}. But not all statistical
-methods produce posterior probabilities and the comparison of pooled
-models from multiple imputation is an area ripe for more analysis.
-Indeed, others have pooled predictions from various machine learning
-methods by taking the majority vote \textbf{(Zavrakidis)}
-\textbf{(Citation 2)}, and comparing prediction accuracy.
-
-\subsubsection{Majority Vote}\label{majority-vote}
-
-The combination can be implemented using a variety of strategies, among
-which majority vote is by far the simplest, yet it has been found to be
-just as effective as more complicated schemes \citep{lam_optimal_1995}.
-
-\textbf{(Alexandre et al. 2001)} There has been some interest on the
-comparative performance of the sum and product rules (or the arithmetic
-and geometric means) (Kittler et al., 1996; Tax et al., 1997; Kittler et
-al., 1998). The arithmetic mean is one of the most frequently used
-combination rules since it is easy to implement and normally produces
-good results.
-
-In (Kittler et al., 1998), the authors show that for combination rules
-based on the sum, such as the arithmetic mean, and for the case of
-classifiers working in different feature spaces, the arithmetic mean is
-less sensitive to errors than geometric mean.
-
-In fact (Alexandre et al. 2001) show that for classification problems
-with two classes, that give estimates of the a posteriori probabilities
-that sum to one the combination rules arithmetic mean (or the sum) and
-the geometric mean (or the product) are equivalent.
+The training set is multiply imputed with PMM for \(m=9\) and \(m=99\)
+and the predictions pooled by majority vote. There has been sufficient
+exploration into pooling of posterior probabilities resulting from
+classification problems \textbf{(Citation 1)} \textbf{(Citation 2)}.
+\emph{Additionally, not all statistical methods considered produce
+posterior probabilities and the comparison of pooled models from
+multiple imputation is an area ripe for more analysis.} Indeed, others
+have pooled predictions from various machine learning methods by taking
+the majority vote \textbf{(Zavrakidis)} \textbf{(Citation 2)}, and
+comparing prediction performance. The combination can be implemented
+using a variety of strategies, among which majority vote is one of the
+simplest, and has been found to be just as effective as more complicated
+schemes \citep{lam_optimal_1995}.
 
 \subsection{Feature Selection}\label{feature-selection}
 
-\begin{itemize}
-\tightlist
-\item
-  PCA for feature selection
-\item
-  Quick description of PCA
-\item
-  Maximizing the Area Under the ROC Curve
-\end{itemize}
+One of the goals of this analysis is to identify the variables most
+useful for accurate prediction. There are various methods that can be
+used for feature selection: stepwise selection, Recursive Feature
+Elimination (RFE), LASSO regularization, and Principal Component
+Analysis (PCA). However, some of these methods are either highly
+criticized, dependent on the classification method considered, or cannot
+be integrated into the ensemble cross-validation approach used. Stepwise
+selection, while very common, is only applicable to regression models
+and it is often criticised \citep{kemp_applied_2003}; problems include
+falsely narrow confidence intervals for effects and predicted values
+\citep{altman_bootstrap_1989} and multiple hypothesis testing inflating
+risks of capitalising on chance features of the data
+\citep{altman_practical_1991}, such as noise covariates gaining entry
+into the model when the number of candidate variables is large
+\citep{derksen_backward_1992}. RFE is an iterative procedure analogous
+of backward feature selection. A new classifier is trained on a subset
+of the features and the importance of the feature is a measure of the
+change in performance. The training time scales linearly with the number
+of classifiers to be trained \citep{guyon_gene_2002}. Both logistic
+regression with LASSO regularization \citep{tibshirani_regression_1996}
+and the analogous Sparse Discriminant Analysis
+\citep{clemmensen_sparse_2011} are embedded feature selection methods
+that are dependent on the classification method.
+
+Principal Component Analysis (PCA) \citep{f.r.s_liii._1901} is a feature
+extraction method that is independent of the classification method. The
+training set are orthogonally transformed into new uncorrelated
+variables called principal components that are linear combinations of
+the original variables. Feature extraction is accomplished by selecting
+the \(k\) largest principal components that contain a chosen percent of
+the variance in the original feature space.
+
+PCA can also be used for feature selection by calculating the
+contribution of each variable to the extracted features
+\citep{song_feature_2010}. Let \(C_i\) be the contribution of a given
+variable on the principal component, \(\text{V}_i\), and let
+\(\lambda_i\) be the eigenvalue of \(\text{V}_i\), where
+\(\text{V}_{i} = \lambda_i \text{C}_i\). Eigenvalues measure the amount
+of variation retained by each principal component. The total
+contribution of a variable, \(\text{C}_j\), on explaining the variations
+retained by \(k\) extracted features, \(\text{V}_1, ..., \text{V}_k\),
+is
+
+\[
+\text{C}_j = \sum^k_{i=1}\lambda_{ij} \text{C}_{ij} = \sum^k_{p=1} \vert \text{V}_{ij} \vert 
+\]
+
+The \(\text{C}_j\) are sorted in descending order where \(\text{C}_1\)
+contributes the most variation to the extracted principal components
+among all the \(\text{C}_j\) for \(j=1,2,...p\), variables.
 
 \newpage
 
@@ -771,7 +759,7 @@ the continuous variables (Table \ref{tab:gender-table}).
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-1}\label{tab:ECMO_Survival-table} Numbers of survivors and nonsurvivors of ECMO treatment.}
+\caption{\label{tab:unnamed-chunk-3}\label{tab:ECMO_Survival-table} Numbers of survivors and nonsurvivors of ECMO treatment.}
 \centering
 \fontsize{10}{12}\selectfont
 \begin{tabular}{lrr}
@@ -790,7 +778,7 @@ survived ECMO treatment (341 survived vs 109 did not survive).
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-2}\label{tab:gender-table} Number of males and females.}
+\caption{\label{tab:unnamed-chunk-4}\label{tab:gender-table} Number of males and females.}
 \centering
 \fontsize{10}{12}\selectfont
 \begin{tabular}{lrr}
@@ -809,7 +797,7 @@ female).
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-3}\label{tab:indications-table} Number of each disease type indication.}
+\caption{\label{tab:unnamed-chunk-5}\label{tab:indications-table} Number of each disease type indication.}
 \centering
 \fontsize{10}{12}\selectfont
 \begin{tabular}{lrr}
@@ -833,11 +821,11 @@ type indication.
 
 \begin{figure}[H]
 
-{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-4-1} 
+{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-6-1} 
 
 }
 
-\caption{\label{fig:violin-standardized}Violin plot of continuous variables.}\label{fig:unnamed-chunk-4}
+\caption{\label{fig:violin-standardized}Violin plot of continuous variables.}\label{fig:unnamed-chunk-6}
 \end{figure}
 
 \subsection{Missing Data Patterns}\label{missing-data-patterns}
@@ -874,7 +862,7 @@ highly predictive variables is severely limited by a low outflux value
 
 }
 
-\caption{\label{fig.ensemble-imputation}Visual representation of missing observations in the ARDS dataset.}\label{fig:missing-data}
+\caption{\label{fig:missing-data}Visual representation of missing observations in the ARDS dataset.}\label{fig:missing-data}
 \end{figure}
 
 \begin{itemize}
@@ -892,59 +880,7 @@ highly predictive variables is severely limited by a low outflux value
   information, this analysis assumes the data is MCAR.
 \end{itemize}
 
-\begin{table}[!h]
-
-\caption{\label{tab:missing-patterns}\label{tab:missing-patterns} Missing pattern statistics for variables in dataset.}
-\centering
-\fontsize{10}{12}\selectfont
-\begin{tabular}{lrrr}
-\toprule
-  & Proportion & Influx & Outflux\\
-\midrule
-ECMO\_Survival & 1.00 & 0.00 & 1.00\\
-Gender & 1.00 & 0.00 & 1.00\\
-Indication & 1.00 & 0.00 & 1.00\\
-Age & 1.00 & 0.00 & 1.00\\
-PreECMO\_RR & 0.97 & 0.03 & 0.85\\
-\addlinespace
-PreECMO\_Vt & 0.97 & 0.03 & 0.85\\
-PreECMO\_FiO2 & 1.00 & 0.00 & 1.00\\
-PreECMO\_Ppeak & 0.97 & 0.03 & 0.85\\
-PreECMO\_Pmean & 0.98 & 0.02 & 0.90\\
-PreECMO\_PEEP & 0.97 & 0.03 & 0.85\\
-\addlinespace
-PreECMO\_PF & 1.00 & 0.00 & 1.00\\
-PreECMO\_SpO2 & 1.00 & 0.00 & 1.00\\
-PreECMO\_PaCO2 & 1.00 & 0.00 & 1.00\\
-PreECMO\_pH & 1.00 & 0.00 & 1.00\\
-PreECMO\_BE & 1.00 & 0.00 & 1.00\\
-\addlinespace
-PreECMO\_Lactate & 1.00 & 0.00 & 0.99\\
-PreECMO\_NAdose & 1.00 & 0.00 & 1.00\\
-PreECMO\_MAP & 0.99 & 0.01 & 0.97\\
-PreECMO\_Creatinine & 1.00 & 0.00 & 1.00\\
-PreECMO\_Urea & 0.98 & 0.02 & 0.94\\
-\addlinespace
-PreECMO\_CK & 0.95 & 0.05 & 0.87\\
-PreECMO\_Bilirubin & 0.97 & 0.03 & 0.91\\
-\textbf{PreECMO\_Albumin} & \textbf{0.54} & \textbf{0.46} & \textbf{0.26}\\
-PreECMO\_CRP & 0.94 & 0.05 & 0.88\\
-PreECMO\_Fibrinogen & 0.96 & 0.04 & 0.85\\
-\addlinespace
-PreECMO\_Ddimer & 0.95 & 0.04 & 0.86\\
-PreECMO\_ATIII & 0.94 & 0.06 & 0.84\\
-PreECMO\_Leukocytes & 1.00 & 0.00 & 0.99\\
-PreECMO\_Platelets & 1.00 & 0.00 & 1.00\\
-PreECMO\_TNFa & 0.98 & 0.02 & 0.93\\
-\addlinespace
-PreECMO\_IL6 & 1.00 & 0.00 & 1.00\\
-PreECMO\_IL8 & 0.98 & 0.02 & 0.93\\
-PreECMO\_siIL2 & 0.95 & 0.05 & 0.87\\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsection{Experiments and Results}\label{experiments-and-results}
+\subsection{Prediction Performance}\label{prediction-performance}
 
 The experimentation phase of this study involved three methods for
 handling missing data: (a) complete case analysis with the variable
@@ -954,7 +890,7 @@ imputation via the MICE algorithm implemented with PMM.
 
 \begin{table}[!h]
 
-\caption{\label{tab:cv-kappa}\label{tab:cv-kappa} Averaged Cohen's Kappa for each model fitted in cross-validation.  The tuned parameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=13, respectively.}
+\caption{\label{tab:unnamed-chunk-7}\label{tab:cv-kappa} Averaged Cohen's Kappa for each model fitted in cross-validation.  The tuned parameters for K-Nearest Neighbors and Random Forests are (a) K=5 and mtry=13 (b) K=13 and mtry=15, respectively.}
 \centering
 \fontsize{10}{12}\selectfont
 \begin{tabular}{lrrrrr}
@@ -963,7 +899,8 @@ imputation via the MICE algorithm implemented with PMM.
 \midrule
 Complete Case & 0.139 & 0.205 & 0.038 & 0.053 & 0.035\\
 Mean & 0.191 & 0.220 & 0.040 & 0.136 & 0.085\\
-PMM & 0.179 & 0.124 & 0.106 & 0.088 & 0.136\\
+PMM9 & 0.179 & 0.124 & 0.106 & 0.088 & 0.136\\
+PMM99 & 0.185 & 0.158 & 0.037 & 0.127 & 0.177\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -971,19 +908,20 @@ PMM & 0.179 & 0.124 & 0.106 & 0.088 & 0.136\\
 Table \ref{tab:cv-kappa} shows the averaged Kappa from each analysis in
 10-fold cross-validation. In complete case analysis and mean imputaion,
 LDA is the highest performer. While for predictive mean-matching with
-\(m=9\) logistic regression has the higest averaged Kappa.
+\(m=9\) and \(m=99\) logistic regression has the highest averaged Kappa.
 
 \subsubsection{Validation on Test Set}\label{validation-on-test-set}
 
-Using the parameters values learned obtained from 10-fold
-cross-validation in Table \ref{tab:cv-kappa}, models were fit to the
-full training set and validated against the test set. K-nearest
-neighbors and random forests were fit with parameters \(K=5\) and
-\(mtry=13\), respectively.
+Using the parameters values learned from 10-fold cross-validation in
+Table \ref{tab:cv-kappa}, models were fit to the full training set and
+validated against the test set. Trained parameters for K-nearest
+neighbors and random forests on \(m=9\) imputed datasets were \(K=5\)
+and \(mtry=13\), respectively, and on \(m=99\) imputed datasets were
+\(K=13\) and \(mtry=15\), respectively.
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-5}\label{tab:cc-metrics} Complete case analysis accuracy metrics.  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=11, respectively.}
+\caption{\label{tab:unnamed-chunk-8}\label{tab:cc-metrics} Complete case analysis accuracy metrics.  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=11, respectively.}
 \centering
 \fontsize{10}{12}\selectfont
 \begin{tabular}{lrrrr}
@@ -1001,7 +939,7 @@ RF & 0.05 & 0.966 & 0.734 & 0.022\\
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-6}\label{tab:mean-metrics} Mean imputation accuracy metrics (m=1).  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=11, respectively.}
+\caption{\label{tab:unnamed-chunk-9}\label{tab:mean-metrics} Mean imputation accuracy metrics (m=1).  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=11, respectively.}
 \centering
 \fontsize{10}{12}\selectfont
 \begin{tabular}{lrrrr}
@@ -1019,7 +957,7 @@ KNN & 0.222 & 0.824 & 0.679 & 0.050\\
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-7}\label{tab:pmm-metrics} MICE via predictive mean matching accuracy metrics (m=91).  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=13, respectively.}
+\caption{\label{tab:unnamed-chunk-10}\label{tab:pmm-metrics} MICE via predictive mean matching accuracy metrics (m=9).  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=13, respectively.}
 \centering
 \fontsize{10}{12}\selectfont
 \begin{tabular}{lrrrr}
@@ -1037,7 +975,7 @@ RF & 0.148 & 0.941 & 0.750 & 0.116\\
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-8}\label{tab:pmm99-metrics} MICE via predictive mean matching accuracy metrics (m=99).  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=13 and mtry=15, respectively.}
+\caption{\label{tab:unnamed-chunk-11}\label{tab:pmm99-metrics} MICE via predictive mean matching accuracy metrics (m=99).  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=13 and mtry=15, respectively.}
 \centering
 \fontsize{10}{12}\selectfont
 \begin{tabular}{lrrrr}
@@ -1052,6 +990,19 @@ RF & 0.185 & 0.929 & 0.750 & 0.144\\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\subsection{Feature Selection}\label{feature-selection-1}
+
+The number of principal components retained is based on the proportion
+of variance. At least 16 principal components are needed to explain 80\%
+of the variance in the imputed training data and at least 15 principal
+components for the complete case analysis. The red dashed lines in
+Figure \ref{fig:feature-importance-pca} indicate the expected average
+contribution. If the contribution of the variables were uniform, the
+expected value would be \(\frac{1}{\text{no. of variables}} =\) 0.03.
+For a given component, an observation with a contribution larger than
+this cutoff could be considered as important in contributing to the
+component.
 
 \newpage
 
@@ -1111,22 +1062,9 @@ Prediction}\label{important-features-for-prediction}
   Correlation heatmap
 \item
   Results from PCA
-\end{itemize}
-
-\begin{figure}[H]
-
-{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-9-1} 
-
-}
-
-\caption{\label{fig:feature-importance-lda}Ordered feature importance from LDA model}\label{fig:unnamed-chunk-9}
-\end{figure}
-
-\begin{itemize}
-\tightlist
 \item
-  \textbf{Refer to Figure \ref{fig:feature-importance} in Appendix A for
-  feature importance plots for the logit model}
+  \textbf{Refer to Figure \ref{fig:feature-importance-pca} in Appendix A
+  for feature importance plots from PCA analysis}
 \end{itemize}
 
 \subsection{Conclusion}\label{conclusion}
@@ -1141,6 +1079,14 @@ Prediction}\label{important-features-for-prediction}
   Possible improvements and future work
 \end{itemize}
 
+\subsubsection{Feature Selection}\label{feature-selection-2}
+
+\begin{itemize}
+\tightlist
+\item
+  Model dependent methods for feature extraction may
+\end{itemize}
+
 \newpage
 
 \section{Appendices}\label{appendices}
@@ -1150,20 +1096,11 @@ Analysis}\label{a.-additional-exploratory-data-analysis}
 
 \begin{figure}[H]
 
-{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-11-1} 
-
-}
-
-\caption{\label{fig:heatmap-standardized}Heatmap of standardized and transformed variables.}\label{fig:unnamed-chunk-11}
-\end{figure}
-
-\begin{figure}[H]
-
 {\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-13-1} 
 
 }
 
-\caption{\label{fig:feature-importance-logit}Ordered feature importance from Logit model}\label{fig:unnamed-chunk-13}
+\caption{\label{fig:heatmap-standardized}Heatmap of standardized and transformed variables.}\label{fig:unnamed-chunk-13}
 \end{figure}
 
 \subsection{B. Algorithms}\label{b.-algorithms}
@@ -1228,8 +1165,36 @@ The MICE algorithm is adapted from \citep{van_buuren_flexible_2012}.
 
 \end{algorithm}
 
+\subsubsection{Majority Vote}\label{majority-vote}
+
+\textbf{(Alexandre et al. 2001)} There has been some interest on the
+comparative performance of the sum and product rules (or the arithmetic
+and geometric means) (Kittler et al., 1996; Tax et al., 1997; Kittler et
+al., 1998). The arithmetic mean is one of the most frequently used
+combination rules since it is easy to implement and normally produces
+good results.
+
+In (Kittler et al., 1998), the authors show that for combination rules
+based on the sum, such as the arithmetic mean, and for the case of
+classifiers working in different feature spaces, the arithmetic mean is
+less sensitive to errors than geometric mean.
+
+In fact (Alexandre et al. 2001) show that for classification problems
+with two classes, that give estimates of the a posteriori probabilities
+that sum to one the combination rules arithmetic mean (or the sum) and
+the geometric mean (or the product) are equivalent.
+
 \subsection{C. Additional Missing Data
 Diagnostics}\label{c.-additional-missing-data-diagnostics}
+
+\begin{figure}[H]
+
+{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-15-1} 
+
+}
+
+\caption{\label{fig:missing-data-patterns1}Missing data patterns.  Each row corresponds to a missing data pattern (1=observed, 0=missing).  Rows and columns are sorted in increasing amounts of missing information.  The last column and row contain row and column counts, respectively.}\label{fig:unnamed-chunk-15}
+\end{figure}
 
 \begin{figure}[H]
 
@@ -1237,16 +1202,7 @@ Diagnostics}\label{c.-additional-missing-data-diagnostics}
 
 }
 
-\caption{\label{fig:missing-data-patterns}Missing data patterns.  Each row corresponds to a missing data pattern (1=observed, 0=missing).  Rows and columns are sorted in increasing amounts of missing information.  The last column and row contain row and column counts, respectively.}\label{fig:unnamed-chunk-16}
-\end{figure}
-
-\begin{figure}[H]
-
-{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-17-1} 
-
-}
-
-\caption{\label{fig:missing-data-patterns}Missing data patterns.  Each row corresponds to a missing data pattern (1=observed, 0=missing).  Rows and columns are sorted in increasing amounts of missing information.  The last column and row contain row and column counts, respectively.}\label{fig:unnamed-chunk-17}
+\caption{\label{fig:missing-data-patterns2}Missing data patterns.  Each row corresponds to a missing data pattern (1=observed, 0=missing).  Rows and columns are sorted in increasing amounts of missing information.  The last column and row contain row and column counts, respectively.}\label{fig:unnamed-chunk-16}
 \end{figure}
 
 \begin{verbatim}
@@ -1291,6 +1247,58 @@ Diagnostics}\label{c.-additional-missing-data-diagnostics}
 \subsubsection{Visual Insepction of
 Imputations}\label{visual-insepction-of-imputations}
 
+\begin{table}[!h]
+
+\caption{\label{tab:unnamed-chunk-17}\label{tab:missing-statistics} Missing pattern statistics for variables in dataset.}
+\centering
+\fontsize{10}{12}\selectfont
+\begin{tabular}{lrrr}
+\toprule
+  & Proportion & Influx & Outflux\\
+\midrule
+ECMO\_Survival & 1.00 & 0.00 & 1.00\\
+Gender & 1.00 & 0.00 & 1.00\\
+Indication & 1.00 & 0.00 & 1.00\\
+Age & 1.00 & 0.00 & 1.00\\
+PreECMO\_RR & 0.97 & 0.03 & 0.85\\
+\addlinespace
+PreECMO\_Vt & 0.97 & 0.03 & 0.85\\
+PreECMO\_FiO2 & 1.00 & 0.00 & 1.00\\
+PreECMO\_Ppeak & 0.97 & 0.03 & 0.85\\
+PreECMO\_Pmean & 0.98 & 0.02 & 0.90\\
+PreECMO\_PEEP & 0.97 & 0.03 & 0.85\\
+\addlinespace
+PreECMO\_PF & 1.00 & 0.00 & 1.00\\
+PreECMO\_SpO2 & 1.00 & 0.00 & 1.00\\
+PreECMO\_PaCO2 & 1.00 & 0.00 & 1.00\\
+PreECMO\_pH & 1.00 & 0.00 & 1.00\\
+PreECMO\_BE & 1.00 & 0.00 & 1.00\\
+\addlinespace
+PreECMO\_Lactate & 1.00 & 0.00 & 0.99\\
+PreECMO\_NAdose & 1.00 & 0.00 & 1.00\\
+PreECMO\_MAP & 0.99 & 0.01 & 0.97\\
+PreECMO\_Creatinine & 1.00 & 0.00 & 1.00\\
+PreECMO\_Urea & 0.98 & 0.02 & 0.94\\
+\addlinespace
+PreECMO\_CK & 0.95 & 0.05 & 0.87\\
+PreECMO\_Bilirubin & 0.97 & 0.03 & 0.91\\
+\textbf{PreECMO\_Albumin} & \textbf{0.54} & \textbf{0.46} & \textbf{0.26}\\
+PreECMO\_CRP & 0.94 & 0.05 & 0.88\\
+PreECMO\_Fibrinogen & 0.96 & 0.04 & 0.85\\
+\addlinespace
+PreECMO\_Ddimer & 0.95 & 0.04 & 0.86\\
+PreECMO\_ATIII & 0.94 & 0.06 & 0.84\\
+PreECMO\_Leukocytes & 1.00 & 0.00 & 0.99\\
+PreECMO\_Platelets & 1.00 & 0.00 & 1.00\\
+PreECMO\_TNFa & 0.98 & 0.02 & 0.93\\
+\addlinespace
+PreECMO\_IL6 & 1.00 & 0.00 & 1.00\\
+PreECMO\_IL8 & 0.98 & 0.02 & 0.93\\
+PreECMO\_siIL2 & 0.95 & 0.05 & 0.87\\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \begin{figure}[H]
 
 {\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-18-1} 
@@ -1306,7 +1314,7 @@ Imputations}\label{visual-insepction-of-imputations}
 
 }
 
-\caption{\label{fig:xyplot-mean}Scatterplot of each imputed dataset}\label{fig:unnamed-chunk-19}
+\caption{\label{fig:xyplot-pmm}Scatterplot of each imputed dataset}\label{fig:unnamed-chunk-19}
 \end{figure}
 
 \begin{itemize}
@@ -1334,7 +1342,18 @@ assumption.
   \textbf{Plot of convergence}
 \end{itemize}
 
-\subsection{D. R Code}\label{d.-r-code}
+\subsection{D. Feature Selection}\label{d.-feature-selection}
+
+\begin{figure}[H]
+
+{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-20-1} 
+
+}
+
+\caption{\label{fig:rfe-logit}Ordered feature importance from Logit model}\label{fig:unnamed-chunk-20}
+\end{figure}
+
+\subsection{E. Code Structure}\label{e.-code-structure}
 
 The code organization is described in Figure \ref{fig:r-code-chart}.
 \texttt{libraries.R} contains all the libraries used in the analysis.
@@ -1362,7 +1381,7 @@ set and the fitted models and performance metrics are saved to
 
 }
 
-\caption{\label{fig:r-code-chart}Flowchart of code structure.}\label{fig:unnamed-chunk-20}
+\caption{\label{fig:r-code-chart}Flowchart of code structure.}\label{fig:unnamed-chunk-21}
 \end{figure}
 
 \newpage

@@ -26,3 +26,5 @@ mice
 micemd
 iterators
 doParallel
+FactoMineR
+factoextra

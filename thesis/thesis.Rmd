@@ -153,7 +153,7 @@ The dataset is composed of 450 observations on patients with Acute Respiratory D
 #Methodology
 
 
-```{r ensemble-imputation, echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig:ensemble-imputation}Outline of the algorithm used to pool predictions from multiple imputation.  (a) Step 1. (b) Step 2. (c) Step 3. (d) Step 4.  (e) Step 5.  (f) Step 6."}
+```{r , echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig:ensemble-imputation}Outline of the algorithm used to pool predictions from multiple imputation.  (a) Step 1. (b) Step 2. (c) Step 3. (d) Step 4.  (e) Step 5.  (f) Step 6."}
 knitr::include_graphics("images/ensemble-imputation.png")
 ```
 
@@ -263,7 +263,7 @@ Accuracy is the percentage of correctly classifies instances out of all instance
 
 Don’t use accuracy (or error rate) to evaluate your classifier! There are two significant problems with it. Accuracy applies a naive 0.50 threshold to decide between classes, and this is usually wrong when the classes are imbalanced. Second, classification accuracy is based on a simple count of the errors, and you should know more than this. You should know which classes are being confused and where (top end of scores, bottom end, throughout?)
 
-```{r confusion-matrix, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H"}
+```{r, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H"}
 
 xtab <- matrix(c("a", "b", "c", "d"), nrow = 2, byrow = TRUE)
 response <- matrix(c("N", "Y"), nrow=2, byrow = TRUE)
@@ -337,29 +337,24 @@ The ARDS dataset considered in this paper has `r sum(!complete.cases(data_clean.
 
 
 ###Mean Imputation
-Another common method for handling missing data is mean imputation; the missing value is replaced by the mean of the observed values (the mode for categorical data).  This approach is satisfactory for a moderate amount of MCAR-generated  missing  values.  However, it  distorts  the distribution of the data by reducing the variance of the imputed variables and the correlations between variables **(Little and Rubin 2002)**.  [@van_buuren_flexible_2012] suggests mean imputation should only be used only when there are few missing values, and should be generally avoided.  
+Another common method for handling missing data is mean imputation; the missing value is replaced by the mean of the observed values (the mode for categorical data).  This approach is satisfactory for a moderate amount of MCAR-generated  missing  values.  However, it  distorts  the distribution of the data by reducing the variance of the imputed variables and the correlations between variables [@little_bayes_2014].  Van Buuren  suggests mean imputation should only be used only when there are few missing values, and should be generally avoided [@van_buuren_flexible_2012].  Mean imputation is considered in this paper because although it is often a poor method of choice for imputing missing values, it is commonly done in medical datasets **(Citation)**. 
 
-+ Can further distort the distribution if the variable is not normally distributed.  
-+ Mean imputation is implemented in this paper because although it is often a poor method of choice for imputing missing values, it is commonly done.  
-+ Variables are transformed via Yeo-Johnson Transformation to reduce distributional distortions.  
+
+###Multiple Imputation
+Multiple imputation is a method that accounts for the uncertainty in the imputed values.  The observed dataset is imputed multiple times to create $m>1$ complete datasets.  The imputed values are drawn from a distribution specifically modeled for each missing entry.  The $m$ datasets are analyzed using the same method that would have been used had the data been complete.  The results will differ because of the variation in the input data caused by the uncertainty in the imputed values.  
+
+Multiple imputation can handle data that is both MAR and MNAR.  
+
+There is uncertainty as to the true value of the unseen data, and that uncertainty should be included in the analysis.  Multiple imputation is a method created by Donald Rubin wherein multiple datasets are imputed, the analysis is conducted on each dataset, and the results are pooled using "Rubin's Rules" [@rubin_inference_1976].  
+
++ Details of the **MICE** algorithm can be found in **Appendix B**.  
 
 
 ###Fully Conditional Specification
 
 ###Predictive Mean Matching
 
-Predictive Mean Matching (PMM) is a semi-parametric imputation approach. It is similar to the regression method except that for each missing value, it fills in a value randomly from among the a observed donor values from an observation whose regression-predicted values are closest to the regression-predicted value for the missing value from the simulated regression model (Heitjan and Little 1991; Schenker and Taylor 1996).
-The PMM method ensures that imputed values are plausible; it might be more appropriate than the regression method (which assumes a joint multivariate normal distribution) if the normality assumption is violated (Horton and Lipsitz 2001, p. 246). PMM is fairly robust to transformations of the target variables [@van_buuren_flexible_2012], yielding similar results for a Yeo-Johnson transformation or no transformation. 
-
-
-###Multiple Imputation
-The aim when imputing data is to recreate the dataset and recreate the missing data as if it were never missing.  Multiple imputation is a method that accounts for the uncertainty in the imputed values.  The analysis begins with the observed, incomplete dataset.  The dataset is imputed multiple times to create $m>1$ complete datasets.  The imputed values are drawn from a distribution specifically modeled for each missing entry.  The $m$ datasets are analyzed using the same method that would have been used had the data been complete.  The results will differ because of the variation in the input data caused by the uncertainty in the imputed values.  
-
-Multiple imputation can handle data that is both MAR and MNAR.  
-
-There is uncertainty as to the true value of the unseen data, and that uncertainty should be included in the analysis.  Multiple imputation is a method created by Donald Rubin wherein multiple datasets are imputed, the analysis is conducted on each dataset, and the results are pooled using "Rubin's Rules" [@rubin_inference_1976].  
-
-+ Details of the **MICE** algorithm can be found in Appendix B.  
+Predictive Mean Matching (PMM) is a semi-parametric imputation approach to imputing missing values.  It fills in a value randomly from among the a observed donor values from an observation whose regression-predicted values are closest to the regression-predicted value for the missing value from the simulated regression model (Heitjan and Little 1991; Schenker and Taylor 1996).  PMM method ensures that imputed values are plausible; it might be more appropriate than the regression method (which assumes a joint multivariate normal distribution) if the normality assumption is violated (Horton and Lipsitz 2001, p. 246). PMM is fairly robust to transformations of the target variables [@van_buuren_flexible_2012], yielding similar results for a Yeo-Johnson transformation or no transformation. 
 
 
 
@@ -381,52 +376,28 @@ The steps in the ensemble approach for multiply imputed data in k-fold cross-val
 10. Take the majority vote of the $m$ predictions as the prediction for the fitted model
 11. Validate the prediction against the test set by calculating Cohen's Kappa (note there are no missing values for the response variable in the data)
 12. Repeat steps 2-11 $k$ times and validate the fitted model on each training set against the test set for each fold
-13. Average the $k$ calculated Cohen's Kappas as the estimated in-sample accuracy metric
+13. Average the $k$ calculated Cohen's Kappas as the estimated in-sample performance
 
+"Rubin's Rules" [@rubin_inference_1976] provide a simple method for pooling parameters estimates from multiple imputation for linear and generalized linear models but to the author's knowledge, there has been insufficient work on estimating the required number of imputations for estimating posterior probabilities in classification problems.  The classic advice for the choice of $m$ is between 3 and 5 for moderate amounts of missing information but it is often beneficial to set $m$ higher and create between 20-100 imputations [@van_buuren_flexible_2012]. 
 
+The training set is multiply imputed with PMM for $m=9$ and $m=99$ and the predictions pooled by majority vote.  There has been sufficient exploration into pooling of posterior probabilities resulting from classification problems **(Citation 1)** **(Citation 2)**.  *Additionally, not all statistical methods considered produce posterior probabilities and the comparison of pooled models from multiple imputation is an area ripe for more analysis.*  Indeed, others have pooled predictions from various machine learning methods by taking the majority vote **(Zavrakidis)** **(Citation 2)**, and comparing prediction performance.  The combination can be implemented using a variety of strategies, among which majority vote is one of the simplest, and has been found to be just as effective as more complicated schemes [@lam_optimal_1995].
 
-###Number of Imputations
-
-**Flexible Imputation Book**  
-"The classic advice is to use a low number of imputation, somewhere between 3 and 5 for moderate amounts of missing information. Several authors investigated the influence of m on various aspects of the results. The picture emerging from this work is that it is often beneficial to set m higher, somewhere in the range of 20-100 imputations. 
-
-"Rubin's Rules" provide a simple method for pooling parameters estimates from multiple imputation for linear and generalized linear models but to the author's knowledge, there has been insufficient work on estimating the required number of imputations for estimating posterior probabilities in classification problems.  In his book, **(Van Buuren)** states
-
-> "Theoretically it is always better to use higher m, but this involves more computation and storage. Setting m very high (say m=200) may be useful for low-level estimands that are very uncertain, and for which we want to approximate the full distribution, or for parameters that are notoriously different to estimates, like variance components. On the other hand, setting m high may not be worth the extra wait if the primary interest is on the point estimates (and not on standard errors, p-values, and so on). In that case using m=5-20 will be enough under moderate missingness."
-
-
-##Voting
-
-There has been sufficient exploration into pooling of posterior probabilities resulting from classification problems **(Citation 1)** **(Citation 2)** **Citation 3)**.  But not all statistical methods produce posterior probabilities and the comparison of pooled models from multiple imputation is an area ripe for more analysis.  Indeed, others have pooled predictions from various machine learning methods by taking the majority vote **(Zavrakidis)** **(Citation 2)**, and comparing prediction accuracy.  
-
-###Majority Vote
-
-The combination can be implemented using a variety of strategies, among which majority vote is by far the simplest, yet it has been found to be just as effective as more complicated schemes [@lam_optimal_1995].
-
-**(Alexandre et al. 2001)**
-There has been some interest on the comparative performance of the sum and product rules (or the arithmetic and geometric means) (Kittler et al., 1996; Tax et al., 1997; Kittler et al., 1998). The arithmetic mean is one of the most frequently used combination rules since it is easy to implement and normally produces good results.
-
-In (Kittler et al., 1998), the authors show that for combination rules based on the sum, such as the arithmetic mean, and for the case of classifiers working in different feature spaces, the arithmetic mean is less sensitive to errors than geometric mean.
-
-In fact (Alexandre et al. 2001) show that for classification problems with two classes, that give estimates of the a posteriori probabilities that sum to one the combination rules arithmetic mean (or the sum) and the geometric mean (or the product) are equivalent. 
 
 
 ##Feature Selection
 
-One of the goals of this analysis is to identify the variables most useful for accurate prediction.  There are various methods that can be used for feature selection: stepwise selection, Recursive Feature Elimination (RFE), LASSO regularization, and Principal Component Analysis.  However, some of these methods are highly criticized, not applicable to all classifications methods considered, or cannot be integrated into the ensemble cross-validation approach used.  Stepwise selection, while very common, is only applicable to regression models and it is often criticised [@kemp_applied_2003]; problems include falsely narrow confidence intervals for effects and predicted values [@altman_bootstrap_1989] and multiple hypothesis testing inflating risks of capitalising on chance features of the data [@altman_practical_1991], such as noise covariates gaining entry into the model when the number of candidate variables is large [@derksen_backward_1992].  
-
-RFE is an iterative procedure analogous of backward feature selection [@guyon_gene_2002].  
-
-Both logistic regression with LASSO regularization [@tibshirani_regression_1996] and the analogous Sparse Discriminant Analysis [@clemmensen_sparse_2011] are embedded feature selection methods that are dependent on the classification method.  
-
-+ PCA for feature selection
-+ Quick description of PCA
-+ Maximizing the Area Under the ROC Curve
+One of the goals of this analysis is to identify the variables most useful for accurate prediction.  There are various methods that can be used for feature selection: stepwise selection, Recursive Feature Elimination (RFE), LASSO regularization, and Principal Component Analysis (PCA).  However, some of these methods are either highly criticized, dependent on the classification method considered, or cannot be integrated into the ensemble cross-validation approach used.  Stepwise selection, while very common, is only applicable to regression models and it is often criticised [@kemp_applied_2003]; problems include falsely narrow confidence intervals for effects and predicted values [@altman_bootstrap_1989] and multiple hypothesis testing inflating risks of capitalising on chance features of the data [@altman_practical_1991], such as noise covariates gaining entry into the model when the number of candidate variables is large [@derksen_backward_1992].  RFE is an iterative procedure analogous of backward feature selection.  A new classifier is trained on a subset of the features and the importance of the feature is a measure of the change in performance.  The training time scales linearly with the number of classifiers to be trained [@guyon_gene_2002].  Both logistic regression with LASSO regularization [@tibshirani_regression_1996] and the analogous Sparse Discriminant Analysis [@clemmensen_sparse_2011] are embedded feature selection methods that are dependent on the classification method.  
 
 
+Principal Component Analysis (PCA) [@f.r.s_liii._1901] is a feature extraction method that is independent of the classification method.  The training set are orthogonally transformed into new uncorrelated variables called principal components that are linear combinations of the original variables.  Feature extraction is accomplished by selecting the $k$ largest principal components that contain a chosen percent of the variance in the original feature space.  
 
+PCA can also be used for feature selection by calculating the contribution of each variable to the extracted features [@song_feature_2010].  Let $C_i$ be the contribution of a given variable on the principal component, $\text{V}_i$, and let $\lambda_i$ be the eigenvalue of $\text{V}_i$, where $\text{V}_{i} = \lambda_i \text{C}_i$.  Eigenvalues measure the amount of variation retained by each principal component.  The total contribution of a variable, $\text{C}_j$, on explaining the variations retained by $k$ extracted features, $\text{V}_1, ..., \text{V}_k$, is
 
+$$
+\text{C}_j = \sum^k_{i=1}\lambda_{ij} \text{C}_{ij} = \sum^k_{p=1} \vert \text{V}_{ij} \vert 
+$$
 
+The $\text{C}_j$ are sorted in descending order where $\text{C}_1$ contributes the most variation to the extracted principal components among all the $\text{C}_j$ for $j=1,2,...p$, variables.  
 
 
 
@@ -513,8 +484,7 @@ data_standard.df %>%
 Before imputation, and indeed multiple imputation, it is important to inspect the missingness patterns in the data and check assumptions.  Figure \ref{fig:missing-data} shows the missingness patterns in the dataset, where a black bar represents a missing value.  Table \ref{tab:missing-statistics} provides some measures about variable dependence  in the dataset.  The first row shows the probability of observed values for each variable.  The following are coefficients that give insight into how the variables are connected in terms of missingness.  $\mathbf{Influx}$ is the ratio of the number of variables pairs $(Y_j, ~Y_k)$ with $Y_j$ missing and $Y_k$ observed, divided by the total number of observed data.  For a variable that is entirely missing, influx is 1, and 0 for if the variable is complete.  $\mathbf{Outflux}$ is defined in the opposit manner, by dividing the number of pairs $(Y_j, ~Y_k)$ with $Y_j$ observed and $Y_k$ missing, by the total number of complete cells.  For a completely observed variable, outflux will have a value of 1 and 0 if completely missing.  Outflux gives an indication of how useful the variable will be for imputing other variables in the dataset, while influx is an indicator for how easily the variable can be imputed.  Table \ref{tab:missing-patterns} shows that all variables will be useful during impuation except `PreECMO_Albumin`.  A high outflux variable might turn out to be useless for the imputation procedure if it is unrelated to the incomplete variables, while the usefulness of a highly predictive variables is severely limited by a low outflux value (Van Buuren 2012).  **Mention \ref{fig:missing-data})**
 
 
-```{r missing-data, echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig.ensemble-imputation}Visual representation of missing observations in the ARDS dataset."}
-#knitr::include_graphics("images/missing_data_visualization.png")
+```{r missing-data, echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig:missing-data}Visual representation of missing observations in the ARDS dataset."}
 load("../project/data/processed-data.RData")
 vis_miss(data_clean.df, sort_miss = TRUE) +
   theme(  plot.margin = ggplot2::margin(0.125, 2, 0.5, 1, "cm") ) #top, right, bottom, left
@@ -522,29 +492,15 @@ vis_miss(data_clean.df, sort_miss = TRUE) +
 
 + It can be difficult or impossible to determine if the data are MCAR.  Figure \ref{fig:missing-data} shows that many missing values occur in observations with other missing values.  Missing values could be conditionally dependent on other variables, in which case the data would be MAR.  The missing values could also be due to some unknown mechanism at the time of recording (*i.e.* a failure of the measurement device) that happens to effect multiple readings (the biomarkers are measured from blood samples and measurements are likely done in batches).  In this case the data would be MCAR.  Without more information, this analysis assumes the data is MCAR.  
 
-```{r missing-patterns, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H"}
-
-flux <- flux(data_clean.df)
-
-flux %>%
-  round(2) %>%
-  select(pobs, influx, outflux) %>%
-  kable(col.names = c("Proportion", "Influx", "Outflux"), 
-        caption = '\\label{tab:missing-patterns} Missing pattern statistics for variables in dataset.',
-        booktabs = TRUE, 
-        format = "latex") %>%
-  kable_styling(font_size = 10, 
-                latex_options = "hold_position") %>%
-  row_spec(23, bold = TRUE)
-```
 
 
-## Experiments and Results
+
+## Prediction Performance
 
 The experimentation phase of this study involved three methods for handling missing data: (a) complete case analysis with the variable `PreECMO_Albumin` dropped from the analysis due to `r round( sum(is.na(data_clean.df$PreECMO_Albumin))/450 * 100, 2)`% missingness, (b) mean imputation on variables with missing values, (c) imputation via the MICE algorithm implemented with PMM.  
 
 
-```{r cv-kappa, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%'}
+```{r, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%'}
 load("../project/_trained-models/trained-models-complete-case.RData")
 kappa_cc <- as.data.frame(cbind(table_logit[[2]], table_lda[[2]], table_qda[[2]], table_knn$xtabs[[2]], table_rf$xtabs[[2]]) )
 
@@ -552,14 +508,21 @@ load("../project/_trained-models/trained-models-mean.RData")
 kappa_mean <- as.data.frame(cbind(table_logit[[2]], table_lda[[2]], table_qda[[2]], table_knn$xtabs[[2]], table_rf$xtabs[[2]]) )
 
 load("../project/_trained-models/trained-models-pmm.RData")
-kappa_pmm <- as.data.frame(cbind(table_logit[[2]], table_lda[[2]], table_qda[[2]], table_knn$xtabs[[2]], table_rf$xtabs[[2]]) )
+kappa_pmm9 <- as.data.frame(cbind(table_logit[[2]], table_lda[[2]], table_qda[[2]], table_knn$xtabs[[2]], table_rf$xtabs[[2]]) )
+kmax_pmm9 <- table_knn$kmax
+mtry_pmm9 <- table_rf$mtry
 
-kappa_table <- rbind(kappa_cc, kappa_mean, kappa_pmm)
+load("../project/_trained-models/trained-models-pmm99.RData")
+kappa_pmm99 <- as.data.frame(cbind(table_logit[[2]], table_lda[[2]], table_qda[[2]], table_knn$xtabs[[2]], table_rf$xtabs[[2]]) )
+kmax_pmm99 <- table_knn$kmax
+mtry_pmm99 <- table_rf$mtry
+
+kappa_table <- rbind(kappa_cc, kappa_mean, kappa_pmm9, kappa_pmm99)
 kappa_table <- round(kappa_table, 3)
 colnames(kappa_table) <- c("Logit", "LDA", "QDA", "KNN", "RF")
-rownames(kappa_table) <- c("Complete Case", "Mean", "PMM")
+rownames(kappa_table) <- c("Complete Case", "Mean", "PMM9", "PMM99")
 
-cap <- paste0('\\label{tab:cv-kappa} Averaged Cohen\'s Kappa for each model fitted in cross-validation.  The tuned parameters for K-Nearest Neighbors and Random Forests are K=', table_knn$kmax, ' and mtry=', table_rf$mtry, ', respectively.')
+cap <- paste0('\\label{tab:cv-kappa} Averaged Cohen\'s Kappa for each model fitted in cross-validation.  The tuned parameters for K-Nearest Neighbors and Random Forests are (a) K=', kmax_pmm9, ' and mtry=', mtry_pmm9, ' (b) K=', kmax_pmm99, ' and mtry=', mtry_pmm99, ', respectively.')
 
 kappa_table %>%
   kable(#col.names = c("Variables", "Test", "df", "p.value"), 
@@ -570,15 +533,17 @@ kappa_table %>%
                 latex_options = "hold_position")
 ```
 
-Table \ref{tab:cv-kappa} shows the averaged Kappa from each analysis in 10-fold cross-validation.  In complete case analysis and mean imputaion, LDA is the highest performer.  While for predictive mean-matching with $m=9$ logistic regression has the higest averaged Kappa.  
+Table \ref{tab:cv-kappa} shows the averaged Kappa from each analysis in 10-fold cross-validation.  In complete case analysis and mean imputaion, LDA is the highest performer.  While for predictive mean-matching with $m=9$ and $m=99$ logistic regression has the highest averaged Kappa.  
 
 
 ###Validation on Test Set
 
-Using the parameters values learned obtained from 10-fold cross-validation in Table \ref{tab:cv-kappa}, models were fit to the full training set and validated against the test set.  K-nearest neighbors and random forests were fit with parameters $K=5$ and $mtry=13$, respectively.  
+Using the parameters values learned from 10-fold cross-validation in Table \ref{tab:cv-kappa}, models were fit to the full training set and validated against the test set.  Trained parameters for K-nearest neighbors and random forests on $m=9$ imputed datasets were  $K=5$ and $mtry=13$, respectively, and on $m=99$ imputed datasets were $K=13$ and $mtry=15$, respectively.  
 
 
-```{r echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '50%'}
+
+
+```{r echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%'}
 load("../project/_metrics/metrics-complete-case.RData")
 load("../project/_trained-models/trained-models-complete-case.RData")
 
@@ -620,7 +585,7 @@ metrics_table %>%
 load("../project/_metrics/metrics-pmm.RData")
 load("../project/_trained-models/trained-models-pmm.RData")
 
-cap <- paste0('\\label{tab:pmm-metrics} MICE via predictive mean matching accuracy metrics (m=91).  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=', table_knn$kmax, ' and mtry=', table_rf$mtry, ', respectively.')
+cap <- paste0('\\label{tab:pmm-metrics} MICE via predictive mean matching accuracy metrics (m=9).  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=', table_knn$kmax, ' and mtry=', table_rf$mtry, ', respectively.')
 
 metrics_table %>%
   round(3) %>%
@@ -652,6 +617,121 @@ metrics_table %>%
   kable_styling(font_size = 10, 
                 latex_options = "hold_position")
 ```
+
+
+
+##Feature Selection
+
+The number of principal components retained is based on the proportion of variance.  At least 16 principal components are needed to explain 80% of the variance in the imputed training data and at least 15 principal components for the complete case analysis.  The red dashed lines in Figure \ref{fig:feature-importance-pca} indicate the expected average contribution.  If the contribution of the variables were uniform, the expected value would be $\frac{1}{\text{no. of variables}} =$ `r round(1/30, 2)`.   For a given component, an observation with a contribution larger than this cutoff could be considered as important in contributing to the component.
+
+```{r , echo = FALSE, eval = FALSE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig:feature-importance-pca}Contribution of variables to the principal components whose cumulative sum >80%."}
+load("../project/data/processed-data.RData")
+require(FactoMineR) 
+require(factoextra)
+
+## Imputation Method: Complete Case
+pca_cc <- PCA(data_cc.df, graph = FALSE, ncp = 20)
+eigenvalues <- pca_cc$eig
+#head(eigenvalues, 20)
+
+## CONTRIBUTIONS OF VARIABLES ON PC1 AND PC2
+pca_var1 <- fviz_pca_contrib(pca_cc, 
+                             choice = "var", 
+                             axes = 1:15, 
+                             sortcontrib = "desc",
+                             title = "Complete Case",
+                             fill = "gray",
+                             color = "darkgray",
+                             top = 20,
+                             xtickslab.rt = 45,
+                             ggtheme = theme(axis.text.x = element_text(vjust=1, angle=0, size=6),
+                                             axis.text.y = element_text(vjust=1, angle=0, size=6),
+                                             axis.title.y = element_text(size = 5),
+                                             title = element_text(size = 8))
+                             )# + coord_flip()
+
+## Imputation Method: Mean
+data_mean.df <- data_mean.df %>%
+  select(-ECMO_Survival, -Gender, -Indication)
+
+#scale all the features,  ncp: number of dimensions kept in the results (by default 5)
+pca_mean <- PCA(data_mean.df, graph=FALSE, ncp=20)
+eigenvalues <- pca_mean$eig
+#head(eigenvalues, 20)
+
+## CONTRIBUTIONS OF VARIABLES ON PC1 AND PC2
+pca_var2 <- fviz_pca_contrib(pca_mean, 
+                             choice = "var", 
+                             axes = 1:16, 
+                             sortcontrib = "desc",
+                             title = "Mean m=1",
+                             fill = "gray",
+                             color = "darkgray",
+                             top = 20,
+                             xtickslab.rt = 45,
+                             ggtheme = theme(axis.text.x = element_text(vjust=1, angle=0, size=6),
+                                             axis.text.y = element_text(vjust=1, angle=0, size=6),
+                                             axis.title.y = element_text(size = 5),
+                                             title = element_text(size = 8))
+                             )# + coord_flip()
+
+
+## Imputation Method: PMM9
+data_pmm9.df <- data_pmm9.df %>%
+  select(-ECMO_Survival, -Gender, -Indication)
+
+pca_pmm9 <- PCA(data_pmm9.df, graph=FALSE, ncp=20)
+eigenvalues <- pca_pmm9$eig
+#head(eigenvalues, 20)
+
+## CONTRIBUTIONS OF VARIABLES ON PC1 AND PC2
+pca_var3 <- fviz_pca_contrib(pca_pmm9, 
+                             choice = "var", 
+                             axes = 1:16, 
+                             sortcontrib = "desc",
+                             title = "PMM m=9",
+                             fill = "gray",
+                             color = "darkgray",
+                             xtickslab.rt = 45,
+                             top = 20,
+                             ggtheme = theme(axis.text.x = element_text(vjust=1, angle=0, size=6),
+                                             axis.text.y = element_text(vjust=1, angle=0, size=6),
+                                             axis.title.y = element_text(size = 5),
+                                             title = element_text(size = 8))
+                             )# + coord_flip()
+
+
+## Imputation Method: PMM9
+data_pmm99.df <- data_pmm99.df %>%
+  select(-ECMO_Survival, -Gender, -Indication)
+
+#scale all the features,  ncp: number of dimensions kept in the results (by default 5)
+pca_pmm99 <- PCA(data_pmm99.df, graph=FALSE, ncp=20)
+eigenvalues <- pca_pmm99$eig
+#head(eigenvalues, 20)
+
+## CONTRIBUTIONS OF VARIABLES ON PC1 AND PC2
+pca_var4 <- fviz_pca_contrib(pca_pmm99, 
+                             choice = "var", 
+                             axes = 1:16, 
+                             sortcontrib = "desc",
+                             title = "PMM m=99",
+                             fill = "gray",
+                             color = "darkgray",
+                             xtickslab.rt = 45,
+                             top = 20,
+                             ggtheme = theme(axis.text.x = element_text(vjust=1, angle=0, size=6),
+                                             axis.text.y = element_text(vjust=1, angle=0, size=6),
+                                             axis.title.y = element_text(size = 5),
+                                             title = element_text(size = 8)) 
+                             )# + coord_flip()
+
+## Create Multiplot
+require(gridExtra)
+grid.arrange(pca_var1, pca_var2, pca_var3, pca_var4, ncol = 2, top = "Variable Contributions to Principal Components")
+```
+
+
 
 
 \newpage
@@ -690,97 +770,7 @@ Can perform better than logistic regression when the covariates are normally dis
 + Mention poor model performance 
 + Correlation heatmap
 + Results from PCA
-
-
-+ **Refer to Figure \ref{fig:feature-importance} in Appendix A for feature importance plots for the logit model**
-
-
-```{r , echo = FALSE, eval = FALSE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig:feature-importance-pca-lda}Ordered feature importance from LDA model"}
-# PCA with function PCA
-require(FactoMineR) 
-
-#scale all the features,  ncp: number of dimensions kept in the results (by default 5)
-pca <- PCA(data_clean.df[, 4:ncol(data_clean.df)], graph=FALSE, ncp=20)
-#print(pca)
-
-#This line of code will sort the variables the most linked to each PC. It is very useful when you have many variables.
-#dimdesc(pca)
-
-
-## Interpreting PCA
-## The amount of variation retained by each PC is called eigenvalues. 
-## The first PC corresponds to the direction with the maximum amount of variation in the data set.
-eigenvalues <- pca$eig
-head(eigenvalues, 20)
-
-## Scree Plot
-fviz_screeplot(pca, ncp=20)
-
-### Coordinates of variables
-head(pca$var$coord)
-
-## Visualization of the variables on the factor map
-## Correlation circle can help to visualize the most correlated variables (i.e, variables that group together).
-fviz_pca_var(pca)
-
-## Squared Loadings of variables
-## The squared loadings for variables are called cos2 ( = cor * cor = coord * coord).
-## The sum of the cos2 for variables on the principal components is equal to one.
-## If a variable is perfectly represented by only two components, the sum of the cos2 is equal to one. 
-## In this case the variables will be positioned on the circle of correlations.
-## For some of the variables, more than 2 components are required to perfectly represent the data. 
-## In this case the variables are positioned inside the circle of correlations.
-head(pca$var$cos2)
-
-
-## The graph below shows the plot of variables on the components. Variables are colored according to the values of the squared cosine :
-fviz_pca_var(pca, col.var="cos2") +
-scale_color_gradient2(low="white", mid="blue", 
-                    high="red", midpoint=0.5) + theme_minimal()
-
-
-
-## CONTRIBUTIONS OF VARIABLES TO THE PRINCIPAL COMPONENTS
-## The contributions of variables in accounting for the variability in a given 
-## principal component are (in percentage) : (variable.cos2 * 100) / (total cos2 of the component)
-## The larger the value of the contribution, the more the variable contributes to the component
-head(pca$var$contrib)
-
-## CONTRIBUTIONS OF VARIABLES ON PC1
-## If the contribution of the variables were uniform, the expected value would be 1/length(variables) = 1/10 = 10%.
-## The red dashed line on the graph above indicates the expected average contribution. 
-## For a given component, a variable with a contribution larger than this cutoff could 
-## be considered as important in contributing to the component.
-fviz_pca_contrib(pca, choice = "var", axes = 1)
-
-## CONTRIBUTIONS OF VARIABLES ON PC2
-fviz_pca_contrib(pca, choice = "var", axes = 2)
-
-## CONTRIBUTIONS OF VARIABLES ON PC1 AND PC2
-fviz_pca_contrib(pca, choice = "var", axes = 1:2)
-
-## Control variable colors using their contributions
-fviz_pca_var(pca, col.var="contrib") +
-scale_color_gradient2(low="white", mid="blue", 
-                  high="red", midpoint=5) + theme_minimal()
-
-
-## TO IDENTIFY THE MOST CORRELATED VARIABLES WITH A GIVEN PRINCIPAL COMPONENT
-## res : an object of class PCA
-## axes : a numeric vector specifying the dimensions to be described
-## prob : the significance level
-dimdesc(pca, axes = 1:3, proba = 0.05)
-
-
-## QUALITY OF THE REPRESENTATION FOR INDIVIDUALS ON THE PRINCIPAL COMPONENTS
-fviz_pca_ind(pca, col.ind="cos2") +
-scale_color_gradient2(low="white", mid="blue", 
-   high="red", midpoint=0.4) + theme_minimal()
-
-
-# Contributions of TOP 10 individuals to PC1
-fviz_pca_contrib(pca, choice = "ind", axes = 1, top = 10)
-```
++ **Refer to Figure \ref{fig:feature-importance-pca} in Appendix A for feature importance plots from PCA analysis**
 
 
 
@@ -790,6 +780,15 @@ fviz_pca_contrib(pca, choice = "ind", axes = 1, top = 10)
 + Summary of proceedure
 + Summary of results
 + Possible improvements and future work
+
+###Feature Selection
+
++ Model dependent methods for feature extraction may 
+
+
+
+
+
 
 
 
@@ -832,6 +831,179 @@ data_clean.df %>%
     theme(axis.text.x = element_text(angle = 90, vjust = 1)) + 
     labs(title = "Density Plots of Data across Variables")
 ```
+
+
+
+
+##B. Algorithms
+
+###Random Forests Algorithm
+
+The random forests algorithm depicted is adapted from [@hastie_elements_2009].  
+
+\begin{algorithm}[H]
+
+\caption{Random Forest Classifier}
+\DontPrintSemicolon
+\SetAlgoLined
+\BlankLine
+
+\begin{enumerate}
+  \item For ($b=1$ to B):
+    \begin{enumerate}
+      \item Draw a bootstrap sample $\mathbf{Z*}$ of the size $N$ from the training data.
+      \item Grow a random-forest tree $T_b$ to the bootstrapped data, by recursively repreating the following steps for each terminal node of the tree, until the minimum node size $n_{min}$ is reached.
+      \begin{enumerate}
+        \item Select $mtry$ variables at random from the $p$ covariates. 
+        \item Pick the best covariate/split-point among the $mtry$. 
+        \item Split the node into two daughter nodes. 
+      \end{enumerate}
+    \end{enumerate}
+  \item Output the ensemble of trees $\{T_B\}^B_1$
+\end{enumerate}
+\BlankLine
+
+Let $\hat{Y}_b(x)$ be the class prediction of the $b^{\text{th}}$ random-forest tree.  Then a new observation, $x$, is classified as:
+
+$$\hat{Y}^B_{\text{rf}}(x) = \text{majority vote } \left\{ \hat{Y}_b(x) \right\}^B_1$$
+
+\end{algorithm} 
+
+
+###MICE Algorithm
+
+The MICE algorithm is adapted from [@van_buuren_flexible_2012].
+
+\begin{algorithm}[H]
+
+\caption{Multiple Imputation via Chained Equations}
+\DontPrintSemicolon
+\SetAlgoLined
+\BlankLine
+
+\begin{enumerate}
+  \item Specify an imputation model $P(Y^{\text{mis}}_j \vert Y^{\text{obs}}_j, Y_{-j}, R)$ for variable $Y_j$ with $j=1,...,p$
+  \item For each $j$, fill in starting imputation $Y^0_j$ by random draws from $Y^{\text{obs}}_j$
+  \item Repeat for $t=1,...,T:$
+  \item Repeat for $j=1,...,p:$
+  \item Define $Y^t_{-j} = (Y^t_1,...,T^t_{j-1}, Y^{t-1}_{j+1},..., Y^{t-1}_p)$ as the currently complete data except $Y_j$ 
+  \item Draw $\phi^t_j \sim P(\phi^t_j \vert Y^{\text{obs}}_j, Y^t_{-j}, R)$.
+  \item Draw imputations from $Y^t_j \sim P(Y^{ \text{mis} }_j \vert Y^{ \text{obs} }_j, Y^t_{-j}, R, \phi^t_j)$.
+  \item End repeat $j$.
+  \item End repeat $t$.
+
+\end{enumerate}
+\BlankLine
+
+\end{algorithm} 
+
+
+###Majority Vote
+
+**(Alexandre et al. 2001)**
+There has been some interest on the comparative performance of the sum and product rules (or the arithmetic and geometric means) (Kittler et al., 1996; Tax et al., 1997; Kittler et al., 1998). The arithmetic mean is one of the most frequently used combination rules since it is easy to implement and normally produces good results.
+
+In (Kittler et al., 1998), the authors show that for combination rules based on the sum, such as the arithmetic mean, and for the case of classifiers working in different feature spaces, the arithmetic mean is less sensitive to errors than geometric mean.
+
+In fact (Alexandre et al. 2001) show that for classification problems with two classes, that give estimates of the a posteriori probabilities that sum to one the combination rules arithmetic mean (or the sum) and the geometric mean (or the product) are equivalent. 
+
+
+
+
+
+##C. Additional Missing Data Diagnostics
+
+```{r , echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig:missing-data-patterns1}Missing data patterns.  Each row corresponds to a missing data pattern (1=observed, 0=missing).  Rows and columns are sorted in increasing amounts of missing information.  The last column and row contain row and column counts, respectively."}
+missing_data_patterns <- md.pattern(data_clean.df, plot = TRUE, rotate.names = TRUE) +
+  theme_bw()
+#  theme(  text = element_text(size = 1),
+#          plot.margin = margin(4, 1, 1, 1, "cm") ) #top, right, bottom, left
+```
+
+
+```{r , echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig:missing-data-patterns2}Missing data patterns.  Each row corresponds to a missing data pattern (1=observed, 0=missing).  Rows and columns are sorted in increasing amounts of missing information.  The last column and row contain row and column counts, respectively."}
+missing_data_patterns2 <- aggr(data_clean.df, col=mdc(1:2), numbers=TRUE, sortVars=TRUE, labels=names(data_clean.df), cex.axis=.7, gap=3, ylab=c("Proportion of missingness","Missingness Pattern")) +
+  theme_bw()
+```
+
+###Visual Insepction of Imputations
+
+```{r, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H"}
+
+flux <- flux(data_clean.df)
+
+flux %>%
+  round(2) %>%
+  select(pobs, influx, outflux) %>%
+  kable(col.names = c("Proportion", "Influx", "Outflux"), 
+        caption = '\\label{tab:missing-statistics} Missing pattern statistics for variables in dataset.',
+        booktabs = TRUE, 
+        format = "latex") %>%
+  kable_styling(font_size = 10, 
+                latex_options = "hold_position") %>%
+  row_spec(23, bold = TRUE)
+```
+
+
+```{r , echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig:xyplot-mean}Scatterplot of each imputed dataset"}
+## Impute concatenated train and test sets
+data_standard.df <- data_clean.df %>% 
+  preProcess( method = c("center", 
+                       "scale",
+                       "YeoJohnson"  ## Transformation method
+                        )) %>%
+  predict(data_clean.df) ## Generate new dataframe
+
+imp_mean <- micemd::mice.par(data_standard.df, 
+                         nnodes = 8,
+                         meth = "mean", 
+                         m = 5,
+                         maxit = 5, 
+                         seed = 123, 
+                         printFlag = FALSE
+                         )
+
+#  imp <- complete(imp6, action = "all") # create list of imputed datasets
+
+xyplot(imp_mean, PreECMO_Albumin ~ PreECMO_ATIII | .imp, pch = 20, cex = 0.5)
+```
+
+```{r , echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig:xyplot-pmm}Scatterplot of each imputed dataset"}
+## Impute concatenated train and test sets
+imp_pmm <- micemd::mice.par(data_standard.df, 
+                         nnodes = 8,
+                         meth = "pmm", 
+                         m = 5,
+                         maxit = 5, 
+                         seed = 123, 
+                         printFlag = FALSE
+                         )
+
+#  imp <- complete(imp6, action = "all") # create list of imputed datasets
+
+xyplot(imp_pmm, PreECMO_Albumin ~ PreECMO_ATIII | .imp, pch = 20, cex = 0.5)
+```
+
++ **xyplot checking distributions of original and imputed data for MEAN imputation**
++ **xyplot checking distributions of original and imputed data for PMM imputation**
+
++ **density plot of original and imputed data for MEAN imputation**
++ **density plot of original and imputed data for PMM imputation**
+
+This plot compares the density of observed data with the ones of imputed data. We expect them
+to be similar (though not identical) under MAR assumption.
+
+
+###Convergence Monitoring
+
++ **Plot of convergence**
+
+
+
+
+
+
+##D. Feature Selection
 
 ```{r , echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig:rfe-logit}Ordered feature importance from Logit model"}
 ## Recursive Feature Elimination
@@ -914,167 +1086,9 @@ grid.arrange(imp1, imp2, imp3, imp4, ncol = 2, top = "Scaled Feature Importance"
 
 ```
 
-```{r , echo = FALSE, eval = FALSE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig:feature-importance}Ordered feature importance from LDA model"}
-
-```
-
-```{r , echo = FALSE, eval = FALSE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig:feature-importance}Ordered feature importance from LDA model fit to imputed dataset method=pmm, m=9"}
-load("../project/_metrics/metrics-pmm.RData")
-
-importance <- varImp(lda_model, scale = T)
-imp_df1 <- importance$importance
-imp_df1$group <- rownames(imp_df1)
-
-imp_df1 %>%
-  ggplot( aes(x=reorder(group, Y), y = Y), size=2 ) + 
-  geom_bar(stat = "identity") + theme(axis.text.x = element_text(vjust=1,angle=90)) + 
-  coord_flip() +
-  labs(x = "Variable", 
-       y = "Overall Importance", 
-       title = "Scaled Feature Importance")
-```
 
 
-
-##B. Algorithms
-
-###Random Forests Algorithm
-
-The random forests algorithm depicted is adapted from [@hastie_elements_2009].  
-
-\begin{algorithm}[H]
-
-\caption{Random Forest Classifier}
-\DontPrintSemicolon
-\SetAlgoLined
-\BlankLine
-
-\begin{enumerate}
-  \item For ($b=1$ to B):
-    \begin{enumerate}
-      \item Draw a bootstrap sample $\mathbf{Z*}$ of the size $N$ from the training data.
-      \item Grow a random-forest tree $T_b$ to the bootstrapped data, by recursively repreating the following steps for each terminal node of the tree, until the minimum node size $n_{min}$ is reached.
-      \begin{enumerate}
-        \item Select $mtry$ variables at random from the $p$ covariates. 
-        \item Pick the best covariate/split-point among the $mtry$. 
-        \item Split the node into two daughter nodes. 
-      \end{enumerate}
-    \end{enumerate}
-  \item Output the ensemble of trees $\{T_B\}^B_1$
-\end{enumerate}
-\BlankLine
-
-Let $\hat{Y}_b(x)$ be the class prediction of the $b^{\text{th}}$ random-forest tree.  Then a new observation, $x$, is classified as:
-
-$$\hat{Y}^B_{\text{rf}}(x) = \text{majority vote } \left\{ \hat{Y}_b(x) \right\}^B_1$$
-
-\end{algorithm} 
-
-
-###MICE Algorithm
-
-The MICE algorithm is adapted from [@van_buuren_flexible_2012].
-
-\begin{algorithm}[H]
-
-\caption{Multiple Imputation via Chained Equations}
-\DontPrintSemicolon
-\SetAlgoLined
-\BlankLine
-
-\begin{enumerate}
-  \item Specify an imputation model $P(Y^{\text{mis}}_j \vert Y^{\text{obs}}_j, Y_{-j}, R)$ for variable $Y_j$ with $j=1,...,p$
-  \item For each $j$, fill in starting imputation $Y^0_j$ by random draws from $Y^{\text{obs}}_j$
-  \item Repeat for $t=1,...,T:$
-  \item Repeat for $j=1,...,p:$
-  \item Define $Y^t_{-j} = (Y^t_1,...,T^t_{j-1}, Y^{t-1}_{j+1},..., Y^{t-1}_p)$ as the currently complete data except $Y_j$ 
-  \item Draw $\phi^t_j \sim P(\phi^t_j \vert Y^{\text{obs}}_j, Y^t_{-j}, R)$.
-  \item Draw imputations from $Y^t_j \sim P(Y^{ \text{mis} }_j \vert Y^{ \text{obs} }_j, Y^t_{-j}, R, \phi^t_j)$.
-  \item End repeat $j$.
-  \item End repeat $t$.
-
-\end{enumerate}
-\BlankLine
-
-\end{algorithm} 
-
-
-
-
-
-##C. Additional Missing Data Diagnostics
-
-```{r , echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig:missing-data-patterns}Missing data patterns.  Each row corresponds to a missing data pattern (1=observed, 0=missing).  Rows and columns are sorted in increasing amounts of missing information.  The last column and row contain row and column counts, respectively."}
-missing_data_patterns <- md.pattern(data_clean.df, plot = TRUE, rotate.names = TRUE) +
-  theme_bw()
-#  theme(  text = element_text(size = 1),
-#          plot.margin = margin(4, 1, 1, 1, "cm") ) #top, right, bottom, left
-```
-
-
-```{r , echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig:missing-data-patterns}Missing data patterns.  Each row corresponds to a missing data pattern (1=observed, 0=missing).  Rows and columns are sorted in increasing amounts of missing information.  The last column and row contain row and column counts, respectively."}
-missing_data_patterns2 <- aggr(data_clean.df, col=mdc(1:2), numbers=TRUE, sortVars=TRUE, labels=names(data_clean.df), cex.axis=.7, gap=3, ylab=c("Proportion of missingness","Missingness Pattern")) +
-  theme_bw()
-```
-
-###Visual Insepction of Imputations
-
-```{r , echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig:xyplot-mean}Scatterplot of each imputed dataset"}
-## Impute concatenated train and test sets
-data_standard.df <- data_clean.df %>% 
-  preProcess( method = c("center", 
-                       "scale",
-                       "YeoJohnson"  ## Transformation method
-                        )) %>%
-  predict(data_clean.df) ## Generate new dataframe
-
-imp_mean <- micemd::mice.par(data_standard.df, 
-                         nnodes = 8,
-                         meth = "mean", 
-                         m = 5,
-                         maxit = 5, 
-                         seed = 123, 
-                         printFlag = FALSE
-                         )
-
-#  imp <- complete(imp6, action = "all") # create list of imputed datasets
-
-xyplot(imp_mean, PreECMO_Albumin ~ PreECMO_ATIII | .imp, pch = 20, cex = 0.5)
-```
-
-```{r , echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig:xyplot-mean}Scatterplot of each imputed dataset"}
-## Impute concatenated train and test sets
-imp_pmm <- micemd::mice.par(data_standard.df, 
-                         nnodes = 8,
-                         meth = "pmm", 
-                         m = 5,
-                         maxit = 5, 
-                         seed = 123, 
-                         printFlag = FALSE
-                         )
-
-#  imp <- complete(imp6, action = "all") # create list of imputed datasets
-
-xyplot(imp_pmm, PreECMO_Albumin ~ PreECMO_ATIII | .imp, pch = 20, cex = 0.5)
-```
-
-+ **xyplot checking distributions of original and imputed data for MEAN imputation**
-+ **xyplot checking distributions of original and imputed data for PMM imputation**
-
-+ **density plot of original and imputed data for MEAN imputation**
-+ **density plot of original and imputed data for PMM imputation**
-
-This plot compares the density of observed data with the ones of imputed data. We expect them
-to be similar (though not identical) under MAR assumption.
-
-
-###Convergence Monitoring
-
-+ **Plot of convergence**
-
-
-##D. Code Structure
-
+##E. Code Structure
 The code organization is described in Figure \ref{fig:r-code-chart}.  `libraries.R` contains all the libraries used in the analysis.  `functions.R` contains functions used in `training.R` and `model-evaluation.R`.  The ensemble cross-validation algorithm is done in the `crossValidation()` function.  The data is initially cleaned and split into test and training sets in `preprocess.R`.  The cleaned datasets are saved to `processed-data.RData` for use in `training.R` and in creating tables and figures in the thesis rmarkdown.  The training data is loaded into `training.R` where each of the five classification methods are trained via ensemble cross-validation.  This is done for the four imputation methods: complete case analysis, mean imputation, MICE using PMM for $m=9$, and MICE using PMM for $m=99$ imputed datasets.  The trained models for each imputation method are saved into separate `trained-models.RData`.  The methods are then then fit to the full training set in `model-evaluation.R` using the trained parameters found in `training.R`.  The final fitted models are evaluated on the test set and the fitted models and performance metrics are saved to `metrics.RData`.  
 
 ```{r , echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig:r-code-chart}Flowchart of code structure."}

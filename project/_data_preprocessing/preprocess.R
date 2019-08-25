@@ -133,37 +133,55 @@ test <- test %>%
 
 
 
-# #########################################
-# ## Complete Case (Listwise)
-# #########################################
-# 
-# train.complete.df <- train %>%
-#   select(-"PreECMO_Albumin") %>% # remove variables with >40% missing obs
-#   drop_na()  # drop rows with missing obs
-# 
-# test.complete.df <- test %>%
-#   select(-"PreECMO_Albumin") %>% # remove variables with >40% missing obs
-#   drop_na()  # drop rows with missing obs
-# 
-# 
-# #########################################
-# ## Mean Imputation 
-# #########################################
-# set.seed(123)
-# imputed_data <- imputeData(train, test, method = "mean", m = 1)
-# 
-# train.mean.df <- imputed_data$train
-# test.mean.df <- imputed_data$test
-# 
-# 
-# #########################################
-# ## (5) Predictive Mean Matching Imputation 
-# #########################################
-# set.seed(123)
-# imputed_data <- imputeData(train, test, method = "pmm", m = 5)
-# 
-# train.mean.df <- imputed_data$train
-# test.mean.df <- imputed_data$test
+#########################################
+## Impute for PCA Feature Selection
+#########################################
+
+## Imputation Method: COMPLETE CASE
+data_cc.df <- train %>%
+  select(-PreECMO_Albumin, -ECMO_Survival, -Gender, -Indication) %>% # remove variables with >40% missing obs
+  drop_na()  # drop rows with missing obs
+
+## Imputation Method: MEAN
+data_imputed <- micemd::mice.par(train, 
+                                 nnodes = 8,
+                                 meth = "mean",
+                                 m = 1, 
+                                 maxit = 5, 
+                                 seed = 123, 
+                                 printFlag = FALSE
+)
+
+# Stack the training sets into one long dataset
+data_mean.df <- complete(data_imputed, action = "stacked")
+
+
+## Imputation Method: PMM9
+data_imputed <- micemd::mice.par(train, 
+                                 nnodes = 8,
+                                 meth = "pmm",
+                                 m = 9, 
+                                 maxit = 5, 
+                                 seed = 123, 
+                                 printFlag = FALSE
+)
+
+# Stack the training sets into one long dataset
+data_pmm9.df <- complete(data_imputed, action = "stacked")
+
+
+## Imputation Method: PMM9
+data_imputed <- micemd::mice.par(train, 
+                                 nnodes = 8,
+                                 meth = "pmm",
+                                 m = 99, 
+                                 maxit = 5, 
+                                 seed = 123, 
+                                 printFlag = FALSE
+)
+
+# Stack the training sets into one long dataset
+data_pmm99.df <- complete(data_imputed, action = "stacked")
 
 
 
@@ -176,13 +194,11 @@ save(file = "../data/processed-data.RData",
      train,
      test,
      data_raw.df,
-     data_clean.df
-     # train.complete.df,
-     # test.complete.df,
-     # train.mean.df,
-     # test.mean.df,
-     # train.pmm.df,
-     # test.pmm.df
+     data_clean.df,
+     data_cc.df,
+     data_mean.df,
+     data_pmm9.df,
+     data_pmm99.df
 )
 
 
