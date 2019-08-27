@@ -28,9 +28,11 @@ fontsize: 12pt
 geometry: "left=1in,right=1in,top=1in,bottom=1in"
 
 bibliography: bibliography.bib
+biblio-style: "apalike"
 link-citations: yes
-csl: chicago-author-date.csl
-# csl: nature.csl
+#csl: ieee.csl
+#csl: chicago-author-date.csl
+#csl: nature.csl
 
 
 header-includes: 
@@ -45,6 +47,37 @@ header-includes:
   \usepackage[font=footnotesize]{caption} 
   \usepackage{algorithm2e}
   \usepackage{amsmath}
+  \newcommand{\appendixA}{
+    \setcounter{table}{0}  
+    \renewcommand{\thetable}{A\arabic{table}} 
+    \setcounter{figure}{0} 
+    \renewcommand{\thefigure}{A\arabic{figure}}
+  }
+  \newcommand{\appendixB}{
+    \setcounter{table}{0}  
+    \renewcommand{\thetable}{B\arabic{table}} 
+    \setcounter{figure}{0} 
+    \renewcommand{\thefigure}{B\arabic{figure}}
+  }
+  \newcommand{\appendixC}{
+    \setcounter{table}{0}  
+    \renewcommand{\thetable}{C\arabic{table}} 
+    \setcounter{figure}{0} 
+    \renewcommand{\thefigure}{C\arabic{figure}}
+  }
+    \newcommand{\appendixD}{
+    \setcounter{table}{0}  
+    \renewcommand{\thetable}{D\arabic{table}} 
+    \setcounter{figure}{0} 
+    \renewcommand{\thefigure}{D\arabic{figure}}
+  }
+  \newcommand{\appendixE}{
+    \setcounter{table}{0}  
+    \renewcommand{\thetable}{E\arabic{table}} 
+    \setcounter{figure}{0} 
+    \renewcommand{\thefigure}{E\arabic{figure}}
+  }
+  
 ---
 
 ```{r setup, include=FALSE, echo = FALSE, eval = TRUE}
@@ -121,19 +154,299 @@ To Google, couldin'a donnit wit' out ya.
 \newpage
 #Introduction
 
+Prediction in medical data can often be difficult due to a low number of observations and poor predictive covariates.  If the response class distributions are imbalanced, then prediction becomes even more difficult.  Some of these issues arise from the experimental design of the study but little can be rememdied post-hoc.  Missing values in the data complicate analysis even further and are often handled either by dropping missing observations or filling in the missing value by the mean.  Both methods can be valid if certain assumptions hold, but useful information is either lost to the analysis or the sample become biased **(Citation)**.  
 
-##Discussion of the Context
-
-+ Description of Acute Respiratory Syndrome
-+ Description of ECMO treatment
+the natural distribution of the data is effected.  
 
 
 ##Study Population & Data Description
 
-+ Description of the study and variables invovled
+This paper investigates predicting survival of patients diagnosed with Acute Respiratory Distress Syndrom (ARDS) after (ECMO) treatment.  ARDS is a ____ that affects ____ people world wide.  It has a moretality of ____.  Current treatments...  ECMO is a treatment used in ___ that is thought to help patients with ARDS.  
 
-The dataset is composed of 450 observations on patients with Acute Respiratory Distress Syndrome who underwent ECMO treatment.  The response variable, `ECMO_Survival`, is a binary categorical variable for survival indication with levels "Y" and "N".  33 covariates are included in the analysis, two of which are categorical, and 31 continuous.  The binary categorical variable `Gender` has two levels for "m", "f" and `Indication` is a seven level disease indicator.  `Age` is a contnuous variable included in the analysis.  The remaining variables are biomedical markers from hospital measurements.   
+The dataset is composed of 450 observations on patients with Acute Respiratory Distress Syndrome who underwent ECMO treatment.  The response variable, `ECMO_Survival`, is a binary categorical variable for survival indication with levels "Y" and "N".  There are 33 covariates included in the analysis, two of which are categorical, and 31 continuous.  The categorical variable `Gender` has two levels, "m" and "f", and `Indication` a seven level nominal categorical indicator of disease type.  The continuous variable `Age` is also included in the analysis with a minimum age of 18 and a maximum of 83 with a median age of 53.  The remaining variables are biomedical markers from hospital measurements.   
   
+
+##Aims of the Proposed Research
+
+The main questions of interest investigated in this paper are:
+
+1. Can ECMO treatment survival (`ECMO_Survival`) be accurately predicted by PreECMO biomedical markers?
+2. What is the future expected performance of predictions?
+3. Which biomedical markers are needed for accurate prediction and which can be dropped?
+
+To further the goals of this paper multiple imputation is investigated for increasing prediction performance on ECMO treatment survival.  This method both allows retention of observations in the analysis as well as accounts for the uncertainty of the imputed value.  The advantages come at the cost of complexity and increased computation time.  Multiple datasets must be imputed and results somehow pooled.  
+
+
+
+
+\newpage
+#Methodology
+
+
+##PreProcessing
+
+Before analysis the data are standardized by mean-centering and scaling so the standard deviation is 1.  The standardizing of variables in important in classification because variables measured at different scales do not contribute equally to the analysis.  For example, the K-Nearest Neighbors method uses a distance metric to distinguish classes; a variable on a scale of 0 to 100 will be analyzed differently than a variable with a range of 0 to 1.  
+
+In addition to standardizing, the continuous variables are also transformed so the distributional form of the data is multivariate normal.  Some nonparametric classification methods assume the data is multivariate normally distributed and can have better prediction performance if the assumption is true.  The data are transformed using the Yeo-Johnson transformation [@yeo_new_2000].  The Yeo-Johnson transformation is similar to a Box-Cox transformation except it can accomodate covariate with zero and/or negative values.  
+
+
+##Validation & Cross-validation
+
+When building a classification model, it is important to asses its ability to produce valid predictions.  If there are ample number of observations, one way to asses model performance is to randomly split the dataset into training, validation, and test sets.  The training set is used to fit the model, which is then used to predict the classes for the observations in the validation set;  the validation set is used to estimate prediction error and tune hyperparameters for model selection; the test set is used to estimate future prediction performance for the model/hyperparameters chosen.  To simulate the model predicting on future, unseen data, the test set should be kept isolated.  The model can  overfit the data if feature manipulation and hyperparamter tuning are done before randomly splitting the data.  If standarzation and transformation of the covariates is done on the entire dataset, information from the training set can "leak" into the test set and the true test error will be underestimated. 
+
+If there is insufficient data to split into three parts then a suitable alternative is $K$-fold cross-validation.  It is one of the simplest and most widely used method for estimating prediction error [@hastie_elements_2009].  The data is randomly split into $K$ folds, where the $K^{th}$ fold is taken as the validation set and the the remaining $K-1$ folds are used for training the model.  The procedure is then repeated $K$ times and the prediction error averaged.  $K$-fold cross validation is most useful on sparse datasets as it allows more observations to be used in training the model.  The choice of $K$ can effect the variability of the prediction error; if $K=1$, the model will overfit the data and prediction error will be highly variable and if $K=n$ (the number of observation in the dataset), the model is fit with no validation set for training parameters.  Typical values used are $K=5$ & $10$ [@hastie_elements_2009] **Breiman and Spector (1992)** **Kohavi (1995)**. 
+
+a training and a test set, respectively, preserving class proportions using the `createDataPartition()` from the **caret** package.  
+
+
+##Models
+
+There are many classification methods, some perform well on many types of data and others perform better on certain types of data.  A variety of classification methods are explored toward the aim of predicting survival of ECMO treatment, including parametric methods with many assumptions and high bias as well as non-parametric methods with higher variability.  The five explored on the ARDS dataset in this paper are: Logistic Regression, Linear Discriminant Analysis, Quadratic Discriminant Analysis, K-Nearest Neighbors, and Random Forests.  
+
+
+###Logistic Regression
+
+Logistic regression is a widely used approach in machine learning and medicine for binary classification.  It is a generalisation of linear regression that models the posterior probabilities of the $Y$ classes.   A logit link is used to ensure the posterior probabilities sum to one and are bounded by [0,1].  For two classes, the model has the form
+
+$$
+\text{logit} \Big( \text{Pr}(Y \vert X) \Big) = \text{log} \frac{ \text{Pr}(Y=1 \vert X=x) }{ \text{Pr}(Y=2 \vert X=x) }  = \mathbf{x}^T_i\boldsymbol{\beta}  
+$$
+
+The posterior probabilities are estimated by maximizing the log-likelihood function to find the parameter estimates, $\hat{\boldsymbol{\beta}}$, to obtain estimates of the probabilities:
+
+$$
+\text{Pr}(Y=1 \vert X) = \frac{ \text{exp}(\mathbf{x}^T_1 \hat{\boldsymbol{\beta}}) }{ 1 + \sum^2_{i=1} \text{exp}(\mathbf{x}^T_i \hat{\boldsymbol{\beta}}) }
+$$
++ **State how I implemented Logistic Regression**
++ **Refer to "Comparison of Logistic Regression and Linear Discriminant Analysis: A Simulation Study"** for writing equations. 
+
+
+###LDA and QDA 
+
+Discriminant Analysis is a widely used set of classification methods.  A generlization of Fisher's Linear Discriminant [@fisher_use_1936],  discriminant functions are created through a combination of the explanatory variables that characterize the classes.  
+
+Let $p(X \vert Y)$ be the densities of distributions of the observations for each class and let $\pi_Y$ denote the prior probabilities of the classes; that is, the prior probability that a randomly sampled observation belongs to the $Y^{th}$ class based on the class proportions.  The posterior probabilities may be written using Bayes Theorem as:
+
+$$
+p(Y \vert X) = \frac{p(X \vert Y) ~\pi_Y}{p(X)} \propto p(X \vert Y) ~\pi_Y   \tag{1}
+$$
+
+Suppose the class distribution for class $Y$ is Multivariate Normal with mean $\mu_Y$ and covariance matrix $\Sigma_Y$, so that:
+
+$$
+p(X \vert Y) = \frac{1}{(2 \pi_Y)^{p/2} \vert\boldsymbol{\Sigma}_Y\vert ^{1/2}} \text{exp} \left[-\frac{1}{2}(X - \mu_Y)^T \boldsymbol{\Sigma}^{-1}_Y(X - \mu_Y)  \right]  \tag{2}
+$$
+
+In comparing two classes, it is sufficient to look at the log-ratio:
+$$
+\text{log} \frac{\text{Pr}(Y=1 \vert X=x)}{\text{Pr}(Y=2 \vert X=x)} = \text{log}\frac{p(X \vert Y=1)}{p(X \vert Y=2)} + \text{log}\frac{\pi_1}{\pi_2}   \tag{3}
+$$
+
+and using Bayes Discriminant Rule stating that *an observation should be allocated to the class with the largest posterior probability*.  From Equation (1), the posterior probability may be written as
+$$
+p(Y \vert X) \propto \text{exp} \left( Q_Y \right)    \tag{4}
+$$
+
+where
+
+$$
+Q_Y = (X - \mu_Y) \Sigma^{-1}_Y (X - \mu_Y)^T + \text{log} \vert \Sigma_Y \vert - 2\text{log} ~\pi_Y   \tag{5}
+$$
+
+defines the Quadratic Discriminant Function for class $Y$.  The Bayes Discriminant Rule is then: *allocated the observation to the class with the largest QDF*.  This method of classification is called *Quadratic Discriminant Analysis* (QDA) because the decision boundaries between classes are elliptical and defined by $Q_Y$, an equation quadratic in $X$.  If the covariance matrix, $\Sigma_Y$ is assumed to be equal for each class then
+
+$$
+L_Y = X \Sigma^{-1}_Y \mu_Y^T -\frac{1}{2}\mu_Y \Sigma^{-1}_Y \mu_Y^T  - \text{log} ~\pi_Y     \tag{6}
+$$
+defines the *Linear Discriminant Function*. This method has linear decision boundaries between classes defined by $L_Y$, an equation linear in $X$, and is known ad *Linear Discriminant Analysis* (LDA).  The Bayes Discriminant Rule is then: *allocated the observation to the class with the largest LDF*. 
+
+There is a bias-variance trade-off; both assume the covariates are normally distributed, there is no multicollinearity, and the observations are independent [@cover_geometrical_1965].  LDA additionally assumes equal class covariances.  Discriminant Analysis can only utilize continuous covariates with no missing observations.  The bias from simple linear or quadratic class boundaries can be acceptable because  it is estimated with less variance.  Despite the many assumptions and limitations, both LDA and QDA are widely used and perform well on on a diverse set of classification tasks [@hastie_elements_2009], even when the classes are not normally distributed.  
+
++ **State how I implemented LDA and QDA**
+
+
+###K-Nearest Neighbors
+
+$K$-Nearest Neighbors (KNN) is a commonly used non-parametric classification method.  To predict the class of a new observation, a distance matrix is constructed between all observations and the K nearest labelled observations to the new observation are considered.  The new observation is then assigned the class label that the majority of its neighbors share.  In case of only two classes, ties in class assignments are avoided by using odd values of K.  In the event of a tie, a class can be chosen at random.  Various distance metrics may be used but it is common to use Euclidean distance to determine the closest training points, though it is advisable to scale variables so that one direction does not dominate the classification **(Citation)**. 
+
+KNN is sensitive to the local structure of the data.  As $K$ increases, the variability of the classification tends to decrease at the expense of increased bias. 
+
++ **State how I implemented KNN**
+
+
+###Random Forests
+
+Random forests (Brieman, 2001) are one of the most successful general-purpose modern algorithms (Biau and Scornet, 2016).  They are an ensemble learning method that can be applied to a wide range of tasks, namely classification and regression.  A random forest is created by building multiple decision trees, where randomness is introduced during the construction of each tree.  Predictions are made by classifying a new observation to the mode of the multiple decisions tree classifications.  Random forests often make accurate and robust predictions, even for very high-dimensional problems (Biau, 2012).  See **(Appendix X)** for an explanation of the random forests algorithm. 
+
++ **State why random forests are good predictors**
+
++ **State how I implemented Random Forests**
+
+
+##Accuracy Metrics
+
+###Accuracy, Sensitivity, and Specificity
+
+Accuracy is the percentage of correctly classifies instances out of all instances.  It is often a poor performance metric to use alone.  There are two significant problems with it. Accuracy applies a naive 0.50 threshold to decide between classes, and this is usually wrong when the classes are imbalanced. Second, classification accuracy is based on a simple count of the errors.  It does not provide information on which classes are being improperly classified or where.  For binary classification, sensitivity and specificity provide more insight into classification performance. 
+
+```{r, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H"}
+
+xtab <- matrix(c("a", "b", "c", "d"), nrow = 2, byrow = TRUE)
+response <- matrix(c("N", "Y"), nrow=2, byrow = TRUE)
+predicted <- matrix(c("Predicted", "Predicted"), nrow=2, byrow = TRUE)
+xtab <- cbind(predicted, response, xtab)
+colnames(xtab) <- c(" ", " ", "N", "Y")
+
+xtab %>%
+  kable(format = "latex", 
+        align = c("l", "c", "|c", "c"), 
+        booktabs = TRUE,
+        caption = '\\label{tab:confusion-matrix} Confusion matrix for two classes.') %>%
+    kable_styling(font_size = 12, 
+                  latex_options = c("hold_position", "striped")) %>%
+  column_spec(1, bold = T) %>%
+  collapse_rows(columns = 1:2, valign = "middle", latex_hline = "none") %>%
+  add_header_above(c(" " = 2, "Observed" = 2), bold = FALSE) 
+  
+```
+
+For the two class confusion matrix in Table \ref{tab:confusion-matrix} accuracy metrics used in the analysis are defined as:
+
+$$
+\begin{aligned}
+\text{sensitivity} &= \frac{a}{a+c} \\
+\text{specificity} &= \frac{d}{b+d} \\
+\text{accuracy} &= \frac{a+d}{a+b+c+d}
+\end{aligned}
+$$
+where sensitivity is a measure of how accurately non-survival is predicted, specificity is a measure of how accurately survival is predicted, and accuracy is a measure of how well both survival and non-survival are predicted.  While sensitivity and specificity state the accuracy each class prediction, accuracy is a poor measure for model performance in an imbalanced dataset.  On the ARDS datasets, for example, if `ECMO_Survival` is predicted to be "Y" for all cases, then the accuracy is 75% but the prediction is no better than the baseline likelihood of the class proportions.   
+
+
+###Cohen's Kappa
+
+Kappa or Cohen’s Kappa [@cohen_coefficient_1960] is a classification performance metric that is normalized at the baseline of random chance on the dataset. It is a useful performance measure on problems with imbalanced classes.  Cohen's Kappa is defined as:
+
+$$
+\kappa = \frac{p_o - p_e}{1 - p_e}
+$$
+where $p_o$ is simply the accuracy, the relative observed agreement between observed and predicted classes and $p_e$ is the probability of chance agreement based on the class probabilities.
+$$
+p_o = \frac{a+d}{a+b+c+d}  ~~~~~\text{and}~~~~~ p_e = p_{o,Y} + p_{o,N} 
+$$
+
+where
+$$
+p_{o,Y} = \frac{a+d}{a+b+c+d} ~\cdot~ \frac{a+c}{a+b+c+d}
+$$
+
+$$
+p_{o,N} = \frac{c+d}{a+b+c+d} ~\cdot~ \frac{b+d}{a+b+c+d}
+$$
+
+If all the observations are predicted correctly then $\kappa=1$.  If the observations are predicted no better than expected by the class probabilities, $p_e$ then $\kappa=0$.  If all the observations are predicted incorrectly, then $\kappa=-1$.  A positive $\kappa$ indicates that the model predicts better than would be expected by chance whereas a negative $\kappa$ indicates that the model predicts worse than would be expected by chance.  
+
++ **State how I Kappa and other metrics are used**
+
+
+##Missing Data
+
+Missing data is a common problem that must be dealt with in machine learning, statistics, and medicine.  Understanding the missing mechanism for the missing observations is important in the analysis.  [@rubin_inference_1976] defined three types of missing data mechanisms: missing completely at random (MCAR), missing at random (MAR), and missing not at random (MNAR).  The data are said to be missing completely at random (MCAR) if the probability of being missing is the same for all cases.  This implies the causes of the missing data are unrelated to the data itself.  While MCAR is conveinient because it allows many complexities that arise because data are missing to be ignored, it is typically an unrealistic assumption [@van_buuren_flexible_2012].  The data is said to be MAR if the probability of being missing is the same only within groups defined by the observed data.  MAR is a more general and more realistic assumption than MCAR.  If neither MCAR nor MAR applies, then the probability of being missing depends on an unknown mechanism and said to be MNAR.  Most simple approaches to dealing with missing data are only valid under MCAR assumption.  Modern methods to dealing with missing data begin from the MAR assumption.  
+
+##Imputation Methods
+
+###Complete Case Analysis
+Complete case canalysis is a convenient method for handling missing data and is the default method in many statistical packages.  If there is a missing value in an observation, it is dropped from the analysis.  This is often a poor appraoch as complete cases analysis assumes MCAR.  In sparse datasets a complete case analysis can cause an analysis to be underpowered and if MCAR does not hold, can severely bias estimates of means, regression coefficients, and correlations [@van_buuren_flexible_2012].  
+
+The ARDS dataset considered in this paper has `r sum(!complete.cases(data_clean.df))` of `r nrow(data_clean.df)` observations with missing data.
+
+
+###Mean Imputation
+Another common method for handling missing data is mean imputation; the missing value is replaced by the mean of the observed values (the mode for categorical data).  This approach is satisfactory for a moderate amount of MCAR-generated  missing  values.  However, it  distorts  the distribution of the data by reducing the variance of the imputed variables and the correlations between variables [@little_bayes_2014].  Van Buuren  suggests mean imputation should only be used only when there are few missing values, and should be generally avoided [@van_buuren_flexible_2012].  Mean imputation is considered in this paper because although it is often a poor method of choice for imputing missing values, it is commonly done in medical datasets **(Citation)**. 
+
++ **State how I implemented mean imputation is done**
+
+
+###Multiple Imputation
+Multiple imputation is a method that accounts for the uncertainty in the imputed values.  The observed dataset is imputed multiple times to create $m>1$ complete datasets.  The imputed values are drawn from a distribution specifically modeled for each missing entry.  The $m$ datasets are analyzed using the same method that would have been used had the data been complete.  The results will differ because of the variation in the input data caused by the uncertainty in the imputed values.  
+
+Multiple imputation can handle data that is both MAR and MNAR.  
+
+There is uncertainty as to the true value of the unseen data, and that uncertainty should be included in the analysis.  Multiple imputation is a method created by Donald Rubin wherein multiple datasets are imputed, the analysis is conducted on each dataset, and the results are pooled.  
+
++ Details of the **MICE** algorithm can be found in Algorithm \ref{alg:mice-alg}.  
+
+
+###Fully Conditional Specification
+
+###Predictive Mean Matching
+
+Predictive Mean Matching (PMM) is a semi-parametric imputation approach to imputing missing values.  It fills in a value randomly from among the a observed donor values from an observation whose regression-predicted values are closest to the regression-predicted value for the missing value from the simulated regression model (Heitjan and Little 1991; Schenker and Taylor 1996).  PMM method ensures that imputed values are plausible; it might be more appropriate than the regression method (which assumes a joint multivariate normal distribution) if the normality assumption is violated (Horton and Lipsitz 2001, p. 246). PMM is fairly robust to transformations of the target variables [@van_buuren_flexible_2012], yielding similar results for a Yeo-Johnson transformation or no transformation. 
+
++ **Equations for Predictive Mean Matching**
+
+
+##Ensemble Multiple Imputation
+
+While the topic of multiple imputation has been widely researched, how to best use multiple imputation in conjunction with cross-validation has not.  Two approaches have been proposed for pooling results from several SVMs [@belanche_handling_2014] and Cox regression **(Zavrakidis 2017)** from multiply imputed datasets.  The method is to concatenate the $m$ imputed datasets and fit a classifier, and optimize, to the resulting set; this accounts for the variability of the parameter estimates as well as the variability of the training observations in relation to the imputed values [-@belanche_handling_2014].  The second proceedure fits separate classifiers to each imputed data set and get the pooled (i.e. avereaged) performance of the $m$ classifiers.  Results from both studies either show similar results between appraoches **(Zavrakidis 2017)** or slightly better performance with the first approach [-@belanche_handling_2014].  For simplicity and the sake of computational costs, this paper, only considers the first approach as outlined in Figure \ref{fig:ensemble-imputation}.     
+
+```{r , echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig:ensemble-imputation}Outline of Kth step in the ensemble algorithm used to combine MI in cross-validation.  (a) The Kth fold is taken as the test set and the remaining K-1 folds are taken as the training set. (b) The test set is separated from the analysis. (c) The training set is imputed m times with the response included. (d) The m iputed datasets are 'stacked' to form one training set.  (e) The test set is concatenated with the imputed and 'stacked' training set.  (f) The test set is imputed m times using the imputed training set without the response included.  (g) A model is fitted to the imputed and 'stacked' training set.  (h) The fitted model makes predictions on each of the m test sets.  (i) The m predictions are pooled by a majority vote."}
+knitr::include_graphics("images/ensemble-imputation.png")
+```
+
+The following steps describe the ensemble approach for multiply imputed data in k-fold cross-validation: 
+
+1. Randomly partition the training data into $k$ folds while retaining class proportions
+2. Define the $k^{th}$ as the test set and the remaining $k-1$ folds as the training set
+3. Impute the training set $m$ times, with the response variable `ECMO_Survival` included, to create $m$ imputed training sets
+4. Concatenate the $m$ imputed training sets into one extended training set
+5. A model is fitted to the extended training set
+6. The test set is concatenated with the extended training set
+7. Impute the combined test and extended training set, with the response variable `ECMO_Survival` excluded, to create $m$ imputed combined test and extended training sets
+8. Extract the $m$ test sets
+9. Make $m$ predictions on the $m$ imputed test sets
+10. Take the majority vote of the $m$ predictions as the prediction for the fitted model
+11. Validate the prediction against the test set by calculating Cohen's Kappa (note there are no missing values for the response variable in the data)
+12. Repeat steps 2-11 $k$ times and validate the fitted model on each training set against the test set for each fold
+13. Average the $k$ calculated Cohen's Kappas as the estimated in-sample performance
+
+"Rubin's Rules" [@rubin_inference_1976] provide a simple method for pooling parameters estimates from multiple imputation for linear and generalized linear models but to the author's knowledge, there has been insufficient work on estimating the required number of imputations for estimating posterior probabilities in classification problems.  The classic advice for the choice of $m$ is between 3 and 5 for moderate amounts of missing information but it is often beneficial to set $m$ higher and create between 20-100 imputations [@van_buuren_flexible_2012]. 
+
+The training set is multiply imputed with PMM for $m=9$ and $m=99$ and the predictions pooled by majority vote.  There has been sufficient exploration into pooling of posterior probabilities resulting from classification problems **(Citation 1)** **(Citation 2)**.  *Additionally, not all statistical methods considered produce posterior probabilities and the comparison of pooled models from multiple imputation is an area ripe for more analysis.*  Indeed, others have pooled predictions from various machine learning methods by taking the majority vote **(Zavrakidis)** **(Citation 2)**, and comparing prediction performance.  The combination can be implemented using a variety of strategies, among which majority vote is one of the simplest, and has been found to be just as effective as more complicated schemes [@lam_optimal_1995].
+
++ **Put this Cross-Validation??**
+
+
+##Feature Selection
+
+One of the goals of this analysis is to identify the variables most useful for accurate prediction.  There are various methods that can be used for feature selection: stepwise selection, Recursive Feature Elimination (RFE), LASSO regularization, and Principal Component Analysis (PCA).  However, some of these methods are either highly criticized, dependent on the classification method considered, or cannot be integrated into the ensemble cross-validation approach used.  Stepwise selection, while very common, is only applicable to regression models and it is often criticised [@kemp_applied_2003]; problems include falsely narrow confidence intervals for effects and predicted values [@altman_bootstrap_1989] and multiple hypothesis testing inflating risks of capitalising on chance features of the data [@altman_practical_1991], such as noise covariates gaining entry into the model when the number of candidate variables is large [@derksen_backward_1992].  RFE is an iterative procedure analogous of backward feature selection.  A new classifier is trained on a subset of the features and the importance of the feature is a measure of the change in performance.  The training time scales linearly with the number of classifiers to be trained [@guyon_gene_2002].  Both logistic regression with LASSO regularization [@tibshirani_regression_1996] and the analogous Sparse Discriminant Analysis [@clemmensen_sparse_2011] are embedded feature selection methods that are dependent on the classification method.  
+
+
+Principal Component Analysis (PCA) [@f.r.s_liii._1901] is a feature extraction method that is independent of the classification method.  The training set are orthogonally transformed into new uncorrelated variables called principal components that are linear combinations of the original variables.  Feature extraction is accomplished by selecting the $k$ largest principal components that contain a chosen percent of the variance in the original feature space.  
+
+PCA can also be used for feature selection by calculating the contribution of each variable to the extracted features [@song_feature_2010].  Let $C_i$ be the contribution of a given variable on the principal component, $\text{V}_i$, and let $\lambda_i$ be the eigenvalue of $\text{V}_i$, where $\text{V}_{i} = \lambda_i \text{C}_i$.  The eigenvalues measure the amount of variation retained by each principal component.  The total contribution of a variable, $\text{C}_j$, on explaining the variations retained by $k$ extracted features, $\text{V}_1, ..., \text{V}_k$, is
+
+$$
+\text{C}_j = \sum^k_{i=1}\lambda_{ij} \text{C}_{ij} = \sum^k_{p=1} \vert \text{V}_{ij} \vert 
+$$
+
+The $\text{C}_j$ are sorted in descending order where $\text{C}_1$ contributes the most variation to the extracted principal components among all the $\text{C}_j$ for $j=1,2,...p$, variables.  Variables at the beginning of the sorted list are considered more important for the analysis than variables at the end.  Here, any variable that contributes more than the expected average contribution, if all variables contributed equally, is selected as important for the analysis.  
+
++ **How are the top $C_j's$ chosen?**
+
+The number of principal components retained, $k$, is based on the proportion of variance retained of the $p$ principal components, where the variance threshold is chosen to be 80%. 
+
+
+$$
+0.8 = \frac{\sum^k_{i=1} \lambda_i}{\sum^p_{j=1} \lambda_j}
+$$
+The number of principal components retained is based on the proportion of variance.  If the contribution of the $p$ variables were uniform, the expected value would be $\dfrac{1}{\text{p}} =$ `r round(1/30, 2)`.   For a given component, an observation with a contribution larger than this cutoff could be considered as important in contributing to the component.
+
+
+
+
+\newpage
+#Exploratory Data Analysis
+
 To get an idea of the distribution of the data, the following summary statistics were obtained for the categorical variables in Table \ref{tab:categorical-summaries} and for the continuous variables in Figure \ref{fig:violin-standardized}.
 
 ```{r , echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE}
@@ -202,307 +515,83 @@ data_standard.df %>%
           axis.text.x = element_text(angle = 60, hjust = 1))  
 ```
 
-+ **Short blurb about Figure \ref{fig:violin-standardized}.**
+Many of the standardized continuous variables in Figure \ref{fig:violin-standardized} are highly skewed with a number of outliers.  This can affect the performance of some classification methods that assume a distributional form for the data.  
 
+The heatmap in Figure \ref{fig:heatmap-standardized} shows only a few variables with moderate to strong correlation.  Only a few variables, `PreECMO_NAdose` and `PreECMO_Lactate`, are moderately correlated with many other variable.  Feature selection methods based on the correlation matrix may not show strong feature importance for a subset of the variables.  
 
-##Aims of the Proposed Research
-
-The main questions of interest in this paper are:
-
-1. Can ECMO treatment survival (`ECMO_Survival`) be accurately predicted by PreECMO biomedical markers?
-2. What is the future expected performance of predictions?
-3. Which biomedical markers are needed for accurate prediction and which can be dropped?
-
-Prediction in medical data can often be difficult; imbalanced class distributions and poor predictive covariates.  If the sample size is small, then prediction becomes even more difficult.  Some of these issues arise from the experimental design of the study but little can be rememdied post-hoc.  Missing values in the data complicate analysis even further and are often handled either by dropping missing observations or filling in the missing value by the mean.  Both methods can be valid if certain assumptions hold, but useful information is either lost to the analysis or the natural distribution of the data is effected.  
-
-To further the goals of this paper multiple imputation is investigated for increasing prediction performance on ECMO treatment survival.  This method both allows retention of observations in the analysis as well as accounts for the uncertainty of the imputed value.  The advantages come at the cost of complexity and increased computation time.  Multiple datasets must be imputed and results somehow pooled.  
-
-
-
-\newpage
-#Methodology
-
-
-##PreProcessing
-
-+ Standardizing - only on continuous data
-  + Mean-centering
-  + Scaling
-  + Yeo-Johnson Transformation 
-
-##Validation & Cross-validation
-
-When building a classification model, it is important to asses its ability to produce valid predictions.  If there are ample number of observations, one way to asses model performance is to randomly split the dataset into training, validation, and test sets.  The training set is used to fit the model, which is then used to predict the classes for the observations in the validation set;  the validation set is used to estimate prediction error and tune hyperparameters for model selection; the test set is used to estimate future prediction performance for the model/hyperparameters chosen.  To simulate the model predicting on future, unseen data, the test set should be kept isolated.  The model can  overfit the data if feature manipulation and hyperparamter tuning are done before randomly splitting the data.  If standarzation and transformation of the covariates is done on the entire dataset, information from the training set can "leak" into the test set and the true test error will be underestimated. 
-
-If there is insufficient data to split into three parts then a suitable alternative is $K$-fold cross-validation.  It is one of the simplest and most widely used method for estimating prediction error [@hastie_elements_2009].  The data is randomly split into $K$ folds, where the $K^{th}$ fold is taken as the validation set and the the remaining $K-1$ folds are used for training the model.  The procedure is then repeated $K$ times and the prediction error averaged.  $K$-fold cross validation is most useful on sparse datasets as it allows more observations to be used in training the model.  The choice of $K$ can effect the variability of the prediction error; if $K=1$, the model will overfit the data and prediction error will be highly variable and if $K=n$ (the number of observation in the dataset), the model is fit with no validation set for training parameters.  Typical values used are $K=5$ & $10$ [@hastie_elements_2009]. 
-
-a training and a test set, respectively, preserving class proportions using the `createDataPartition()` from the **caret** package.  
-
-
-##Models
-
-There are many classification methods, some perform well on many types of data and others perform better on certain types of data.  A variety of classification methods are explored toward the aim of predicting survival of ECMO treatment, including parametric methods with many assumptions and high bias as well as non-parametric methods with higher variability.  The five explored on the ARDS dataset in this paper are: Logistic Regression, Linear Discriminant Analysis, Quadratic Discriminant Analysis, K-Nearest Neighbors, and Random Forests.  
-
-
-###Logistic Regression
-
-Logistic regression is a widely used approach in machine learning and medicine for binary classification.  It is a generalisation of linear regression that models the posterior probabilities of the $Y$ classes.   A logit link is used to ensure the posterior probabilities sum to one and are bounded by [0,1].  For two classes, the model has the form
-
-$$
-\text{logit} \Big( \text{Pr}(Y \vert X) \Big) = \text{log} \frac{ \text{Pr}(Y=1 \vert X=x) }{ \text{Pr}(Y=2 \vert X=x) }  = \mathbf{x}^T_i\boldsymbol{\beta}  
-$$
-
-The posterior probabilities are estimated by maximizing the log-likelihood function to find the parameter estimates, $\hat{\boldsymbol{\beta}}$, to obtain estimates of the probabilities:
-
-$$
-\text{Pr}(Y=1 \vert X) = \frac{ \text{exp}(\mathbf{x}^T_1 \hat{\boldsymbol{\beta}}) }{ 1 + \sum^2_{i=1} \text{exp}(\mathbf{x}^T_i \hat{\boldsymbol{\beta}}) }
-$$
+```{r , echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig:heatmap-standardized}Heatmap of standardized and transformed variables."}
+# Correlation matrix plot
+ggcorr(data_standard.df[, 1:ncol(data_standard.df)], 
+       hjust = 0.95, 
+       size = 2, 
+       label = TRUE, 
+       label_size = 2, 
+       label_alpha = TRUE, 
+       layout.exp = 5, 
+       legend.position = "bottom", 
+       legend.size = 8) +
+  guides(fill = guide_colorbar(barwidth = 10, 
+                               barheight = 0.5, 
+                               title.vjust = 0.75)) 
+#  theme(  plot.margin = margin(1, 1, 1, 1, "cm") ) #top, right, bottom, left
+```
 
 
 
-###LDA and QDA
 
-Discriminant Analysis is a widely used set of classification methods.  A generlization of Fisher's Linear Discriminant [@fisher_use_1936],  discriminant functions are created through a combination of the explanatory variables that characterize the classes.  
+##Missing Data Exploration
 
-Let $p(X \vert Y)$ be the densities of distributions of the observations for each class and let $\pi_Y$ denote the prior probabilities of the classes; that is, the prior probability that a randomly sampled observation belongs to the $Y^{th}$ class based on the class proportions.  The posterior probabilities may be written using Bayes Theorem as:
+Before imputation, and indeed multiple imputation, it is important to inspect the missingness patterns in the data and check assumptions.  Figure \ref{fig:missing-data} shows the missingness patterns in the dataset, where a black bar represents a missing value.  Many missing values occur in observations with other missing values.  The missing values could be conditionally dependent on other variables, in which case the data would be MAR.  The missing values could also be due to some unknown mechanism at the time of recording (*i.e.* a failure of the measurement device) that happens to effect multiple readings (the biomarkers are measured from blood samples and measurements are likely done in batches).  In this case the data would be MCAR.  **Without more information, this analysis assumes the data is MCAR.**
 
-$$
-p(Y \vert X) = \frac{p(X \vert Y) ~\pi_Y}{p(X)} \propto p(X \vert Y) ~\pi_Y   \tag{1}
-$$
+```{r, echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig:missing-data}Visual representation of missing observations in the ARDS dataset."}
+load("../project/data/processed-data.RData")
+vis_miss(data_clean.df, sort_miss = TRUE) +
+  theme(  plot.margin = ggplot2::margin(0.125, 2, 0.5, 1, "cm") ) #top, right, bottom, left
+```
 
-Suppose the class distribution for class $Y$ is Multivariate Normal with mean $\mu_Y$ and covariance matrix $\Sigma_Y$, so that:
-
-$$
-p(X \vert Y) = \frac{1}{(2 \pi_Y)^{p/2} \vert\boldsymbol{\Sigma}_Y\vert ^{1/2}} \text{exp} \left[-\frac{1}{2}(X - \mu_Y)^T \boldsymbol{\Sigma}^{-1}_Y(X - \mu_Y)  \right]  \tag{2}
-$$
-
-In comparing two classes, it is sufficient to look at the log-ratio:
-$$
-\text{log} \frac{\text{Pr}(Y=1 \vert X=x)}{\text{Pr}(Y=2 \vert X=x)} = \text{log}\frac{p(X \vert Y=1)}{p(X \vert Y=2)} + \text{log}\frac{\pi_1}{\pi_2}   \tag{3}
-$$
-
-and using Bayes Discriminant Rule stating that *an observation should be allocated to the class with the largest posterior probability*.  From Equation (1), the posterior probability may be written as
-$$
-p(Y \vert X) \propto \text{exp} \left( Q_Y \right)    \tag{4}
-$$
-
-where
-
-$$
-Q_Y = (X - \mu_Y) \Sigma^{-1}_Y (X - \mu_Y)^T + \text{log} \vert \Sigma_Y \vert - 2\text{log} ~\pi_Y   \tag{5}
-$$
-
-defines the Quadratic Discriminant Function for class $Y$.  The Bayes Discriminant Rule is then: *allocated the observation to the class with the largest QDF*.  This method of classification is called *Quadratic Discriminant Analysis* (QDA) because the decision boundaries between classes are elliptical and defined by $Q_Y$, an equation quadratic in $X$.  If the covariance matrix, $\Sigma_Y$ is assumed to be equal for each class then
-
-$$
-L_Y = X \Sigma^{-1}_Y \mu_Y^T -\frac{1}{2}\mu_Y \Sigma^{-1}_Y \mu_Y^T  - \text{log} ~\pi_Y     \tag{6}
-$$
-defines the *Linear Discriminant Function*. This method has linear decision boundaries between classes defined by $L_Y$, an equation linear in $X$, and is known ad *Linear Discriminant Analysis* (LDA).  The Bayes Discriminant Rule is then: *allocated the observation to the class with the largest LDF*. 
-
-There is a bias-variance trade-off; both assume the covariates are normally distributed, there is no multicollinearity, and the observations are independent [@cover_geometrical_1965].  LDA additionally assumes equal class covariances.  Discriminant Analysis can only utilize continuous covariates with no missing observations.  The bias from simple linear or quadratic class boundaries can be acceptable because  it is estimated with less variance.  Despite the many assumptions and limitations, both LDA and QDA are widely used and perform well on on a diverse set of classification tasks [@hastie_elements_2009], even when the classes are not normally distributed.  
+From Figure \ref{fig:missing-data}, `PreECMO_Albumin` is seen to have 46.44% missingness.  To conserve more observations for the training set, `PreECMO_Albumin` is dropped from the complete case analysis.  Of the remaining variables only half contain missing values with moderate to low missingness up to 6%.  **An analysis into how difficult variables are to impute and how helpful variables are when imputing is beyond the scope of this paper but is provided in Appendix C.**
 
 
-###K-Nearest Neighbors
+Table \ref{tab:missing-statistics} provides some measures about variable dependence  in the dataset.  The first column shows the probability of observed values for each variable.  The following are coefficients that give insight into how the variables are connected in terms of missingness.  $\mathbf{Influx}$ is the ratio of the number of variables pairs $(Y_j, ~Y_k)$ with $Y_j$ missing and $Y_k$ observed, divided by the total number of observed data.  For a variable that is entirely missing, influx is 1, and 0 for if the variable is complete.  $\mathbf{Outflux}$ is defined in the opposit manner, by dividing the number of pairs $(Y_j, ~Y_k)$ with $Y_j$ observed and $Y_k$ missing, by the total number of complete cells.  For a completely observed variable, outflux will have a value of 1 and 0 if completely missing.  Outflux gives an indication of how useful the variable will be for imputing other variables in the dataset, while influx is an indicator for how easily the variable can be imputed.  Table \ref{tab:missing-statistics} shows that all variables will be useful during impuation except `PreECMO_Albumin`.  A high outflux variable might turn out to be useless for the imputation procedure if it is unrelated to the incomplete variables, while the usefulness of a highly predictive variables is severely limited by a low outflux value [-@van_buuren_flexible_2012].  
 
-$K$-Nearest Neighbors (KNN) is a commonly used non-parametric classification method.  To predict the class of a new observation, a distance matrix is constructed between all observations and the K nearest labelled observations to the new observation are considered.  The new observation is then assigned the class label that the majority of its neighbors share.  In case of only two classes, ties in class assignments are avoided by using odd values of K.  
-
-In the event of a tie, a class can be chosen at random.  Various distance metrics may be used but it is common to use Euclidean distance to determine the closest training points, though it is advisable to scale variables so that one direction does not dominate the classification. 
-
-KNN is sensitive to the local sturcture of the data.  As $K$ increases, the variability of the classification tends to decrease at the expense of increased bias. 
-
-
-###Random Forests
-
-Random forests (Brieman, 2001) are one of the most successful general-purpose modern algorithms (Biau and Scornet, 2016).  They are an ensemble learning method that can be applied to a wide range of tasks, namely classification and regression.  A random forest is created by building multiple decision trees, where randomness is introduced during the construction of each tree.  Predictions are made by classifying a new observation to the mode of the multiple decisions tree classifications.  Random forests often make accurate and robust predictions, even for very high-dimensional problems (Biau, 2012).  See **(Appendix X)** for an explanation of the random forests algorithm. 
-
-+ **State why random forests are good predictors**
-
-
-
-##Accuracy Metrics
-
-These are the default metrics used to evaluate algorithms on binary and multi-class classification datasets in caret.
-
-###Accuracy, Sensitivity, and Specificity
-
-Accuracy is the percentage of correctly classifies instances out of all instances. It is more useful on a binary classification than multi-class classification problems because it can be less clear exactly how the accuracy breaks down across those classes (e.g. you need to go deeper with a confusion matrix). Learn more about Accuracy here.
-
-Don’t use accuracy (or error rate) to evaluate your classifier! There are two significant problems with it. Accuracy applies a naive 0.50 threshold to decide between classes, and this is usually wrong when the classes are imbalanced. Second, classification accuracy is based on a simple count of the errors, and you should know more than this. You should know which classes are being confused and where (top end of scores, bottom end, throughout?)
 
 ```{r, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H"}
 
-xtab <- matrix(c("a", "b", "c", "d"), nrow = 2, byrow = TRUE)
-response <- matrix(c("N", "Y"), nrow=2, byrow = TRUE)
-predicted <- matrix(c("Predicted", "Predicted"), nrow=2, byrow = TRUE)
-xtab <- cbind(predicted, response, xtab)
-colnames(xtab) <- c(" ", " ", "N", "Y")
+flux <- flux(data_clean.df)
 
-xtab %>%
-  kable(format = "latex", 
-        align = c("l", "c", "|c", "c"), 
-        booktabs = TRUE,
-        caption = '\\label{tab:confusion-matrix} Confusion matrix for two classes.') %>%
-    kable_styling(font_size = 12, 
-                  latex_options = c("hold_position", "striped")) %>%
-  column_spec(1, bold = T) %>%
-  collapse_rows(columns = 1:2, valign = "middle", latex_hline = "none") %>%
-  add_header_above(c(" " = 2, "Observed" = 2), bold = FALSE) 
-  
+flux %>%
+  round(2) %>%
+  select(pobs, influx, outflux) %>%
+  kable(col.names = c("Proportion", "Influx", "Outflux"), 
+        caption = '\\label{tab:missing-statistics} Missing pattern statistics for variables in dataset.',
+        booktabs = TRUE, 
+        format = "latex") %>%
+  kable_styling(font_size = 10, 
+                latex_options = "hold_position") %>%
+  row_spec(23, bold = TRUE)
 ```
-
-For the two class confusion matrix in Table \ref{tab:confusion-matrix} accuracy metrics are defined as:
-
-$$
-\begin{aligned}
-\text{sensitivity} &= \frac{a}{a+c} \\
-\text{specificity} &= \frac{d}{b+d} \\
-\text{accuracy} &= \frac{a+d}{a+b+c+d}
-\end{aligned}
-$$
-where sensitivity is a measure of how accurately non-survival is predicted,  specificity is a measure of how accurately survival is predicted, and accuracy is a measure of how well both survival and non-survival are predicted.  While sensitivity and specificity state the accuracy each class prediction, accuracy is a poor measure for model performance in an imbalanced dataset.  On the ARDS datasets, for example, if `ECMO_Survival` is predicted to be "Y" for all cases, then the accuracy is 75% but the prediction is no better than the baseline likelihood of the class percentages.  
-
-
-###Cohen's Kappa
-
-Kappa or Cohen’s Kappa [@cohen_coefficient_1960] is like classification accuracy, except that it is normalized at the baseline of random chance on your dataset. It is a useful performance measure on problems with imbalanced classes.  Cohen's Kappa is defined as:
-
-$$
-\kappa = \frac{p_o - p_e}{1 - p_e}
-$$
-where $p_o$ is simply the accuracy, the relative observed agreement between observed and predicted classes and $p_e$ is the probability of chance agreement based on the class probabilities.
-$$
-p_o = \frac{a+d}{a+b+c+d}  ~~~~~\text{and}~~~~~ p_e = p_{o,Y} + p_{o,N} 
-$$
-
-where
-$$
-p_{o,Y} = \frac{a+d}{a+b+c+d} ~\cdot~ \frac{a+c}{a+b+c+d}
-$$
-
-$$
-p_{o,N} = \frac{c+d}{a+b+c+d} ~\cdot~ \frac{b+d}{a+b+c+d}
-$$
-
-If all the observations are predicted correctly then $\kappa=1$.  If the observations are predicted no better than expected by the class probabilities, $p_e$ then $\kappa=0$.  If all the observations are predicted incorrectly, then $\kappa=-1$.  A positive $\kappa$ indicates that the model predicts better than would be expected by chance whereas a negative $\kappa$ indicates that the model predicts worse than would be expected by chance.  
-
-
-
-
-##Missing Data
-
-Missing data is a common problem that must be dealt with in machine learning, statistics, and medicine.  Understanding the missing mechanism for the missing observations is important in the analysis.  [@rubin_inference_1976] defined three types of missing data mechanisms: missing completely at random (MCAR), missing at random (MAR), and missing not at random (MNAR).  The data are said to be missing completely at random (MCAR) if the probability of being missing is the same for all cases.  This implies the causes of the missing data are unrelated to the data itself.  While MCAR is conveinient because it allows many complexities that arise because data are missing to be ignored, it is typically an unrealistic assumption [@van_buuren_flexible_2012].  The data is said to be MAR if the probability of being missing is the same only within groups defined by the observed data.  MAR is a more general and more realistic assumption than MCAR.  If neither MCAR nor MAR applies, then the probability of being missing depends on an unknown mechanism and said to be MNAR.  Most simple approaches to dealing with missing data are only valid under MCAR assumption.  Modern methods to dealing with missing data begin from the MAR assumption.  
-
-##Imputation Methods
-
-###Complete Case Analysis
-Complete case canalysis is a convenient method for handling missing data and is the default method in many statistical packages.  If there is a missing value in an observation, it is dropped from the analysis.  This is often a poor appraoch as complete cases analysis assumes MCAR.  In sparse datasets a complete case analysis can cause an analysis to be underpowered and if MCAR does not hold, can severely bias estimates of means, regression coefficients, and correlations [@van_buuren_flexible_2012].  
-
-The ARDS dataset considered in this paper has `r sum(!complete.cases(data_clean.df))`/`r nrow(data_clean.df)` observations with missing data.
-
-
-###Mean Imputation
-Another common method for handling missing data is mean imputation; the missing value is replaced by the mean of the observed values (the mode for categorical data).  This approach is satisfactory for a moderate amount of MCAR-generated  missing  values.  However, it  distorts  the distribution of the data by reducing the variance of the imputed variables and the correlations between variables [@little_bayes_2014].  Van Buuren  suggests mean imputation should only be used only when there are few missing values, and should be generally avoided [@van_buuren_flexible_2012].  Mean imputation is considered in this paper because although it is often a poor method of choice for imputing missing values, it is commonly done in medical datasets **(Citation)**. 
-
-
-###Multiple Imputation
-Multiple imputation is a method that accounts for the uncertainty in the imputed values.  The observed dataset is imputed multiple times to create $m>1$ complete datasets.  The imputed values are drawn from a distribution specifically modeled for each missing entry.  The $m$ datasets are analyzed using the same method that would have been used had the data been complete.  The results will differ because of the variation in the input data caused by the uncertainty in the imputed values.  
-
-Multiple imputation can handle data that is both MAR and MNAR.  
-
-There is uncertainty as to the true value of the unseen data, and that uncertainty should be included in the analysis.  Multiple imputation is a method created by Donald Rubin wherein multiple datasets are imputed, the analysis is conducted on each dataset, and the results are pooled.  
-
-+ Details of the **MICE** algorithm can be found in **Appendix B**.  
-
-
-###Fully Conditional Specification
-
-###Predictive Mean Matching
-
-Predictive Mean Matching (PMM) is a semi-parametric imputation approach to imputing missing values.  It fills in a value randomly from among the a observed donor values from an observation whose regression-predicted values are closest to the regression-predicted value for the missing value from the simulated regression model (Heitjan and Little 1991; Schenker and Taylor 1996).  PMM method ensures that imputed values are plausible; it might be more appropriate than the regression method (which assumes a joint multivariate normal distribution) if the normality assumption is violated (Horton and Lipsitz 2001, p. 246). PMM is fairly robust to transformations of the target variables [@van_buuren_flexible_2012], yielding similar results for a Yeo-Johnson transformation or no transformation. 
-
-+ **Equations for Predictive Mean Matching**
-
-
-##Ensemble Multiple Imputation
-
-While the topic of multiple imputation has been widely researched, how to best use multiple imputation in conjunction with cross-validation has not.  Two approaches have been proposed for pooling results from several SVMs [@belanche_handling_2014] and Cox regression **(Zavrakidis 2017)** from multiply imputed datasets.  The method is to concatenate the $m$ imputed datasets and fit a classifier, and optimize, to the resulting set; this accounts for the variability of the parameter estimates as well as the variability of the training observations in relation to the imputed values [-@belanche_handling_2014].  The second proceedure fits separate classifiers to each imputed data set and get the pooled (i.e. avereaged) performance of the $m$ classifiers.  Results from both studies either show similar results between appraoches **(Zavrakidis 2017)** or slightly better performance with the first approach [-@belanche_handling_2014].  For simplicity and the sake of computational costs, this paper, only considers the first approach as outlined in Figure \ref{fig:ensemble-imputation}.     
-
-```{r , echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig:ensemble-imputation}Outline of the algorithm used to pool predictions from multiple imputation.  (a) Step 1. (b) Step 2. (c) Step 3. (d) Step 4.  (e) Step 5.  (f) Step 6."}
-knitr::include_graphics("images/ensemble-imputation.png")
-```
-
-The following steps describe the ensemble approach for multiply imputed data in k-fold cross-validation: 
-
-1. Randomly partition the training data into $k$ folds while retaining class proportions
-2. Define the $k^{th}$ as the test set and the remaining $k-1$ folds as the training set
-3. Impute the training set $m$ times, with the response variable `ECMO_Survival` included, to create $m$ imputed training sets
-4. Concatenate the $m$ imputed training sets into one extended training set
-5. A model is fitted to the extended training set
-6. The test set is concatenated with the extended training set
-7. Impute the combined test and extended training set, with the response variable `ECMO_Survival` excluded, to create $m$ imputed combined test and extended training sets
-8. Extract the $m$ test sets
-9. Make $m$ predictions on the $m$ imputed test sets
-10. Take the majority vote of the $m$ predictions as the prediction for the fitted model
-11. Validate the prediction against the test set by calculating Cohen's Kappa (note there are no missing values for the response variable in the data)
-12. Repeat steps 2-11 $k$ times and validate the fitted model on each training set against the test set for each fold
-13. Average the $k$ calculated Cohen's Kappas as the estimated in-sample performance
-
-"Rubin's Rules" [@rubin_inference_1976] provide a simple method for pooling parameters estimates from multiple imputation for linear and generalized linear models but to the author's knowledge, there has been insufficient work on estimating the required number of imputations for estimating posterior probabilities in classification problems.  The classic advice for the choice of $m$ is between 3 and 5 for moderate amounts of missing information but it is often beneficial to set $m$ higher and create between 20-100 imputations [@van_buuren_flexible_2012]. 
-
-The training set is multiply imputed with PMM for $m=9$ and $m=99$ and the predictions pooled by majority vote.  There has been sufficient exploration into pooling of posterior probabilities resulting from classification problems **(Citation 1)** **(Citation 2)**.  *Additionally, not all statistical methods considered produce posterior probabilities and the comparison of pooled models from multiple imputation is an area ripe for more analysis.*  Indeed, others have pooled predictions from various machine learning methods by taking the majority vote **(Zavrakidis)** **(Citation 2)**, and comparing prediction performance.  The combination can be implemented using a variety of strategies, among which majority vote is one of the simplest, and has been found to be just as effective as more complicated schemes [@lam_optimal_1995].
-
-
-
-##Feature Selection
-
-One of the goals of this analysis is to identify the variables most useful for accurate prediction.  There are various methods that can be used for feature selection: stepwise selection, Recursive Feature Elimination (RFE), LASSO regularization, and Principal Component Analysis (PCA).  However, some of these methods are either highly criticized, dependent on the classification method considered, or cannot be integrated into the ensemble cross-validation approach used.  Stepwise selection, while very common, is only applicable to regression models and it is often criticised [@kemp_applied_2003]; problems include falsely narrow confidence intervals for effects and predicted values [@altman_bootstrap_1989] and multiple hypothesis testing inflating risks of capitalising on chance features of the data [@altman_practical_1991], such as noise covariates gaining entry into the model when the number of candidate variables is large [@derksen_backward_1992].  RFE is an iterative procedure analogous of backward feature selection.  A new classifier is trained on a subset of the features and the importance of the feature is a measure of the change in performance.  The training time scales linearly with the number of classifiers to be trained [@guyon_gene_2002].  Both logistic regression with LASSO regularization [@tibshirani_regression_1996] and the analogous Sparse Discriminant Analysis [@clemmensen_sparse_2011] are embedded feature selection methods that are dependent on the classification method.  
-
-
-Principal Component Analysis (PCA) [@f.r.s_liii._1901] is a feature extraction method that is independent of the classification method.  The training set are orthogonally transformed into new uncorrelated variables called principal components that are linear combinations of the original variables.  Feature extraction is accomplished by selecting the $k$ largest principal components that contain a chosen percent of the variance in the original feature space.  
-
-PCA can also be used for feature selection by calculating the contribution of each variable to the extracted features [@song_feature_2010].  Let $C_i$ be the contribution of a given variable on the principal component, $\text{V}_i$, and let $\lambda_i$ be the eigenvalue of $\text{V}_i$, where $\text{V}_{i} = \lambda_i \text{C}_i$.  Eigenvalues measure the amount of variation retained by each principal component.  The total contribution of a variable, $\text{C}_j$, on explaining the variations retained by $k$ extracted features, $\text{V}_1, ..., \text{V}_k$, is
-
-$$
-\text{C}_j = \sum^k_{i=1}\lambda_{ij} \text{C}_{ij} = \sum^k_{p=1} \vert \text{V}_{ij} \vert 
-$$
-
-The $\text{C}_j$ are sorted in descending order where $\text{C}_1$ contributes the most variation to the extracted principal components among all the $\text{C}_j$ for $j=1,2,...p$, variables.  
-
-
-
 
 
 
 \newpage
 #Results
 
-##Missing Data Patterns
-
-Before imputation, and indeed multiple imputation, it is important to inspect the missingness patterns in the data and check assumptions.  Figure \ref{fig:missing-data} shows the missingness patterns in the dataset, where a black bar represents a missing value.  Table \ref{tab:missing-statistics} provides some measures about variable dependence  in the dataset.  The first row shows the probability of observed values for each variable.  The following are coefficients that give insight into how the variables are connected in terms of missingness.  $\mathbf{Influx}$ is the ratio of the number of variables pairs $(Y_j, ~Y_k)$ with $Y_j$ missing and $Y_k$ observed, divided by the total number of observed data.  For a variable that is entirely missing, influx is 1, and 0 for if the variable is complete.  $\mathbf{Outflux}$ is defined in the opposit manner, by dividing the number of pairs $(Y_j, ~Y_k)$ with $Y_j$ observed and $Y_k$ missing, by the total number of complete cells.  For a completely observed variable, outflux will have a value of 1 and 0 if completely missing.  Outflux gives an indication of how useful the variable will be for imputing other variables in the dataset, while influx is an indicator for how easily the variable can be imputed.  Table \ref{tab:missing-patterns} shows that all variables will be useful during impuation except `PreECMO_Albumin`.  A high outflux variable might turn out to be useless for the imputation procedure if it is unrelated to the incomplete variables, while the usefulness of a highly predictive variables is severely limited by a low outflux value (Van Buuren 2012).  **Mention \ref{fig:missing-data})**
-
-
-```{r missing-data, echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig:missing-data}Visual representation of missing observations in the ARDS dataset."}
-load("../project/data/processed-data.RData")
-vis_miss(data_clean.df, sort_miss = TRUE) +
-  theme(  plot.margin = ggplot2::margin(0.125, 2, 0.5, 1, "cm") ) #top, right, bottom, left
-```
-
-+ It can be difficult or impossible to determine if the data are MCAR.  Figure \ref{fig:missing-data} shows that many missing values occur in observations with other missing values.  Missing values could be conditionally dependent on other variables, in which case the data would be MAR.  The missing values could also be due to some unknown mechanism at the time of recording (*i.e.* a failure of the measurement device) that happens to effect multiple readings (the biomarkers are measured from blood samples and measurements are likely done in batches).  In this case the data would be MCAR.  Without more information, this analysis assumes the data is MCAR.  
-
-
-
-
 ## Prediction Performance
 
-The experimentation phase of this study involved three methods for handling missing data: (a) complete case analysis with the variable `PreECMO_Albumin` dropped from the analysis due to `r round( sum(is.na(data_clean.df$PreECMO_Albumin))/450 * 100, 2)`% missingness, (b) mean imputation on variables with missing values, (c) imputation via the MICE algorithm implemented with PMM.  
+This study involved four phases: (a) complete case analysis with the variable `PreECMO_Albumin` dropped from the analysis due to `r round( sum(is.na(data_clean.df$PreECMO_Albumin))/450 * 100, 2)`% missingness, (b) mean imputation on variables with missing values, (c) imputation via the MICE algorithm implemented with PMM for $m=9$ imputed datasets, and (d) imputation via the MICE algorithm implemented with PMM for $m=99$ imputed datasets.  
 
+The dataset was split into 75% training and 25% test with class proportions preserved.  The five classification models were trained in 10-fold cross-validation using the ensemble imputation approach.  Table \ref{tab:cv-kappa} shows the averaged Kappa from each analysis in 10-fold cross-validation.  In complete case analysis and mean imputaion, LDA is the highest performer.  While for predictive mean-matching with $m=9$ and $m=99$ logistic regression has the highest averaged Kappa.  
 
 ```{r, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%'}
 load("../project/_trained-models/trained-models-complete-case.RData")
 kappa_cc <- as.data.frame(cbind(table_logit[[2]], table_lda[[2]], table_qda[[2]], table_knn$xtabs[[2]], table_rf$xtabs[[2]]) )
+kmax_cc <- table_knn$kmax
+mtry_cc <- table_rf$mtry
 
 load("../project/_trained-models/trained-models-mean.RData")
 kappa_mean <- as.data.frame(cbind(table_logit[[2]], table_lda[[2]], table_qda[[2]], table_knn$xtabs[[2]], table_rf$xtabs[[2]]) )
+kmax_mean <- table_knn$kmax
+mtry_mean <- table_rf$mtry
 
 load("../project/_trained-models/trained-models-pmm.RData")
 kappa_pmm9 <- as.data.frame(cbind(table_logit[[2]], table_lda[[2]], table_qda[[2]], table_knn$xtabs[[2]], table_rf$xtabs[[2]]) )
@@ -517,9 +606,9 @@ mtry_pmm99 <- table_rf$mtry
 kappa_table <- rbind(kappa_cc, kappa_mean, kappa_pmm9, kappa_pmm99)
 kappa_table <- round(kappa_table, 3)
 colnames(kappa_table) <- c("Logit", "LDA", "QDA", "KNN", "RF")
-rownames(kappa_table) <- c("Complete Case", "Mean", "PMM9", "PMM99")
+rownames(kappa_table) <- c("Complete Case", "Mean", "MI (m=9)", "MI (m=99)")
 
-cap <- paste0('\\label{tab:cv-kappa} Averaged Cohen\'s Kappa for each model fitted in cross-validation.  The tuned parameters for K-Nearest Neighbors and Random Forests are (a) K=', kmax_pmm9, ' and mtry=', mtry_pmm9, ' (b) K=', kmax_pmm99, ' and mtry=', mtry_pmm99, ', respectively.')
+cap <- paste0('\\label{tab:cv-kappa} Averaged Cohen\'s Kappa for each model fitted in cross-validation.  The tuned parameters for KNN and RF on each imputation emthod are (a) K=', kmax_cc, ' and mtry=', mtry_cc, '(b) K=', kmax_mean, ' and mtry=', mtry_mean, '(c) K=', kmax_pmm9, ' and mtry=', mtry_pmm9, ' (d) K=', kmax_pmm99, ' and mtry=', mtry_pmm99, ', respectively.')
 
 kappa_table %>%
   kable(#col.names = c("Variables", "Test", "df", "p.value"), 
@@ -530,12 +619,12 @@ kappa_table %>%
                 latex_options = "hold_position")
 ```
 
-Table \ref{tab:cv-kappa} shows the averaged Kappa from each analysis in 10-fold cross-validation.  In complete case analysis and mean imputaion, LDA is the highest performer.  While for predictive mean-matching with $m=9$ and $m=99$ logistic regression has the highest averaged Kappa.  
-
 
 ###Validation on Test Set
 
-Using the parameters values learned from 10-fold cross-validation in Table \ref{tab:cv-kappa}, models were fit to the full training set and validated against the test set.  Trained parameters for K-nearest neighbors and random forests on $m=9$ imputed datasets were  $K=5$ and $mtry=13$, respectively, and on $m=99$ imputed datasets were $K=13$ and $mtry=15$, respectively.  
+Using the parameters values learned in cross-validation, models were fit on the full training set and validated against the test set.  In complete case analysis, KNN with $K=5$ performed the best with $\kappa=0.161$.  For the mean-imputed data, RF was the top performer with $\kappa=0.197$.  For both MI with $m=9$ (MI9) and $m=99$ (MI99), logistic regression outperformed the other classfication methods with $\kappa=0.153$ and $\kappa=0.274$, respectively.  
+
+The highest overall accuracy was $0.777$ using RF on the mean-imputed dataset.  However, the class-specific accuracies were $0.965$ for survival and $0.185$ for non-survival.  The best predictor of non-survival was logistic regression on MI99.  
 
 ```{r echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%'}
 load("../project/_metrics/metrics-complete-case.RData")
@@ -558,14 +647,14 @@ rownames(metrics_table_mean) <- NULL
 load("../project/_metrics/metrics-pmm.RData")
 load("../project/_trained-models/trained-models-pmm.RData")
 metrics_table_pmm <- metrics_table 
-metrics_table_pmm <- cbind("PMM (m=9)", model_names, metrics_table_pmm)
+metrics_table_pmm <- cbind("MI9", model_names, metrics_table_pmm)
 colnames(metrics_table_pmm)[1:2] <- c("Method", "Model")
 rownames(metrics_table_pmm) <- NULL
 
 load("../project/_metrics/metrics-pmm99.RData")
 load("../project/_trained-models/trained-models-pmm99.RData")
 metrics_table_pmm99 <- metrics_table 
-metrics_table_pmm99 <- cbind("PMM (m=99)", model_names, metrics_table_pmm99)
+metrics_table_pmm99 <- cbind("MI99", model_names, metrics_table_pmm99)
 colnames(metrics_table_pmm99)[1:2] <- c("Method", "Model")
 rownames(metrics_table_pmm99) <- NULL
 
@@ -595,12 +684,9 @@ metrics %>%
 ```
 
 
-
-
 ##Feature Selection
 
-The number of principal components retained is based on the proportion of variance.  At least 16 principal components are needed to explain 80% of the variance in the imputed training data and at least 15 principal components for the complete case analysis.  The red dashed lines in Figure \ref{fig:feature-importance-pca} indicate the expected average contribution.  If the contribution of the variables were uniform, the expected value would be $\frac{1}{\text{no. of variables}} =$ `r round(1/30, 2)`.   For a given component, an observation with a contribution larger than this cutoff could be considered as important in contributing to the component.
-
+At least 16 principal components are needed to explain 80% of the variance in the imputed training data and at least 15 principal components for the complete case analysis.  The red dashed lines in Figure \ref{fig:feature-importance-pca} indicate the expected average contribution of each variable to the selected principal components if each variable contributed equally to each principal component.  
 
 
 ```{r , echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig:feature-importance-pca}Contribution of variables to the principal components whose cumulative sum explains >80\\% of the variation in the data."}
@@ -620,17 +706,17 @@ pca_var1 <- fviz_pca_contrib(pca_cc,
                              axes = 1:16, 
                              sortcontrib = "desc",
                              title = "Complete Case",
-                             fill = "gray",
-                             color = "darkgray",
+                             fill = "skyblue3",
+                             color = "skyblue3",
                              top = 20,
                              xtickslab.rt = 45,
-                             ggtheme = theme(axis.text.x = element_text(vjust=1, angle=0, size=7),
-                                             axis.text.y = element_text(vjust=1, angle=0, size=7),
+                             ggtheme = theme(axis.text.x = element_text(vjust=1, angle=0, size=6),
+                                             axis.text.y = element_text(vjust=1, angle=0, size=6),
                                              axis.title.y = element_text(size = 7),
                                              title = element_text(size = 8),
                                              plot.margin = margin(0.25, 0.5, 0.125, 0.75, "cm") #top, right, bottom, left
                                              )
-                             )# + coord_flip()
+                             )# + theme_bw()
 
 ## Imputation Method: Mean
 data_mean.df <- data_mean.df %>%
@@ -646,18 +732,18 @@ pca_var2 <- fviz_pca_contrib(pca_mean,
                              choice = "var", 
                              axes = 1:16, 
                              sortcontrib = "desc",
-                             title = "Mean m=1",
-                             fill = "gray",
-                             color = "darkgray",
+                             title = "Mean",
+                             fill = "skyblue3",
+                             color = "skyblue3",
                              top = 20,
                              xtickslab.rt = 45,
-                             ggtheme = theme(axis.text.x = element_text(vjust=1, angle=0, size=7),
-                                             axis.text.y = element_text(vjust=1, angle=0, size=7),
+                             ggtheme = theme(axis.text.x = element_text(vjust=1, angle=0, size=6),
+                                             axis.text.y = element_text(vjust=1, angle=0, size=6),
                                              axis.title.y = element_text(size = 7),
                                              title = element_text(size = 8),
                                              plot.margin = margin(0.25, 0.5, 0.125, 0.5, "cm") #top, right, bottom, left
                                              )
-                             )# + coord_flip()
+                             )# + theme_bw()
 
 
 ## Imputation Method: PMM9
@@ -673,18 +759,18 @@ pca_var3 <- fviz_pca_contrib(pca_pmm9,
                              choice = "var", 
                              axes = 1:16, 
                              sortcontrib = "desc",
-                             title = "PMM (m=9)",
-                             fill = "gray",
-                             color = "darkgray",
+                             title = "MI (m=9)",
+                             fill = "skyblue3",
+                             color = "skyblue3",
                              xtickslab.rt = 45,
                              top = 20,
-                             ggtheme = theme(axis.text.x = element_text(vjust=1, angle=0, size=7),
-                                             axis.text.y = element_text(vjust=1, angle=0, size=7),
+                             ggtheme = theme(axis.text.x = element_text(vjust=1, angle=0, size=6),
+                                             axis.text.y = element_text(vjust=1, angle=0, size=6),
                                              axis.title.y = element_text(size = 7),
                                              title = element_text(size = 8),
                                              plot.margin = margin(0.125, 0.5, 0.25, 0.75, "cm") #top, right, bottom, left
                                             )
-                             )# + coord_flip()
+                             )# + theme_bw()
 
 
 ## Imputation Method: PMM9
@@ -701,22 +787,22 @@ pca_var4 <- fviz_pca_contrib(pca_pmm99,
                              choice = "var", 
                              axes = 1:16, 
                              sortcontrib = "desc",
-                             title = "PMM (m=99)",
-                             fill = "gray",
-                             color = "darkgray",
+                             title = "MI (m=99)",
+                             fill = "skyblue3",
+                             color = "skyblue3",
                              xtickslab.rt = 45,
                              top = 20,
-                             ggtheme = theme(axis.text.x = element_text(vjust=1, angle=0, size=7),
-                                             axis.text.y = element_text(vjust=1, angle=0, size=7),
+                             ggtheme = theme(axis.text.x = element_text(vjust=1, angle=0, size=6),
+                                             axis.text.y = element_text(vjust=1, angle=0, size=6),
                                              axis.title.y = element_text(size = 7),
                                              title = element_text(size = 8),
                                              plot.margin = margin(0.125, 0.5, 0.25, 0.5, "cm") #top, right, bottom, left
                                              ) 
-                             )# + coord_flip()
+                             )# + theme_bw()
 
 ## Create Multiplot
 require(gridExtra)
-grid.arrange(pca_var1, pca_var2, pca_var3, pca_var4, ncol = 2, top = "Variable Contributions to Principal Components")
+grid.arrange(pca_var1, pca_var2, pca_var3, pca_var4, ncol = 2, top = "Variable Importance")
 
 ```
 
@@ -725,42 +811,37 @@ grid.arrange(pca_var1, pca_var2, pca_var3, pca_var4, ncol = 2, top = "Variable C
 \newpage
 #Discussion
 
+ 
+Model performance on the imputed datasets were generally better than in complete case analysis.  Non-parametric methods, KN and RF, performed better on the complete case analysis and single mean imputation while logistic regression performed better on the multiply imputed datasets.  All the methods in each analysis were able to predict survival with $>80\%$ accuracy.  The ability to predict non-survival was the limiting factor in the performance of a method.  Non-survival was best predicted by logistic regression in MI99 with a prediction accuracy of $0.333$.  
 
+Logistic regression performed consistently well in predicting non-survival and performed well for imputation methods except for complete case analysis.  LDA also performs rather consistently for each imputed dataset.  The consistent performance of LDA and logistic regression is not surprising given that they are similar methods, however logistic regression outperforms LDA in each analysis.  LDA can perform better than logistic regression when the covariates are normally distributed [@efron_efficiency_1975], but  LDA is not robust to outliers [@hastie_elements_2009] and Figure \ref{fig:violin-standardized} shows a number of outliers in almost every variable.  Logistic regression is robust to outliers and makes less assumptions than LDA [@hastie_elements_2009] allowing it to generalize better.
 
-##Model Performance
+There were 136 less observations for complete case analysis than for the other experiments.  Performance metrics have moderate variance due to the non-survival class in the test set only having 27 observations.  Predicting one or two more observations as non-survival can have moderately large effects on Kappa.  The relatively low number of observations compounded by the imbalance in the response classes make prediction difficult.  Low predictive power of the variables make this problem eeven more difficult.  
 
-**Logistic Regression**  
-For complete-case analysis, mean imputation, and predictive mean-matching, logistic regression does not meet the "one in ten rule", a rule of thumb stating that a logistic regression models give stable estimates for the covariates if there are at least 10 observations of the least frequent class per covariate.  
-
-
-**LDA**  
-Can perform better than logistic regression when the covariates are normally distributed **(CITATION)**, which they are in this case after Yeo-Johnson transformation.  
-
-**QDA**
-
-
-**K-Nearest Neighbors**
+A surprising result is that KNN performed the best in the complete case analysis, $\kappa=0.161$ and also performed better than the best performing model on MI9 (Logit with $\kappa=0.153$).  On the imputed datasets KNN performed relatively poorly but similarly to LDA.  QDA consistently performed the worst, no better than random chance based on the class likelihoods ($\kappa \approx 0$), suggesting that the class distributions do not support a quadratic decision boundary.   
 
 
 **Random Forests Fails**  
 
 + Sparsity - When the data are very sparse, it's very plausible that for some node, the bootstrapped sample and the random subset of features will collaborate to produce an invariant feature space. There's no productive split to be had, so it's unlikely that the children of this node will be at all helpful.
 
-+  One surprising consequence is that trees that work well for nearest-neighbor search problems can be bad candidates for forests without sufficient subsampling, due toa lack of diversity.  **(Tang et al. 2018)**
++  One surprising consequence is that trees that work well for nearest-neighbor search problems can be bad candidates for forests without sufficient subsampling, due to a lack of diversity [@tang_when_2018].  
 
 + Data are not axis-aligned - Suppose that there is a diagonal decision boundary in the space of two features, $x_1$ or $x_2$.  Even if this is the only relevant dimension to your data, it will take an ordinary random forest model many splits to describes that diagonal boundary.  This is because each split is oriented perpendicular to the axis of either $x_1$ or $x_2$.  
 
-+ XGBoost, Rotation forest (PCA rotation) may do better
+
+*Feature Importance:* 
 
 
-##Important Features for Prediction
+##Improvements
 
-+ Mention poor model performance 
-+ Correlation heatmap
-+ Results from PCA
-+ **Refer to Figure \ref{fig:feature-importance-pca} in Appendix A for feature importance plots from PCA analysis**
+One way to increase predictive performance is to include more observations in the analysis.  Obtaining new data to include in the analysis could prove expensive or difficult.  Instead, some observations from the test set could be retained for training the model in a nested cross-validation approach.  The analyses done in this paper would constitute one iteration of the $K_\text{o}$ outer cross-validation iterations where a new test set is selected by stratified randomly sampling, models are trained on the $K_\text{o}-1$ via an inner $K_{i}$-fold cross-validation.  Since the data was originally split into 25% test and 75% train, If $K_\text{o}$ is chosen to be >4, more observations can be retained in the training set.  If $K_\text{o}=10$ were chosen, the prediction models would be trained on 67 more observations.  The outer cross-validtion would then give the expected test prediction since it averages over different training sets [@hastie_elements_2009].  The drawback to nested cross-validation is that the time complexity scales from $O(K_\text{i})$ to $O(K_\text{o}K_\text{i})$.  Indeed, the full time complexity for $m$ imputations and a grid search over $p$ parameters would then be $O(K_\text{o}K_\text{i}mp)$.  
 
 
+Variable selection via PCA is independent of the classification method and allows important variables to be identified outside of the classification analysis.  Method dependent methods may better select variables **(Citation)**.  Regularized logistic regression can select variables through use of the LASSO [@tibshirani_regression_1996].  LASSO methods have also been developed for LDA and QDA Sparse Discriminant Analysis [@clemmensen_sparse_2011] and DALASS [@trendafilov_dalass:_2007].  Random forests naturally select important variables by ____ **(Citation)**.  
+
++ Predict with selected features
++ Pool posterior probabilities of predictions
 
 
 ##Conclusion
@@ -769,9 +850,8 @@ Can perform better than logistic regression when the covariates are normally dis
 + Summary of results
 + Possible improvements and future work
 
-###Feature Selection
 
-+ Model dependent methods for feature extraction may 
+
 
 
 
@@ -782,27 +862,12 @@ Can perform better than logistic regression when the covariates are normally dis
 
 
 \newpage
-#Appendices
+#Appendices {-}
 
-##A. Additional Exploratory Data Analysis
+##A. Additional Exploratory Data Analysis {-}
+\appendixA
 
 
-```{r , echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig:heatmap-standardized}Heatmap of standardized and transformed variables."}
-# Correlation matrix plot
-ggcorr(data_standard.df[, 1:ncol(data_standard.df)], 
-       hjust = 0.95, 
-       size = 2, 
-       label = TRUE, 
-       label_size = 2, 
-       label_alpha = TRUE, 
-       layout.exp = 5, 
-       legend.position = "bottom", 
-       legend.size = 8) +
-  guides(fill = guide_colorbar(barwidth = 10, 
-                               barheight = 0.5, 
-                               title.vjust = 0.75)) 
-#  theme(  plot.margin = margin(1, 1, 1, 1, "cm") ) #top, right, bottom, left
-```
 
 
 ```{r , echo = FALSE, eval = FALSE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig:density}Density plots of standardized variables."}
@@ -823,14 +888,15 @@ data_clean.df %>%
 
 
 
-##B. Algorithms
+##B. Algorithms {-}
+\appendixB
 
 ###Random Forests Algorithm
 
 The random forests algorithm depicted is adapted from [@hastie_elements_2009].  
 
 \begin{algorithm}[H]
-
+\label{alg:random-forests-alg}
 \caption{Random Forest Classifier}
 \DontPrintSemicolon
 \SetAlgoLined
@@ -863,7 +929,7 @@ $$\hat{Y}^B_{\text{rf}}(x) = \text{majority vote } \left\{ \hat{Y}_b(x) \right\}
 The MICE algorithm is adapted from [@van_buuren_flexible_2012].
 
 \begin{algorithm}[H]
-
+\label{alg:mice-alg}
 \caption{Multiple Imputation via Chained Equations}
 \DontPrintSemicolon
 \SetAlgoLined
@@ -899,39 +965,17 @@ In fact (Alexandre et al. 2001) show that for classification problems with two c
 
 
 
-##C. Additional Missing Data Diagnostics
-
-```{r , echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig:missing-data-patterns1}Missing data patterns.  Each row corresponds to a missing data pattern (1=observed, 0=missing).  Rows and columns are sorted in increasing amounts of missing information.  The last column and row contain row and column counts, respectively."}
-missing_data_patterns <- md.pattern(data_clean.df, plot = TRUE, rotate.names = TRUE) +
-  theme_bw()
-#  theme(  text = element_text(size = 1),
-#          plot.margin = margin(4, 1, 1, 1, "cm") ) #top, right, bottom, left
-```
+##C. Additional Missing Data Diagnostics {-}
+\appendixC
 
 
-```{r , echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig:missing-data-patterns2}Missing data patterns.  Each row corresponds to a missing data pattern (1=observed, 0=missing).  Rows and columns are sorted in increasing amounts of missing information.  The last column and row contain row and column counts, respectively."}
+```{r , echo = FALSE, eval = FALSE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig:missing-data-patterns2}Missing data patterns.  Each row corresponds to a missing data pattern (1=observed, 0=missing).  Rows and columns are sorted in increasing amounts of missing information.  The last column and row contain row and column counts, respectively."}
 missing_data_patterns2 <- aggr(data_clean.df, col=mdc(1:2), numbers=TRUE, sortVars=TRUE, labels=names(data_clean.df), cex.axis=.7, gap=3, ylab=c("Proportion of missingness","Missingness Pattern")) +
   theme_bw()
 ```
 
+
 ###Visual Insepction of Imputations
-
-```{r, echo = FALSE, eval = TRUE, warning = FALSE, message = FALSE, out.width = '100%', fig.align="center", fig.pos="H"}
-
-flux <- flux(data_clean.df)
-
-flux %>%
-  round(2) %>%
-  select(pobs, influx, outflux) %>%
-  kable(col.names = c("Proportion", "Influx", "Outflux"), 
-        caption = '\\label{tab:missing-statistics} Missing pattern statistics for variables in dataset.',
-        booktabs = TRUE, 
-        format = "latex") %>%
-  kable_styling(font_size = 10, 
-                latex_options = "hold_position") %>%
-  row_spec(23, bold = TRUE)
-```
-
 
 ```{r , echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig:xyplot-mean}Scatterplot of each imputed dataset"}
 ## Impute concatenated train and test sets
@@ -972,8 +1016,6 @@ imp_pmm <- micemd::mice.par(data_standard.df,
 xyplot(imp_pmm, PreECMO_Albumin ~ PreECMO_ATIII | .imp, pch = 20, cex = 0.5)
 ```
 
-+ **xyplot checking distributions of original and imputed data for MEAN imputation**
-+ **xyplot checking distributions of original and imputed data for PMM imputation**
 
 + **density plot of original and imputed data for MEAN imputation**
 + **density plot of original and imputed data for PMM imputation**
@@ -991,7 +1033,8 @@ to be similar (though not identical) under MAR assumption.
 
 
 
-##D. Feature Selection
+##D. Feature Selection {-}
+\appendixD
 
 ```{r , echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig:rfe-logit}Ordered feature importance from Logit model"}
 ## Recursive Feature Elimination
@@ -1076,7 +1119,9 @@ grid.arrange(imp1, imp2, imp3, imp4, ncol = 2, top = "Scaled Feature Importance"
 
 
 
-##E. Code Structure
+##E. Code Structure {-}
+\appendixE
+
 The code organization is described in Figure \ref{fig:r-code-chart}.  `libraries.R` contains all the libraries used in the analysis.  `functions.R` contains functions used in `training.R` and `model-evaluation.R`.  The ensemble cross-validation algorithm is done in the `crossValidation()` function.  The data is initially cleaned and split into test and training sets in `preprocess.R`.  The cleaned datasets are saved to `processed-data.RData` for use in `training.R` and in creating tables and figures in the thesis rmarkdown.  The training data is loaded into `training.R` where each of the five classification methods are trained via ensemble cross-validation.  This is done for the four imputation methods: complete case analysis, mean imputation, MICE using PMM for $m=9$, and MICE using PMM for $m=99$ imputed datasets.  The trained models for each imputation method are saved into separate `trained-models.RData`.  The methods are then then fit to the full training set in `model-evaluation.R` using the trained parameters found in `training.R`.  The final fitted models are evaluated on the test set and the fitted models and performance metrics are saved to `metrics.RData`.  
 
 ```{r , echo = FALSE, eval = TRUE, fig.pos="H", fig.align = 'center', out.width = '100%', fig.cap = "\\label{fig:r-code-chart}Flowchart of code structure."}
@@ -1086,7 +1131,7 @@ knitr::include_graphics("images/r-code-chart.png")
 
 
 
-##F. OLD PLOTS & FIGURES
+##F. OLD PLOTS & FIGURES {-}
 
 ```{r , echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE}
 data_clean.df %>%
