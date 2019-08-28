@@ -6,7 +6,8 @@ thesis: MASTER THESIS
 major: Biostatistics
 output:
   pdf_document:
-    citation_package: natbib
+#    citation_package: natbib
+    citation_package: biblatex
     number_sections: yes
     fig_caption: yes
     fig_crop: no
@@ -28,7 +29,9 @@ fontsize: 12pt
 geometry: "left=1in,right=1in,top=1in,bottom=1in"
 
 bibliography: bibliography.bib
-biblio-style: "apalike"
+#biblio-style: "apalike"
+#citestyle: numeric-comp
+bib-humanities: false
 link-citations: yes
 #csl: ieee.csl
 #csl: chicago-author-date.csl
@@ -154,14 +157,15 @@ To Google, couldin'a donnit wit' out ya.
 \newpage
 #Introduction
 
-Prediction in medical data can often be difficult due to a low number of observations and poor predictive covariates.  If the response class distributions are imbalanced, then prediction becomes even more difficult.  Some of these issues arise from the experimental design of the study but little can be rememdied post-hoc.  Missing values in the data complicate analysis even further and are often handled either by dropping missing observations or filling in the missing value by the mean.  Both methods can be valid if certain assumptions hold, but useful information is either lost to the analysis or the sample become biased **(Citation)**.  
+Missing data are commoin in clinical and epidemiological studies [@powney_review_2014] [@karahalios_review_2012] [@wood_are_2004]
 
-the natural distribution of the data is effected.  
+
+Prediction in medical data can often be difficult due to a low number of observations and poor predictive covariates.  If the response class distributions are imbalanced, then prediction becomes even more difficult.  Some of these issues arise from the experimental design of the study but little can be rememdied post-hoc.  Missing values in the data complicate analysis even further and are often handled either by dropping missing observations or filling in the missing value by the mean.  Both methods can be valid if certain assumptions hold, but useful information is either lost to the analysis or the sample becomes biased **(Citation)**.  Several statistical methods have been proposed for handling missing data [@schafer_missing_2002].  Simple proceedures include complete case analysis (CC) wherein all observations with missing data are excluded, single imputation methods that simply use the mean to replace the missing value (SIM), and more principled methods such as multiple imputation (MI).   Multiple imputation is a widely used flexible method in datasets with missing values.  MI is commonly used in medical studies **(Citation)** but how it is implemented in often not stated [@mackinnon_use_2010] [@hayati_rezvan_rise_2015].
 
 
 ##Study Population & Data Description
 
-This paper investigates predicting survival of patients diagnosed with Acute Respiratory Distress Syndrom (ARDS) after (ECMO) treatment.  ARDS is a ____ that affects ____ people world wide.  It has a moretality of ____.  Current treatments...  ECMO is a treatment used in ___ that is thought to help patients with ARDS.  
+This paper investigates predicting survival of patients diagnosed with Acute Respiratory Distress Syndrom (ARDS) after treatment with Extracorporeal Membrane Oxygenation (ECMO).  ARDS is a common and often fatal cause of respiratory failure among patients who are critically ill with an estimated global prevalence of 10% and a mortality of 25-40% [@bellani_epidemiology_2016][@rubenfeld_epidemiology_2007][@fan_acute_2018].  ARDS is syndrome with many disease paths characterized by rapid onset of widespread inflammation in the lungs [@fan_acute_2018].  ECMO is a treatment used in ___ that is thought to help patients with ARDS[@].  Studies have reported favorable outcome in young ARDS patients treated with ECMO but not older [@Sahetya01052018].  ECMO treatment is a complicated and invasive proceedure with risks that lead to death [@paolone_extracorporeal_2017].  Identifying mortality risk of patients before treatment is crucial.  Two ARDS subphenotypes have been identified with distinct clinical and biological features that are thought to support predictive strategies [@calfee_acute_2018][@sinha_latent_2018].  
 
 The dataset is composed of 450 observations on patients with Acute Respiratory Distress Syndrome who underwent ECMO treatment.  The response variable, `ECMO_Survival`, is a binary categorical variable for survival indication with levels "Y" and "N".  There are 33 covariates included in the analysis, two of which are categorical, and 31 continuous.  The categorical variable `Gender` has two levels, "m" and "f", and `Indication` a seven level nominal categorical indicator of disease type.  The continuous variable `Age` is also included in the analysis with a minimum age of 18 and a maximum of 83 with a median age of 53.  The remaining variables are biomedical markers from hospital measurements.   
   
@@ -174,9 +178,10 @@ The main questions of interest investigated in this paper are:
 2. What is the future expected performance of predictions?
 3. Which biomedical markers are needed for accurate prediction and which can be dropped?
 
-To further the goals of this paper multiple imputation is investigated for increasing prediction performance on ECMO treatment survival.  This method both allows retention of observations in the analysis as well as accounts for the uncertainty of the imputed value.  The advantages come at the cost of complexity and increased computation time.  Multiple datasets must be imputed and results somehow pooled.  
+##Layout
+To further the goals of this paper multiple imputation is investigated for increasing prediction performance on ECMO treatment survival.  This method both allows retention of observations in the analysis as well as accounts for the uncertainty of the imputed value.  The advantages come at the cost of complexity and increased computation time; multiple datasets are be imputed and results pooled.  
 
-
+This paper begins by explaining how the data are cleaned and an explanation of the proceedure to pool results from MI in cross-validation.  An explanantion of imputaiton methods considers follows.  Finally, an explanation of the considered classification methods and how each is implemented then follows.  Lastly, a discussion of the results from predictions on each imputed dataset. 
 
 
 \newpage
@@ -217,8 +222,9 @@ The posterior probabilities are estimated by maximizing the log-likelihood funct
 $$
 \text{Pr}(Y=1 \vert X) = \frac{ \text{exp}(\mathbf{x}^T_1 \hat{\boldsymbol{\beta}}) }{ 1 + \sum^2_{i=1} \text{exp}(\mathbf{x}^T_i \hat{\boldsymbol{\beta}}) }
 $$
-+ **State how I implemented Logistic Regression**
-+ **Refer to "Comparison of Logistic Regression and Linear Discriminant Analysis: A Simulation Study"** for writing equations. 
+
++ **State how I implemented Logistic Regression**  
++ **Refer to "Comparison of Logistic Regression and Linear Discriminant Analysis: A Simulation Study"** for writing equations.   
 
 
 ###LDA and QDA 
@@ -262,7 +268,7 @@ defines the *Linear Discriminant Function*. This method has linear decision boun
 
 There is a bias-variance trade-off; both assume the covariates are normally distributed, there is no multicollinearity, and the observations are independent [@cover_geometrical_1965].  LDA additionally assumes equal class covariances.  Discriminant Analysis can only utilize continuous covariates with no missing observations.  The bias from simple linear or quadratic class boundaries can be acceptable because  it is estimated with less variance.  Despite the many assumptions and limitations, both LDA and QDA are widely used and perform well on on a diverse set of classification tasks [@hastie_elements_2009], even when the classes are not normally distributed.  
 
-+ **State how I implemented LDA and QDA**
++ **State how I implemented LDA and QDA**  
 
 
 ###K-Nearest Neighbors
@@ -271,16 +277,15 @@ $K$-Nearest Neighbors (KNN) is a commonly used non-parametric classification met
 
 KNN is sensitive to the local structure of the data.  As $K$ increases, the variability of the classification tends to decrease at the expense of increased bias. 
 
-+ **State how I implemented KNN**
++ **State how I implemented KNN**  
 
 
 ###Random Forests
 
 Random forests (Brieman, 2001) are one of the most successful general-purpose modern algorithms (Biau and Scornet, 2016).  They are an ensemble learning method that can be applied to a wide range of tasks, namely classification and regression.  A random forest is created by building multiple decision trees, where randomness is introduced during the construction of each tree.  Predictions are made by classifying a new observation to the mode of the multiple decisions tree classifications.  Random forests often make accurate and robust predictions, even for very high-dimensional problems (Biau, 2012).  See **(Appendix X)** for an explanation of the random forests algorithm. 
 
-+ **State why random forests are good predictors**
-
-+ **State how I implemented Random Forests**
++ **State why random forests are good predictors**  
++ **State how I implemented Random Forests**  
 
 
 ##Accuracy Metrics
@@ -345,7 +350,7 @@ $$
 
 If all the observations are predicted correctly then $\kappa=1$.  If the observations are predicted no better than expected by the class probabilities, $p_e$ then $\kappa=0$.  If all the observations are predicted incorrectly, then $\kappa=-1$.  A positive $\kappa$ indicates that the model predicts better than would be expected by chance whereas a negative $\kappa$ indicates that the model predicts worse than would be expected by chance.  
 
-+ **State how I Kappa and other metrics are used**
++ **State how I Kappa and other metrics are used**  
 
 
 ##Missing Data
@@ -363,7 +368,7 @@ The ARDS dataset considered in this paper has `r sum(!complete.cases(data_clean.
 ###Mean Imputation
 Another common method for handling missing data is mean imputation; the missing value is replaced by the mean of the observed values (the mode for categorical data).  This approach is satisfactory for a moderate amount of MCAR-generated  missing  values.  However, it  distorts  the distribution of the data by reducing the variance of the imputed variables and the correlations between variables [@little_bayes_2014].  Van Buuren  suggests mean imputation should only be used only when there are few missing values, and should be generally avoided [@van_buuren_flexible_2012].  Mean imputation is considered in this paper because although it is often a poor method of choice for imputing missing values, it is commonly done in medical datasets **(Citation)**. 
 
-+ **State how I implemented mean imputation is done**
++ **State how I implemented mean imputation is done**  
 
 
 ###Multiple Imputation
@@ -382,7 +387,7 @@ There is uncertainty as to the true value of the unseen data, and that uncertain
 
 Predictive Mean Matching (PMM) is a semi-parametric imputation approach to imputing missing values.  It fills in a value randomly from among the a observed donor values from an observation whose regression-predicted values are closest to the regression-predicted value for the missing value from the simulated regression model (Heitjan and Little 1991; Schenker and Taylor 1996).  PMM method ensures that imputed values are plausible; it might be more appropriate than the regression method (which assumes a joint multivariate normal distribution) if the normality assumption is violated (Horton and Lipsitz 2001, p. 246). PMM is fairly robust to transformations of the target variables [@van_buuren_flexible_2012], yielding similar results for a Yeo-Johnson transformation or no transformation. 
 
-+ **Equations for Predictive Mean Matching**
++ **Equations for Predictive Mean Matching**  
 
 
 ##Ensemble Multiple Imputation
@@ -413,7 +418,7 @@ The following steps describe the ensemble approach for multiply imputed data in 
 
 The training set is multiply imputed with PMM for $m=9$ and $m=99$ and the predictions pooled by majority vote.  There has been sufficient exploration into pooling of posterior probabilities resulting from classification problems **(Citation 1)** **(Citation 2)**.  *Additionally, not all statistical methods considered produce posterior probabilities and the comparison of pooled models from multiple imputation is an area ripe for more analysis.*  Indeed, others have pooled predictions from various machine learning methods by taking the majority vote **(Zavrakidis)** **(Citation 2)**, and comparing prediction performance.  The combination can be implemented using a variety of strategies, among which majority vote is one of the simplest, and has been found to be just as effective as more complicated schemes [@lam_optimal_1995].
 
-+ **Put this Cross-Validation??**
++ **Put this Cross-Validation??**  
 
 
 ##Feature Selection
@@ -431,7 +436,7 @@ $$
 
 The $\text{C}_j$ are sorted in descending order where $\text{C}_1$ contributes the most variation to the extracted principal components among all the $\text{C}_j$ for $j=1,2,...p$, variables.  Variables at the beginning of the sorted list are considered more important for the analysis than variables at the end.  Here, any variable that contributes more than the expected average contribution, if all variables contributed equally, is selected as important for the analysis.  
 
-+ **How are the top $C_j's$ chosen?**
++ **How are the top $C_j's$ chosen?**  
 
 The number of principal components retained, $k$, is based on the proportion of variance retained of the $p$ principal components, where the variance threshold is chosen to be 80%. 
 

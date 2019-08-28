@@ -29,8 +29,9 @@
             pdfborder={0 0 0},
             breaklinks=true}
 \urlstyle{same}  % don't use monospace font for urls
-\usepackage{natbib}
-\bibliographystyle{apalike}
+\usepackage{biblatex}
+
+\addbibresource{bibliography.bib}
 \usepackage{longtable,booktabs}
 \usepackage{graphicx,grffile}
 \makeatletter
@@ -150,6 +151,10 @@ To Google, couldin'a donnit wit' out ya.
 
 \section{Introduction}\label{introduction}
 
+Missing data are commoin in clinical and epidemiological studies
+\autocite{powney_review_2014} \autocite{karahalios_review_2012}
+\autocite{wood_are_2004}
+
 Prediction in medical data can often be difficult due to a low number of
 observations and poor predictive covariates. If the response class
 distributions are imbalanced, then prediction becomes even more
@@ -158,19 +163,38 @@ the study but little can be rememdied post-hoc. Missing values in the
 data complicate analysis even further and are often handled either by
 dropping missing observations or filling in the missing value by the
 mean. Both methods can be valid if certain assumptions hold, but useful
-information is either lost to the analysis or the sample become biased
-\textbf{(Citation)}.
-
-the natural distribution of the data is effected.
+information is either lost to the analysis or the sample becomes biased
+\textbf{(Citation)}. Several statistical methods have been proposed for
+handling missing data \autocite{schafer_missing_2002}. Simple
+proceedures include complete case analysis (CC) wherein all observations
+with missing data are excluded, single imputation methods that simply
+use the mean to replace the missing value (SIM), and more principled
+methods such as multiple imputation (MI). Multiple imputation is a
+widely used flexible method in datasets with missing values. MI is
+commonly used in medical studies \textbf{(Citation)} but how it is
+implemented in often not stated \autocite{mackinnon_use_2010}
+\autocite{hayati_rezvan_rise_2015}.
 
 \subsection{Study Population \& Data
 Description}\label{study-population-data-description}
 
 This paper investigates predicting survival of patients diagnosed with
-Acute Respiratory Distress Syndrom (ARDS) after (ECMO) treatment. ARDS
-is a \_\_\_\_ that affects \_\_\_\_ people world wide. It has a
-moretality of \_\_\_\_. Current treatments\ldots{} ECMO is a treatment
-used in \_\_\_ that is thought to help patients with ARDS.
+Acute Respiratory Distress Syndrom (ARDS) after treatment with
+Extracorporeal Membrane Oxygenation (ECMO). ARDS is a common and often
+fatal cause of respiratory failure among patients who are critically ill
+with an estimated global prevalence of 10\% and a mortality of 25-40\%
+\autocite{bellani_epidemiology_2016}\autocite{rubenfeld_epidemiology_2007}\autocite{fan_acute_2018}.
+ARDS is syndrome with many disease paths characterized by rapid onset of
+widespread inflammation in the lungs \autocite{fan_acute_2018}. ECMO is
+a treatment used in \_\_\_ that is thought to help patients with
+ARDS{[}@{]}. Studies have reported favorable outcome in young ARDS
+patients treated with ECMO but not older \autocite{Sahetya01052018}.
+ECMO treatment is a complicated and invasive proceedure with risks that
+lead to death \autocite{paolone_extracorporeal_2017}. Identifying
+mortality risk of patients before treatment is crucial. Two ARDS
+subphenotypes have been identified with distinct clinical and biological
+features that are thought to support predictive strategies
+\autocite{calfee_acute_2018}\autocite{sinha_latent_2018}.
 
 The dataset is composed of 450 observations on patients with Acute
 Respiratory Distress Syndrome who underwent ECMO treatment. The response
@@ -202,12 +226,21 @@ The main questions of interest investigated in this paper are:
   can be dropped?
 \end{enumerate}
 
+\subsection{Layout}\label{layout}
+
 To further the goals of this paper multiple imputation is investigated
 for increasing prediction performance on ECMO treatment survival. This
 method both allows retention of observations in the analysis as well as
 accounts for the uncertainty of the imputed value. The advantages come
-at the cost of complexity and increased computation time. Multiple
-datasets must be imputed and results somehow pooled.
+at the cost of complexity and increased computation time; multiple
+datasets are be imputed and results pooled.
+
+This paper begins by explaining how the data are cleaned and an
+explanation of the proceedure to pool results from MI in
+cross-validation. An explanantion of imputaiton methods considers
+follows. Finally, an explanation of the considered classification
+methods and how each is implemented then follows. Lastly, a discussion
+of the results from predictions on each imputed dataset.
 
 \newpage
 
@@ -228,7 +261,7 @@ transformed so the distributional form of the data is multivariate
 normal. Some nonparametric classification methods assume the data is
 multivariate normally distributed and can have better prediction
 performance if the assumption is true. The data are transformed using
-the Yeo-Johnson transformation \citep{yeo_new_2000}. The Yeo-Johnson
+the Yeo-Johnson transformation \autocite{yeo_new_2000}. The Yeo-Johnson
 transformation is similar to a Box-Cox transformation except it can
 accomodate covariate with zero and/or negative values.
 
@@ -254,7 +287,7 @@ true test error will be underestimated.
 If there is insufficient data to split into three parts then a suitable
 alternative is \(K\)-fold cross-validation. It is one of the simplest
 and most widely used method for estimating prediction error
-\citep{hastie_elements_2009}. The data is randomly split into \(K\)
+\autocite{hastie_elements_2009}. The data is randomly split into \(K\)
 folds, where the \(K^{th}\) fold is taken as the validation set and the
 the remaining \(K-1\) folds are used for training the model. The
 procedure is then repeated \(K\) times and the prediction error
@@ -265,7 +298,7 @@ choice of \(K\) can effect the variability of the prediction error; if
 highly variable and if \(K=n\) (the number of observation in the
 dataset), the model is fit with no validation set for training
 parameters. Typical values used are \(K=5\) \& \(10\)
-\citep{hastie_elements_2009} \textbf{Breiman and Spector (1992)}
+\autocite{hastie_elements_2009} \textbf{Breiman and Spector (1992)}
 \textbf{Kohavi (1995)}.
 
 a training and a test set, respectively, preserving class proportions
@@ -301,14 +334,23 @@ log-likelihood function to find the parameter estimates,
 
 \[
 \text{Pr}(Y=1 \vert X) = \frac{ \text{exp}(\mathbf{x}^T_1 \hat{\boldsymbol{\beta}}) }{ 1 + \sum^2_{i=1} \text{exp}(\mathbf{x}^T_i \hat{\boldsymbol{\beta}}) }
-\] + \textbf{State how I implemented Logistic Regression}
+\]
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{State how I implemented Logistic Regression}\\
+\item
+  \textbf{Refer to ``Comparison of Logistic Regression and Linear
+  Discriminant Analysis: A Simulation Study''} for writing equations.
+\end{itemize}
 
 \subsubsection{LDA and QDA}\label{lda-and-qda}
 
 Discriminant Analysis is a widely used set of classification methods. A
-generlization of Fisher's Linear Discriminant \citep{fisher_use_1936},
-discriminant functions are created through a combination of the
-explanatory variables that characterize the classes.
+generlization of Fisher's Linear Discriminant
+\autocite{fisher_use_1936}, discriminant functions are created through a
+combination of the explanatory variables that characterize the classes.
 
 Let \(p(X \vert Y)\) be the densities of distributions of the
 observations for each class and let \(\pi_Y\) denote the prior
@@ -363,14 +405,14 @@ the observation to the class with the largest LDF}.
 
 There is a bias-variance trade-off; both assume the covariates are
 normally distributed, there is no multicollinearity, and the
-observations are independent \citep{cover_geometrical_1965}. LDA
+observations are independent \autocite{cover_geometrical_1965}. LDA
 additionally assumes equal class covariances. Discriminant Analysis can
 only utilize continuous covariates with no missing observations. The
 bias from simple linear or quadratic class boundaries can be acceptable
 because it is estimated with less variance. Despite the many assumptions
 and limitations, both LDA and QDA are widely used and perform well on on
-a diverse set of classification tasks \citep{hastie_elements_2009}, even
-when the classes are not normally distributed.
+a diverse set of classification tasks \autocite{hastie_elements_2009},
+even when the classes are not normally distributed.
 
 \begin{itemize}
 \tightlist
@@ -416,8 +458,9 @@ high-dimensional problems (Biau, 2012). See \textbf{(Appendix X)} for an
 explanation of the random forests algorithm.
 
 \begin{itemize}
+\tightlist
 \item
-  \textbf{State why random forests are good predictors}
+  \textbf{State why random forests are good predictors}\\
 \item
   \textbf{State how I implemented Random Forests}
 \end{itemize}
@@ -476,7 +519,7 @@ likelihood of the class proportions.
 
 \subsubsection{Cohen's Kappa}\label{cohens-kappa}
 
-Kappa or Cohen's Kappa \citep{cohen_coefficient_1960} is a
+Kappa or Cohen's Kappa \autocite{cohen_coefficient_1960} is a
 classification performance metric that is normalized at the baseline of
 random chance on the dataset. It is a useful performance measure on
 problems with imbalanced classes. Cohen's Kappa is defined as:
@@ -516,7 +559,7 @@ worse than would be expected by chance.
 Missing data is a common problem that must be dealt with in machine
 learning, statistics, and medicine. Understanding the missing mechanism
 for the missing observations is important in the analysis.
-\citep{rubin_inference_1976} defined three types of missing data
+\autocite{rubin_inference_1976} defined three types of missing data
 mechanisms: missing completely at random (MCAR), missing at random
 (MAR), and missing not at random (MNAR). The data are said to be missing
 completely at random (MCAR) if the probability of being missing is the
@@ -524,7 +567,7 @@ same for all cases. This implies the causes of the missing data are
 unrelated to the data itself. While MCAR is conveinient because it
 allows many complexities that arise because data are missing to be
 ignored, it is typically an unrealistic assumption
-\citep{van_buuren_flexible_2012}. The data is said to be MAR if the
+\autocite{van_buuren_flexible_2012}. The data is said to be MAR if the
 probability of being missing is the same only within groups defined by
 the observed data. MAR is a more general and more realistic assumption
 than MCAR. If neither MCAR nor MAR applies, then the probability of
@@ -544,7 +587,7 @@ is often a poor appraoch as complete cases analysis assumes MCAR. In
 sparse datasets a complete case analysis can cause an analysis to be
 underpowered and if MCAR does not hold, can severely bias estimates of
 means, regression coefficients, and correlations
-\citep{van_buuren_flexible_2012}.
+\autocite{van_buuren_flexible_2012}.
 
 The ARDS dataset considered in this paper has 268 of 450 observations
 with missing data.
@@ -557,11 +600,11 @@ for categorical data). This approach is satisfactory for a moderate
 amount of MCAR-generated missing values. However, it distorts the
 distribution of the data by reducing the variance of the imputed
 variables and the correlations between variables
-\citep{little_bayes_2014}. Van Buuren suggests mean imputation should
+\autocite{little_bayes_2014}. Van Buuren suggests mean imputation should
 only be used only when there are few missing values, and should be
-generally avoided \citep{van_buuren_flexible_2012}. Mean imputation is
-considered in this paper because although it is often a poor method of
-choice for imputing missing values, it is commonly done in medical
+generally avoided \autocite{van_buuren_flexible_2012}. Mean imputation
+is considered in this paper because although it is often a poor method
+of choice for imputing missing values, it is commonly done in medical
 datasets \textbf{(Citation)}.
 
 \begin{itemize}
@@ -610,7 +653,7 @@ plausible; it might be more appropriate than the regression method
 (which assumes a joint multivariate normal distribution) if the
 normality assumption is violated (Horton and Lipsitz 2001, p.~246). PMM
 is fairly robust to transformations of the target variables
-\citep{van_buuren_flexible_2012}, yielding similar results for a
+\autocite{van_buuren_flexible_2012}, yielding similar results for a
 Yeo-Johnson transformation or no transformation.
 
 \begin{itemize}
@@ -625,20 +668,20 @@ Imputation}\label{ensemble-multiple-imputation}
 While the topic of multiple imputation has been widely researched, how
 to best use multiple imputation in conjunction with cross-validation has
 not. Two approaches have been proposed for pooling results from several
-SVMs \citep{belanche_handling_2014} and Cox regression
+SVMs \autocite{belanche_handling_2014} and Cox regression
 \textbf{(Zavrakidis 2017)} from multiply imputed datasets. The method is
 to concatenate the \(m\) imputed datasets and fit a classifier, and
 optimize, to the resulting set; this accounts for the variability of the
 parameter estimates as well as the variability of the training
 observations in relation to the imputed values
-\citeyearpar{belanche_handling_2014}. The second proceedure fits
-separate classifiers to each imputed data set and get the pooled
-(i.e.~avereaged) performance of the \(m\) classifiers. Results from both
-studies either show similar results between appraoches
-\textbf{(Zavrakidis 2017)} or slightly better performance with the first
-approach \citeyearpar{belanche_handling_2014}. For simplicity and the
-sake of computational costs, this paper, only considers the first
-approach as outlined in Figure \ref{fig:ensemble-imputation}.
+\autocite*{belanche_handling_2014}. The second proceedure fits separate
+classifiers to each imputed data set and get the pooled (i.e.~avereaged)
+performance of the \(m\) classifiers. Results from both studies either
+show similar results between appraoches \textbf{(Zavrakidis 2017)} or
+slightly better performance with the first approach
+\autocite*{belanche_handling_2014}. For simplicity and the sake of
+computational costs, this paper, only considers the first approach as
+outlined in Figure \ref{fig:ensemble-imputation}.
 
 \begin{figure}[H]
 
@@ -695,15 +738,15 @@ data in k-fold cross-validation:
   performance
 \end{enumerate}
 
-``Rubin's Rules'' \citep{rubin_inference_1976} provide a simple method
-for pooling parameters estimates from multiple imputation for linear and
-generalized linear models but to the author's knowledge, there has been
-insufficient work on estimating the required number of imputations for
-estimating posterior probabilities in classification problems. The
-classic advice for the choice of \(m\) is between 3 and 5 for moderate
-amounts of missing information but it is often beneficial to set \(m\)
-higher and create between 20-100 imputations
-\citep{van_buuren_flexible_2012}.
+``Rubin's Rules'' \autocite{rubin_inference_1976} provide a simple
+method for pooling parameters estimates from multiple imputation for
+linear and generalized linear models but to the author's knowledge,
+there has been insufficient work on estimating the required number of
+imputations for estimating posterior probabilities in classification
+problems. The classic advice for the choice of \(m\) is between 3 and 5
+for moderate amounts of missing information but it is often beneficial
+to set \(m\) higher and create between 20-100 imputations
+\autocite{van_buuren_flexible_2012}.
 
 The training set is multiply imputed with PMM for \(m=9\) and \(m=99\)
 and the predictions pooled by majority vote. There has been sufficient
@@ -717,7 +760,7 @@ the majority vote \textbf{(Zavrakidis)} \textbf{(Citation 2)}, and
 comparing prediction performance. The combination can be implemented
 using a variety of strategies, among which majority vote is one of the
 simplest, and has been found to be just as effective as more complicated
-schemes \citep{lam_optimal_1995}.
+schemes \autocite{lam_optimal_1995}.
 
 \begin{itemize}
 \tightlist
@@ -735,33 +778,34 @@ Analysis (PCA). However, some of these methods are either highly
 criticized, dependent on the classification method considered, or cannot
 be integrated into the ensemble cross-validation approach used. Stepwise
 selection, while very common, is only applicable to regression models
-and it is often criticised \citep{kemp_applied_2003}; problems include
-falsely narrow confidence intervals for effects and predicted values
-\citep{altman_bootstrap_1989} and multiple hypothesis testing inflating
-risks of capitalising on chance features of the data
-\citep{altman_practical_1991}, such as noise covariates gaining entry
+and it is often criticised \autocite{kemp_applied_2003}; problems
+include falsely narrow confidence intervals for effects and predicted
+values \autocite{altman_bootstrap_1989} and multiple hypothesis testing
+inflating risks of capitalising on chance features of the data
+\autocite{altman_practical_1991}, such as noise covariates gaining entry
 into the model when the number of candidate variables is large
-\citep{derksen_backward_1992}. RFE is an iterative procedure analogous
-of backward feature selection. A new classifier is trained on a subset
-of the features and the importance of the feature is a measure of the
-change in performance. The training time scales linearly with the number
-of classifiers to be trained \citep{guyon_gene_2002}. Both logistic
-regression with LASSO regularization \citep{tibshirani_regression_1996}
-and the analogous Sparse Discriminant Analysis
-\citep{clemmensen_sparse_2011} are embedded feature selection methods
-that are dependent on the classification method.
+\autocite{derksen_backward_1992}. RFE is an iterative procedure
+analogous of backward feature selection. A new classifier is trained on
+a subset of the features and the importance of the feature is a measure
+of the change in performance. The training time scales linearly with the
+number of classifiers to be trained \autocite{guyon_gene_2002}. Both
+logistic regression with LASSO regularization
+\autocite{tibshirani_regression_1996} and the analogous Sparse
+Discriminant Analysis \autocite{clemmensen_sparse_2011} are embedded
+feature selection methods that are dependent on the classification
+method.
 
-Principal Component Analysis (PCA) \citep{f.r.s_liii._1901} is a feature
-extraction method that is independent of the classification method. The
-training set are orthogonally transformed into new uncorrelated
-variables called principal components that are linear combinations of
-the original variables. Feature extraction is accomplished by selecting
-the \(k\) largest principal components that contain a chosen percent of
-the variance in the original feature space.
+Principal Component Analysis (PCA) \autocite{f.r.s_liii._1901} is a
+feature extraction method that is independent of the classification
+method. The training set are orthogonally transformed into new
+uncorrelated variables called principal components that are linear
+combinations of the original variables. Feature extraction is
+accomplished by selecting the \(k\) largest principal components that
+contain a chosen percent of the variance in the original feature space.
 
 PCA can also be used for feature selection by calculating the
 contribution of each variable to the extracted features
-\citep{song_feature_2010}. Let \(C_i\) be the contribution of a given
+\autocite{song_feature_2010}. Let \(C_i\) be the contribution of a given
 variable on the principal component, \(\text{V}_i\), and let
 \(\lambda_i\) be the eigenvalue of \(\text{V}_i\), where
 \(\text{V}_{i} = \lambda_i \text{C}_i\). The eigenvalues measure the
@@ -936,7 +980,7 @@ during impuation except \texttt{PreECMO\_Albumin}. A high outflux
 variable might turn out to be useless for the imputation procedure if it
 is unrelated to the incomplete variables, while the usefulness of a
 highly predictive variables is severely limited by a low outflux value
-\citeyearpar{van_buuren_flexible_2012}.
+\autocite*{van_buuren_flexible_2012}.
 
 \begin{table}[!h]
 
@@ -1133,11 +1177,11 @@ imputed dataset. The consistent performance of LDA and logistic
 regression is not surprising given that they are similar methods,
 however logistic regression outperforms LDA in each analysis. LDA can
 perform better than logistic regression when the covariates are normally
-distributed \citep{efron_efficiency_1975}, but LDA is not robust to
-outliers \citep{hastie_elements_2009} and Figure
+distributed \autocite{efron_efficiency_1975}, but LDA is not robust to
+outliers \autocite{hastie_elements_2009} and Figure
 \ref{fig:violin-standardized} shows a number of outliers in almost every
 variable. Logistic regression is robust to outliers and makes less
-assumptions than LDA \citep{hastie_elements_2009} allowing it to
+assumptions than LDA \autocite{hastie_elements_2009} allowing it to
 generalize better.
 
 There were 136 less observations for complete case analysis than for the
@@ -1170,7 +1214,7 @@ distributions do not support a quadratic decision boundary.
   One surprising consequence is that trees that work well for
   nearest-neighbor search problems can be bad candidates for forests
   without sufficient subsampling, due to a lack of diversity
-  \citep{tang_when_2018}.
+  \autocite{tang_when_2018}.
 \item
   Data are not axis-aligned - Suppose that there is a diagonal decision
   boundary in the space of two features, \(x_1\) or \(x_2\). Even if
@@ -1198,8 +1242,8 @@ into 25\% test and 75\% train, If \(K_\text{o}\) is chosen to be
 If \(K_\text{o}=10\) were chosen, the prediction models would be trained
 on 67 more observations. The outer cross-validtion would then give the
 expected test prediction since it averages over different training sets
-\citep{hastie_elements_2009}. The drawback to nested cross-validation is
-that the time complexity scales from \(O(K_\text{i})\) to
+\autocite{hastie_elements_2009}. The drawback to nested cross-validation
+is that the time complexity scales from \(O(K_\text{i})\) to
 \(O(K_\text{o}K_\text{i})\). Indeed, the full time complexity for \(m\)
 imputations and a grid search over \(p\) parameters would then be
 \(O(K_\text{o}K_\text{i}mp)\).
@@ -1209,10 +1253,10 @@ and allows important variables to be identified outside of the
 classification analysis. Method dependent methods may better select
 variables \textbf{(Citation)}. Regularized logistic regression can
 select variables through use of the LASSO
-\citep{tibshirani_regression_1996}. LASSO methods have also been
+\autocite{tibshirani_regression_1996}. LASSO methods have also been
 developed for LDA and QDA Sparse Discriminant Analysis
-\citep{clemmensen_sparse_2011} and DALASS
-\citep{trendafilov_dalass:_2007}. Random forests naturally select
+\autocite{clemmensen_sparse_2011} and DALASS
+\autocite{trendafilov_dalass:_2007}. Random forests naturally select
 important variables by \_\_\_\_ \textbf{(Citation)}.
 
 \begin{itemize}
@@ -1255,7 +1299,7 @@ Analysis}
 \subsubsection{Random Forests Algorithm}\label{random-forests-algorithm}
 
 The random forests algorithm depicted is adapted from
-\citep{hastie_elements_2009}.
+\autocite{hastie_elements_2009}.
 
 \begin{algorithm}[H]
 \label{alg:random-forests-alg}
@@ -1287,7 +1331,7 @@ $$\hat{Y}^B_{\text{rf}}(x) = \text{majority vote } \left\{ \hat{Y}_b(x) \right\}
 
 \subsubsection{MICE Algorithm}\label{mice-algorithm}
 
-The MICE algorithm is adapted from \citep{van_buuren_flexible_2012}.
+The MICE algorithm is adapted from \autocite{van_buuren_flexible_2012}.
 
 \begin{algorithm}[H]
 \label{alg:mice-alg}
@@ -1504,7 +1548,7 @@ RF & 0.185 & 0.929 & 0.750 & 0.144\\
 
 \newpage
 
-\bibliography{bibliography.bib}
+\printbibliography
 
 
 \end{document}
