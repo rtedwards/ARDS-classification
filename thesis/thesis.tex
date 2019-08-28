@@ -139,7 +139,7 @@ To my family, for keeping me sane in the bipolar Scottish weather.
 To my friends, for your unbiased indulgence in my regressive statistical puns. 
 
 \vspace{1cm}
-To Google, couldin'a donnit wit' out ya. 
+To my weird friends, you provided much needed relief from the objectively Normal days. 
 
 \end{center}
 
@@ -151,29 +151,27 @@ To Google, couldin'a donnit wit' out ya.
 
 \section{Introduction}\label{introduction}
 
-Missing data are commoin in clinical and epidemiological studies
-\autocite{powney_review_2014} \autocite{karahalios_review_2012}
-\autocite{wood_are_2004}
-
 Prediction in medical data can often be difficult due to a low number of
 observations and poor predictive covariates. If the response class
 distributions are imbalanced, then prediction becomes even more
 difficult. Some of these issues arise from the experimental design of
-the study but little can be rememdied post-hoc. Missing values in the
-data complicate analysis even further and are often handled either by
-dropping missing observations or filling in the missing value by the
-mean. Both methods can be valid if certain assumptions hold, but useful
-information is either lost to the analysis or the sample becomes biased
-\textbf{(Citation)}. Several statistical methods have been proposed for
-handling missing data \autocite{schafer_missing_2002}. Simple
-proceedures include complete case analysis (CC) wherein all observations
-with missing data are excluded, single imputation methods that simply
-use the mean to replace the missing value (SIM), and more principled
-methods such as multiple imputation (MI). Multiple imputation is a
-widely used flexible method in datasets with missing values. MI is
-commonly used in medical studies \textbf{(Citation)} but how it is
-implemented in often not stated \autocite{mackinnon_use_2010}
-\autocite{hayati_rezvan_rise_2015}.
+the study or for reasons beyond the control of the researcher but little
+can be rememdied post-hoc. Missing values in the data complicate the
+analysis even further and are often handled either by dropping missing
+observations or filling in the missing value by the mean. Both methods
+can be valid if certain assumptions hold, but useful information is lost
+and bias estimates of means, regression coefficients, and correlations
+{[}\textcite{van_buuren_flexible_2012}, pp.8; schafer\_missing\_2002{]}.
+Several statistical methods have been proposed for handling missing data
+\autocite{schafer_missing_2002}; simple proceedures include complete
+case analysis (CC) wherein all observations with missing data are
+excluded, single imputation methods that simply use the mean to replace
+the missing value (SIM), and more principled methods such as multiple
+imputation (MI). Multiple imputation is a widely used flexible method in
+datasets with missing values. MI is commonly used in medical studies
+\autocites{powney_review_2014}{karahalios_review_2012}{wood_are_2004}
+but how it is implemented in often not stated
+\autocites{mackinnon_use_2010}{hayati_rezvan_rise_2015}.
 
 \subsection{Study Population \& Data
 Description}\label{study-population-data-description}
@@ -183,7 +181,7 @@ Acute Respiratory Distress Syndrom (ARDS) after treatment with
 Extracorporeal Membrane Oxygenation (ECMO). ARDS is a common and often
 fatal cause of respiratory failure among patients who are critically ill
 with an estimated global prevalence of 10\% and a mortality of 25-40\%
-\autocite{bellani_epidemiology_2016}\autocite{rubenfeld_epidemiology_2007}\autocite{fan_acute_2018}.
+\autocites{bellani_epidemiology_2016}{rubenfeld_epidemiology_2007}{fan_acute_2018}.
 ARDS is syndrome with many disease paths characterized by rapid onset of
 widespread inflammation in the lungs \autocite{fan_acute_2018}. ECMO is
 a treatment used in \_\_\_ that is thought to help patients with
@@ -194,7 +192,7 @@ lead to death \autocite{paolone_extracorporeal_2017}. Identifying
 mortality risk of patients before treatment is crucial. Two ARDS
 subphenotypes have been identified with distinct clinical and biological
 features that are thought to support predictive strategies
-\autocite{calfee_acute_2018}\autocite{sinha_latent_2018}.
+\autocites{calfee_acute_2018}{sinha_latent_2018}.
 
 The dataset is composed of 450 observations on patients with Acute
 Respiratory Distress Syndrome who underwent ECMO treatment. The response
@@ -260,10 +258,13 @@ In addition to standardizing, the continuous variables are also
 transformed so the distributional form of the data is multivariate
 normal. Some nonparametric classification methods assume the data is
 multivariate normally distributed and can have better prediction
-performance if the assumption is true. The data are transformed using
-the Yeo-Johnson transformation \autocite{yeo_new_2000}. The Yeo-Johnson
-transformation is similar to a Box-Cox transformation except it can
-accomodate covariate with zero and/or negative values.
+performance if the assumption is true. Van Buuren
+\autocite*[pp.106-107]{van_buuren_flexible_2012} also suggests
+transforming the data toward normailty for multiple imputation. The data
+are transformed using the Yeo-Johnson transformation
+\autocite{yeo_new_2000}. The Yeo-Johnson transformation is similar to a
+Box-Cox transformation except it can accomodate covariate with zero
+and/or negative values.
 
 \subsection{Validation \&
 Cross-validation}\label{validation-cross-validation}
@@ -298,12 +299,7 @@ choice of \(K\) can effect the variability of the prediction error; if
 highly variable and if \(K=n\) (the number of observation in the
 dataset), the model is fit with no validation set for training
 parameters. Typical values used are \(K=5\) \& \(10\)
-\autocite{hastie_elements_2009} \textbf{Breiman and Spector (1992)}
-\textbf{Kohavi (1995)}.
-
-a training and a test set, respectively, preserving class proportions
-using the \texttt{createDataPartition()} from the \textbf{caret}
-package.
+\autocites{hastie_elements_2009}{breiman_submodel_1992}{kohavi_study_1995}.
 
 \subsection{Models}\label{models}
 
@@ -316,92 +312,91 @@ variability. The five explored on the ARDS dataset in this paper are:
 Logistic Regression, Linear Discriminant Analysis, Quadratic
 Discriminant Analysis, K-Nearest Neighbors, and Random Forests.
 
-\subsubsection{Logistic Regression}\label{logistic-regression}
-
+\emph{Logistic Regression:}\\
 Logistic regression is a widely used approach in machine learning and
 medicine for binary classification. It is a generalisation of linear
 regression that models the posterior probabilities of the \(Y\) classes.
 A logit link is used to ensure the posterior probabilities sum to one
-and are bounded by {[}0,1{]}. For two classes, the model has the form
+and are bounded by {[}0,1{]}. For two classes, let \(Y_i\) be
+independent Bernoulli random variables, then the model has the form
 
 \[
-\text{logit} \Big( \text{Pr}(Y \vert X) \Big) = \text{log} \frac{ \text{Pr}(Y=1 \vert X=x) }{ \text{Pr}(Y=2 \vert X=x) }  = \mathbf{x}^T_i\boldsymbol{\beta}  
+\text{logit} \Big( \text{Pr}(Y_i \vert X_i) \Big) = \text{log} \frac{ \text{Pr}(Y_i=1 \vert X_i) }{ \text{Pr}(Y_i=2 \vert X) }  = \mathbf{x}^T_i\boldsymbol{\beta}  
 \]
 
-The posterior probabilities are estimated by maximizing the
-log-likelihood function to find the parameter estimates,
-\(\hat{\boldsymbol{\beta}}\), to obtain estimates of the probabilities:
+where \(\mathbf{x}^T_i\) is the design matrix. The posterior
+probabilities are estimated by maximizing the log-likelihood function to
+find the parameter estimates, \(\hat{\boldsymbol{\beta}}\), to obtain
+estimates of the probabilities:
 
 \[
-\text{Pr}(Y=1 \vert X) = \frac{ \text{exp}(\mathbf{x}^T_1 \hat{\boldsymbol{\beta}}) }{ 1 + \sum^2_{i=1} \text{exp}(\mathbf{x}^T_i \hat{\boldsymbol{\beta}}) }
+\text{Pr}(Y_i=1 \vert X) = \frac{ \text{exp}(\mathbf{x}^T_1 \hat{\boldsymbol{\beta}}) }{ 1 + \sum^2_{i=1} \text{exp}(\mathbf{x}^T_i \hat{\boldsymbol{\beta}}) }
 \]
 
-\begin{itemize}
-\tightlist
-\item
-  \textbf{State how I implemented Logistic Regression}\\
-\item
-  \textbf{Refer to ``Comparison of Logistic Regression and Linear
-  Discriminant Analysis: A Simulation Study''} for writing equations.
-\end{itemize}
+Logitistic Regression (Logit) is implemented with a logit link function
+using the \texttt{"glmnet"} method in the \emph{caret} package. The
+parameters settings are \texttt{alpha\ =\ 1} and \texttt{lambda\ =\ 0}
+to suppress regularization.
 
-\subsubsection{LDA and QDA}\label{lda-and-qda}
-
+\emph{LDA and QDA:}\\
 Discriminant Analysis is a widely used set of classification methods. A
 generlization of Fisher's Linear Discriminant
 \autocite{fisher_use_1936}, discriminant functions are created through a
 combination of the explanatory variables that characterize the classes.
 
-Let \(p(X \vert Y)\) be the densities of distributions of the
-observations for each class and let \(\pi_Y\) denote the prior
-probabilities of the classes; that is, the prior probability that a
-randomly sampled observation belongs to the \(Y^{th}\) class based on
-the class proportions. The posterior probabilities may be written using
-Bayes Theorem as:
+Let \(p(X_i \vert Y_i)\) be the densities of distributions of the
+observations for each class where \(Y_i\) are independent Bernoulli
+random variables and let \(\pi_{Y_i}\) denote the prior probabilities of
+the \(Y^{th}_i\) class; that is, the prior probability that a randomly
+sampled observation belongs to the \(Y_i^{th}\) class based on the class
+proportions. The posterior probabilities may be written using Bayes
+Theorem as:
 
 \[
-p(Y \vert X) = \frac{p(X \vert Y) ~\pi_Y}{p(X)} \propto p(X \vert Y) ~\pi_Y   \tag{1}
+p(Y_i \vert X_i) = \frac{p(X_i \vert Y_i) ~\pi_{Y_i}}{p(X_i)} \propto p(X_i \vert Y_i) ~\pi_{Y_i}   \tag{1}
 \]
 
-Suppose the class distribution for class \(Y\) is Multivariate Normal
-with mean \(\mu_Y\) and covariance matrix \(\Sigma_Y\), so that:
+Suppose the class distribution for class \(Y_i\) is Multivariate Normal
+with mean \(\mu_{Y_i}\) and covariance matrix \(\Sigma_{Y_i}\), so that:
 
 \[
-p(X \vert Y) = \frac{1}{(2 \pi_Y)^{p/2} \vert\boldsymbol{\Sigma}_Y\vert ^{1/2}} \text{exp} \left[-\frac{1}{2}(X - \mu_Y)^T \boldsymbol{\Sigma}^{-1}_Y(X - \mu_Y)  \right]  \tag{2}
+p(X \vert Y_i) = \frac{1}{(2 \pi_{Y_i})^{p/2} \vert\boldsymbol{\Sigma}_{Y_i} \vert ^{1/2}} \text{exp} \left[-\frac{1}{2}(X - \mu_{Y_i})^T \boldsymbol{\Sigma}^{-1}_{Y_i}(X - \mu_{Y_i})  \right]  \tag{2}
 \]
 
 In comparing two classes, it is sufficient to look at the log-ratio: \[
-\text{log} \frac{\text{Pr}(Y=1 \vert X=x)}{\text{Pr}(Y=2 \vert X=x)} = \text{log}\frac{p(X \vert Y=1)}{p(X \vert Y=2)} + \text{log}\frac{\pi_1}{\pi_2}   \tag{3}
+\text{log} \frac{\text{Pr}(Y_i=1 \vert X)}{\text{Pr}(Y_i=2 \vert X)} = \text{log}\frac{p(X \vert Y_i=1)}{p(X \vert Y_i=2)} + \text{log}\frac{\pi_1}{\pi_2}   \tag{3}
 \]
 
 and using Bayes Discriminant Rule stating that \emph{an observation
 should be allocated to the class with the largest posterior
 probability}. From Equation (1), the posterior probability may be
 written as \[
-p(Y \vert X) \propto \text{exp} \left( Q_Y \right)    \tag{4}
+p(Y_i \vert X) \propto \text{exp} \left( Q_{Y_i} \right)    \tag{4}
 \]
 
-where
+where discriminant function is
 
 \[
-Q_Y = (X - \mu_Y) \Sigma^{-1}_Y (X - \mu_Y)^T + \text{log} \vert \Sigma_Y \vert - 2\text{log} ~\pi_Y   \tag{5}
+Q_{Y_i} = (X - \mu_{Y_i}) \Sigma^{-1}_{Y_i} (X - \mu_{Y_i})^T + \text{log} \vert \Sigma_{Y_i} \vert - 2\text{log} ~\pi_{Y_i}   \tag{5}
 \]
 
-defines the Quadratic Discriminant Function for class \(Y\). The Bayes
-Discriminant Rule is then: \emph{allocated the observation to the class
-with the largest QDF}. This method of classification is called
-\emph{Quadratic Discriminant Analysis} (QDA) because the decision
-boundaries between classes are elliptical and defined by \(Q_Y\), an
-equation quadratic in \(X\). If the covariance matrix, \(\Sigma_Y\) is
-assumed to be equal for each class then
+for class \(Y\). The Bayes Discriminant Rule is then: \emph{allocated
+the observation to the class with the largest discriminant function,
+\(Q_Y\)}. This method of classification is called \emph{Quadratic
+Discriminant Analysis} (QDA) because the decision boundaries between
+classes are elliptical and defined by \(Q_Y\), an equation quadratic in
+\(X\). If the covariance matrix, \(\Sigma_Y\) is assumed to be equal for
+each class then the discriminant function is defined as
 
 \[
-L_Y = X \Sigma^{-1}_Y \mu_Y^T -\frac{1}{2}\mu_Y \Sigma^{-1}_Y \mu_Y^T  - \text{log} ~\pi_Y     \tag{6}
-\] defines the \emph{Linear Discriminant Function}. This method has
-linear decision boundaries between classes defined by \(L_Y\), an
-equation linear in \(X\), and is known ad \emph{Linear Discriminant
-Analysis} (LDA). The Bayes Discriminant Rule is then: \emph{allocated
-the observation to the class with the largest LDF}.
+L_Y = X \Sigma^{-1} \mu_Y^T -\frac{1}{2}\mu_Y \Sigma^{-1} \mu_Y^T  - \text{log} ~\pi_Y     \tag{6}
+\]
+
+This method has linear decision boundaries between classes defined by
+\(L_Y\), an equation linear in \(X\), and is known ad \emph{Linear
+Discriminant Analysis} (LDA). The Bayes Discriminant Rule is then:
+\emph{allocated the observation to the class with the largest
+discriminant function, \(L_Y\)}.
 
 There is a bias-variance trade-off; both assume the covariates are
 normally distributed, there is no multicollinearity, and the
@@ -414,14 +409,10 @@ and limitations, both LDA and QDA are widely used and perform well on on
 a diverse set of classification tasks \autocite{hastie_elements_2009},
 even when the classes are not normally distributed.
 
-\begin{itemize}
-\tightlist
-\item
-  \textbf{State how I implemented LDA and QDA}
-\end{itemize}
+Logitistic Regression (Logit) is implemented using the \texttt{"lda"}
+and \texttt{"qda"} methods in the \emph{caret} package.
 
-\subsubsection{K-Nearest Neighbors}\label{k-nearest-neighbors}
-
+\emph{K-Nearest Neighbors:}\\
 \(K\)-Nearest Neighbors (KNN) is a commonly used non-parametric
 classification method. To predict the class of a new observation, a
 distance matrix is constructed between all observations and the K
@@ -432,53 +423,37 @@ assignments are avoided by using odd values of K. In the event of a tie,
 a class can be chosen at random. Various distance metrics may be used
 but it is common to use Euclidean distance to determine the closest
 training points, though it is advisable to scale variables so that one
-direction does not dominate the classification \textbf{(Citation)}.
+direction does not dominate the classification
+\autocite[pp.456]{hastie_elements_2009}.
 
 KNN is sensitive to the local structure of the data. As \(K\) increases,
 the variability of the classification tends to decrease at the expense
-of increased bias.
+of increased bias. KNN is implemented using the \texttt{"kknn"} method
+in the \emph{caret} package with a grid search over the number of
+observations considered in classifying a new observation,
+\(k=3,...,19\). A Gaussian kernel and Euclidean distances are used.
 
-\begin{itemize}
-\tightlist
-\item
-  \textbf{State how I implemented KNN}
-\end{itemize}
-
-\subsubsection{Random Forests}\label{random-forests}
-
-Random forests (Brieman, 2001) are one of the most successful
-general-purpose modern algorithms (Biau and Scornet, 2016). They are an
-ensemble learning method that can be applied to a wide range of tasks,
-namely classification and regression. A random forest is created by
-building multiple decision trees, where randomness is introduced during
-the construction of each tree. Predictions are made by classifying a new
-observation to the mode of the multiple decisions tree classifications.
-Random forests often make accurate and robust predictions, even for very
-high-dimensional problems (Biau, 2012). See \textbf{(Appendix X)} for an
-explanation of the random forests algorithm.
-
-\begin{itemize}
-\tightlist
-\item
-  \textbf{State why random forests are good predictors}\\
-\item
-  \textbf{State how I implemented Random Forests}
-\end{itemize}
+\emph{Random Forests:}\\
+Random Forests \autocite{breiman_random_2001} are one of the most
+successful general-purpose modern algorithms\autocite{biau_random_2016}.
+They are an ensemble learning method that can be applied to a wide range
+of tasks, namely classification and regression. A random forest is
+created by building multiple decision trees, where randomness is
+introduced during the construction of each tree. Predictions are made by
+classifying a new observation to the mode of the multiple decisions tree
+classifications. Random forests often make accurate and robust
+predictions, even for very high-dimensional
+problems\autocite{biau_analysis_2012}. See Figure
+\ref{fig:alg:random-forests-alg} in Appendix B for an explanation of the
+random forests algorithm. Random Forests (RF) are implemented using the
+\texttt{"rf"} method in the \emph{caret} package with a grid search over
+the number of variables considered at each split, \(mtry=3,...,15\).
 
 \subsection{Accuracy Metrics}\label{accuracy-metrics}
 
-\subsubsection{Accuracy, Sensitivity, and
-Specificity}\label{accuracy-sensitivity-and-specificity}
-
-Accuracy is the percentage of correctly classifies instances out of all
-instances. It is often a poor performance metric to use alone. There are
-two significant problems with it. Accuracy applies a naive 0.50
-threshold to decide between classes, and this is usually wrong when the
-classes are imbalanced. Second, classification accuracy is based on a
-simple count of the errors. It does not provide information on which
-classes are being improperly classified or where. For binary
-classification, sensitivity and specificity provide more insight into
-classification performance.
+A classification method is typically assesed using a confusion matrix.
+Table \ref{tab:confusion-matrix} represents a confusion matrix for a
+binary classification.
 
 \begin{table}[!h]
 
@@ -498,16 +473,29 @@ classification performance.
 \end{tabular}
 \end{table}
 
-For the two class confusion matrix in Table \ref{tab:confusion-matrix}
-accuracy metrics used in the analysis are defined as:
+Accuracy is the percentage of correctly classifies instances out of all
+instances. It is often a poor performance metric to use alone. There are
+two significant problems with it. Accuracy applies a naive 0.50
+threshold to decide between classes, and this is usually wrong when the
+classes are imbalanced. Second, classification accuracy is based on a
+simple count of the errors. It does not provide information on which
+classes are being improperly classified or where. For the two class
+confusion matrix in Table \ref{tab:confusion-matrix} accuracy is defined
+as:
+
+\[
+\text{accuracy} = \frac{a+d}{a+b+c+d}
+\]
+
+For binary classification, sensitivity and specificity provide more
+insight into performance of a classifier.
 
 \[
 \begin{aligned}
 \text{sensitivity} &= \frac{a}{a+c} \\
-\text{specificity} &= \frac{d}{b+d} \\
-\text{accuracy} &= \frac{a+d}{a+b+c+d}
+\text{specificity} &= \frac{d}{b+d}
 \end{aligned}
-\] where sensitivity is a measure of how accurately non-survival is
+\] Here, sensitivity is a measure of how accurately non-survival is
 predicted, specificity is a measure of how accurately survival is
 predicted, and accuracy is a measure of how well both survival and
 non-survival are predicted. While sensitivity and specificity state the
@@ -517,12 +505,11 @@ if \texttt{ECMO\_Survival} is predicted to be ``Y'' for all cases, then
 the accuracy is 75\% but the prediction is no better than the baseline
 likelihood of the class proportions.
 
-\subsubsection{Cohen's Kappa}\label{cohens-kappa}
-
-Kappa or Cohen's Kappa \autocite{cohen_coefficient_1960} is a
-classification performance metric that is normalized at the baseline of
-random chance on the dataset. It is a useful performance measure on
-problems with imbalanced classes. Cohen's Kappa is defined as:
+\emph{Cohen's Kappa:} Kappa or Cohen's Kappa
+\autocite{cohen_coefficient_1960} is a classification performance metric
+that is normalized at the baseline of random chance on the dataset. It
+is a useful performance measure on problems with imbalanced classes.
+Kappa is defined as:
 
 \[
 \kappa = \frac{p_o - p_e}{1 - p_e}
@@ -540,19 +527,16 @@ p_{o,Y} = \frac{a+d}{a+b+c+d} ~\cdot~ \frac{a+c}{a+b+c+d}
 p_{o,N} = \frac{c+d}{a+b+c+d} ~\cdot~ \frac{b+d}{a+b+c+d}
 \]
 
-If all the observations are predicted correctly then \(\kappa=1\). If
-the observations are predicted no better than expected by the class
-probabilities, \(p_e\) then \(\kappa=0\). If all the observations are
-predicted incorrectly, then \(\kappa=-1\). A positive \(\kappa\)
-indicates that the model predicts better than would be expected by
-chance whereas a negative \(\kappa\) indicates that the model predicts
-worse than would be expected by chance.
-
-\begin{itemize}
-\tightlist
-\item
-  \textbf{State how I Kappa and other metrics are used}
-\end{itemize}
+Kappa is used in this paper to compare the performance of different
+classifiers. A classifier with a larger Kappa is considered to predict
+better than a classifier with a lower Kappa. If all the observations are
+predicted correctly then \(\kappa=1\). If the observations are predicted
+no better than expected by the class probabilities, \(p_e\) then
+\(\kappa=0\). If all the observations are predicted incorrectly, then
+\(\kappa=-1\). A positive \(\kappa\) indicates that the model predicts
+better than would be expected by chance whereas a negative \(\kappa\)
+indicates that the model predicts worse than would be expected by
+chance.
 
 \subsection{Missing Data}\label{missing-data}
 
@@ -578,22 +562,19 @@ MAR assumption.
 
 \subsection{Imputation Methods}\label{imputation-methods}
 
-\subsubsection{Complete Case Analysis}\label{complete-case-analysis}
-
-Complete case canalysis is a convenient method for handling missing data
-and is the default method in many statistical packages. If there is a
-missing value in an observation, it is dropped from the analysis. This
-is often a poor appraoch as complete cases analysis assumes MCAR. In
-sparse datasets a complete case analysis can cause an analysis to be
-underpowered and if MCAR does not hold, can severely bias estimates of
-means, regression coefficients, and correlations
-\autocite{van_buuren_flexible_2012}.
+\emph{Complete Case Analysis:} Complete case canalysis is a convenient
+method for handling missing data and is the default method in many
+statistical packages. If there is a missing value in an observation, it
+is dropped from the analysis. This is often a poor appraoch as complete
+cases analysis assumes MCAR. In sparse datasets a complete case analysis
+can cause an analysis to be underpowered and if MCAR does not hold, can
+severely bias estimates of means, regression coefficients, and
+correlations \autocite{van_buuren_flexible_2012}.
 
 The ARDS dataset considered in this paper has 268 of 450 observations
 with missing data.
 
-\subsubsection{Mean Imputation}\label{mean-imputation}
-
+\emph{Mean Imputation:}\\
 Another common method for handling missing data is mean imputation; the
 missing value is replaced by the mean of the observed values (the mode
 for categorical data). This approach is satisfactory for a moderate
@@ -603,18 +584,10 @@ variables and the correlations between variables
 \autocite{little_bayes_2014}. Van Buuren suggests mean imputation should
 only be used only when there are few missing values, and should be
 generally avoided \autocite{van_buuren_flexible_2012}. Mean imputation
-is considered in this paper because although it is often a poor method
-of choice for imputing missing values, it is commonly done in medical
-datasets \textbf{(Citation)}.
+(SI1) is implemented using the \texttt{"mean"} method in the
+\emph{micemd} package with the number of imputations set as \(m=1\).
 
-\begin{itemize}
-\tightlist
-\item
-  \textbf{State how I implemented mean imputation is done}
-\end{itemize}
-
-\subsubsection{Multiple Imputation}\label{multiple-imputation}
-
+\emph{Multiple Imputation:}\\
 Multiple imputation is a method that accounts for the uncertainty in the
 imputed values. The observed dataset is imputed multiple times to create
 \(m>1\) complete datasets. The imputed values are drawn from a
@@ -630,37 +603,32 @@ There is uncertainty as to the true value of the unseen data, and that
 uncertainty should be included in the analysis. Multiple imputation is a
 method created by Donald Rubin wherein multiple datasets are imputed,
 the analysis is conducted on each dataset, and the results are pooled.
+Details of the \emph{MICE} algorithm can be found in Algorithm
+\ref{alg:mice-alg}.
 
-\begin{itemize}
-\tightlist
-\item
-  Details of the \textbf{MICE} algorithm can be found in Algorithm
-  \ref{alg:mice-alg}.
-\end{itemize}
-
-\subsubsection{Fully Conditional
-Specification}\label{fully-conditional-specification}
-
-\subsubsection{Predictive Mean Matching}\label{predictive-mean-matching}
-
+\emph{Predictive Mean Matching:}\\
 Predictive Mean Matching (PMM) is a semi-parametric imputation approach
 to imputing missing values. It fills in a value randomly from among the
 a observed donor values from an observation whose regression-predicted
 values are closest to the regression-predicted value for the missing
-value from the simulated regression model (Heitjan and Little 1991;
-Schenker and Taylor 1996). PMM method ensures that imputed values are
-plausible; it might be more appropriate than the regression method
+value from the simulated regression model \textbf{(Heitjan and Little
+1991; Schenker and Taylor 1996)}. PMM method ensures that imputed values
+are plausible; it might be more appropriate than the regression method
 (which assumes a joint multivariate normal distribution) if the
-normality assumption is violated (Horton and Lipsitz 2001, p.~246). PMM
-is fairly robust to transformations of the target variables
-\autocite{van_buuren_flexible_2012}, yielding similar results for a
-Yeo-Johnson transformation or no transformation.
+normality assumption is violated \textbf{(Horton and Lipsitz 2001,
+p.~246)}. PMM is fairly robust to transformations of the target
+variables \autocite{van_buuren_flexible_2012}, yielding similar results
+for a Yeo-Johnson transformation or no transformation.
 
 \begin{itemize}
 \tightlist
 \item
   \textbf{Equations for Predictive Mean Matching}
 \end{itemize}
+
+Multiple imputation is implemented using the \texttt{"pmm"} method in
+the \emph{micemd} package with the number of imputations set as \(m=9\)
+and \(m=99\).
 
 \subsection{Ensemble Multiple
 Imputation}\label{ensemble-multiple-imputation}
@@ -674,23 +642,14 @@ to concatenate the \(m\) imputed datasets and fit a classifier, and
 optimize, to the resulting set; this accounts for the variability of the
 parameter estimates as well as the variability of the training
 observations in relation to the imputed values
-\autocite*{belanche_handling_2014}. The second proceedure fits separate
+\autocite{belanche_handling_2014}. The second proceedure fits separate
 classifiers to each imputed data set and get the pooled (i.e.~avereaged)
 performance of the \(m\) classifiers. Results from both studies either
 show similar results between appraoches \textbf{(Zavrakidis 2017)} or
 slightly better performance with the first approach
-\autocite*{belanche_handling_2014}. For simplicity and the sake of
+\autocite{belanche_handling_2014}. For simplicity and the sake of
 computational costs, this paper, only considers the first approach as
 outlined in Figure \ref{fig:ensemble-imputation}.
-
-\begin{figure}[H]
-
-{\centering \includegraphics[width=1\linewidth]{images/ensemble-imputation} 
-
-}
-
-\caption{\label{fig:ensemble-imputation}Outline of Kth step in the ensemble algorithm used to combine MI in cross-validation.  (a) The Kth fold is taken as the test set and the remaining K-1 folds are taken as the training set. (b) The test set is separated from the analysis. (c) The training set is imputed m times with the response included. (d) The m iputed datasets are 'stacked' to form one training set.  (e) The test set is concatenated with the imputed and 'stacked' training set.  (f) The test set is imputed m times using the imputed training set without the response included.  (g) A model is fitted to the imputed and 'stacked' training set.  (h) The fitted model makes predictions on each of the m test sets.  (i) The m predictions are pooled by a majority vote.}\label{fig:unnamed-chunk-2}
-\end{figure}
 
 The following steps describe the ensemble approach for multiply imputed
 data in k-fold cross-validation:
@@ -702,8 +661,8 @@ data in k-fold cross-validation:
   Randomly partition the training data into \(k\) folds while retaining
   class proportions
 \item
-  Define the \(k^{th}\) as the test set and the remaining \(k-1\) folds
-  as the training set
+  Define the \(k^{th}\) as the validation set and the remaining \(k-1\)
+  folds as the training set
 \item
   Impute the training set \(m\) times, with the response variable
   \texttt{ECMO\_Survival} included, to create \(m\) imputed training
@@ -714,22 +673,22 @@ data in k-fold cross-validation:
 \item
   A model is fitted to the extended training set
 \item
-  The test set is concatenated with the extended training set
+  The validation set is concatenated with the extended training set
 \item
-  Impute the combined test and extended training set, with the response
-  variable \texttt{ECMO\_Survival} excluded, to create \(m\) imputed
-  combined test and extended training sets
+  Impute the combined validation and extended training set, with the
+  response variable \texttt{ECMO\_Survival} excluded, to create \(m\)
+  imputed combined validation and extended training sets
 \item
-  Extract the \(m\) test sets
+  Extract the \(m\) validation sets
 \item
-  Make \(m\) predictions on the \(m\) imputed test sets
+  Make \(m\) predictions on the \(m\) imputed validation sets
 \item
   Take the majority vote of the \(m\) predictions as the prediction for
   the fitted model
 \item
-  Validate the prediction against the test set by calculating Cohen's
-  Kappa (note there are no missing values for the response variable in
-  the data)
+  Validate the prediction against the validation set by calculating
+  Cohen's Kappa (note there are no missing values for the response
+  variable in the data)
 \item
   Repeat steps 2-11 \(k\) times and validate the fitted model on each
   training set against the test set for each fold
@@ -737,6 +696,15 @@ data in k-fold cross-validation:
   Average the \(k\) calculated Cohen's Kappas as the estimated in-sample
   performance
 \end{enumerate}
+
+\begin{figure}[H]
+
+{\centering \includegraphics[width=1\linewidth]{images/ensemble-imputation} 
+
+}
+
+\caption{\label{fig:ensemble-imputation}Outline of Kth step in the ensemble algorithm used to combine MI in cross-validation.  (a) The Kth fold is taken as the test set (valid) and the remaining K-1 folds are taken as the training set. (b) Valid is separated from the analysis. (c) Train is imputed m times with the response included. (d) The m imputed datasets are 'stacked' to form one training set.  (e) Valid is concatenated with the imputed and 'stacked' training set.  (f) The test set is imputed m times using the imputed training set without the response included.  (g) A model is fitted to the imputed and 'stacked' training set.  (h) The fitted model makes predictions on each of the m valid sets.  (i) The m predictions are pooled by a majority vote.}\label{fig:unnamed-chunk-2}
+\end{figure}
 
 ``Rubin's Rules'' \autocite{rubin_inference_1976} provide a simple
 method for pooling parameters estimates from multiple imputation for
@@ -746,34 +714,43 @@ imputations for estimating posterior probabilities in classification
 problems. The classic advice for the choice of \(m\) is between 3 and 5
 for moderate amounts of missing information but it is often beneficial
 to set \(m\) higher and create between 20-100 imputations
-\autocite{van_buuren_flexible_2012}.
+\autocite[pp.112-113]{van_buuren_flexible_2012}.
 
-The training set is multiply imputed with PMM for \(m=9\) and \(m=99\)
-and the predictions pooled by majority vote. There has been sufficient
-exploration into pooling of posterior probabilities resulting from
-classification problems \textbf{(Citation 1)} \textbf{(Citation 2)}.
-\emph{Additionally, not all statistical methods considered produce
-posterior probabilities and the comparison of pooled models from
-multiple imputation is an area ripe for more analysis.} Indeed, others
-have pooled predictions from various machine learning methods by taking
-the majority vote \textbf{(Zavrakidis)} \textbf{(Citation 2)}, and
-comparing prediction performance. The combination can be implemented
-using a variety of strategies, among which majority vote is one of the
-simplest, and has been found to be just as effective as more complicated
-schemes \autocite{lam_optimal_1995}.
+There has been sufficient exploration into pooling of posterior
+probabilities resulting from classification problems
+\autocite{kittler_combining_1996}\autocite{james_majority_1998}, but
+there has been little research into the pooling of predictions in
+classification problems on multiply imputed datasets
+\autocite{belanche_handling_2014}. Pooling multiple predictions can be
+implemented using a variety of strategies, among which majority vote is
+one of the simplest, and has been found to be just as effective as more
+complicated schemes \autocite{lam_optimal_1995}. Indeed, others have
+pooled predictions from various classification methods by taking the
+majority vote
+\autocite{james_majority_1998}\autocite{belanche_handling_2014} and
+comparing prediction performance.
 
-\begin{itemize}
-\tightlist
-\item
-  \textbf{Put this Cross-Validation??}
-\end{itemize}
+This study involved four phases: (a) complete case analysis (CC) with
+the variable \texttt{PreECMO\_Albumin} dropped from the analysis due to
+46.44\% missingness, (b) mean imputation (SI1) on variables with missing
+values, (c) imputation via the MICE algorithm implemented with PMM for
+\(m=9\) imputed datasets (MI9), and (d) imputation via the MICE
+algorithm implemented with PMM for \(m=99\) imputed datasets (MI99). In
+each phase the data is first randomly stratified into 75\% training and
+25\% test sets, with the test set held-out. Five classification models
+are trained (Logit, KNN, LDA, QDA, RF) and tuned in 10-fold
+cross-validation using the ensemble imputation described in Figure
+\ref{figensemble-imputation}. To determine the expected performance of
+future predictions, one iteration of the ensemble imputation is
+conducted for the full training set, the held-out test set, and the
+tuned classification methods.
 
 \subsection{Feature Selection}\label{feature-selection}
 
 One of the goals of this analysis is to identify the variables most
 useful for accurate prediction. There are various methods that can be
 used for feature selection: stepwise selection, Recursive Feature
-Elimination (RFE), LASSO regularization, and Principal Component
+Elimination (RFE), LASSO regularization, and principle Component
 Analysis (PCA). However, some of these methods are either highly
 criticized, dependent on the classification method considered, or cannot
 be integrated into the ensemble cross-validation approach used. Stepwise
@@ -795,21 +772,21 @@ Discriminant Analysis \autocite{clemmensen_sparse_2011} are embedded
 feature selection methods that are dependent on the classification
 method.
 
-Principal Component Analysis (PCA) \autocite{f.r.s_liii._1901} is a
+principle Component Analysis (PCA) \autocite{f.r.s_liii._1901} is a
 feature extraction method that is independent of the classification
 method. The training set are orthogonally transformed into new
-uncorrelated variables called principal components that are linear
+uncorrelated variables called principle components that are linear
 combinations of the original variables. Feature extraction is
-accomplished by selecting the \(k\) largest principal components that
+accomplished by selecting the \(k\) largest principle components that
 contain a chosen percent of the variance in the original feature space.
 
 PCA can also be used for feature selection by calculating the
 contribution of each variable to the extracted features
 \autocite{song_feature_2010}. Let \(C_i\) be the contribution of a given
-variable on the principal component, \(\text{V}_i\), and let
+variable on the principle component, \(\text{V}_i\), and let
 \(\lambda_i\) be the eigenvalue of \(\text{V}_i\), where
 \(\text{V}_{i} = \lambda_i \text{C}_i\). The eigenvalues measure the
-amount of variation retained by each principal component. The total
+amount of variation retained by each principle component. The total
 contribution of a variable, \(\text{C}_j\), on explaining the variations
 retained by \(k\) extracted features, \(\text{V}_1, ..., \text{V}_k\),
 is
@@ -819,7 +796,7 @@ is
 \]
 
 The \(\text{C}_j\) are sorted in descending order where \(\text{C}_1\)
-contributes the most variation to the extracted principal components
+contributes the most variation to the extracted principle components
 among all the \(\text{C}_j\) for \(j=1,2,...p\), variables. Variables at
 the beginning of the sorted list are considered more important for the
 analysis than variables at the end. Here, any variable that contributes
@@ -832,18 +809,19 @@ contributed equally, is selected as important for the analysis.
   \textbf{How are the top \(C_j's\) chosen?}
 \end{itemize}
 
-The number of principal components retained, \(k\), is based on the
-proportion of variance retained of the \(p\) principal components, where
+The number of principle components retained, \(k\), is based on the
+proportion of variance retained of the \(p\) principle components, where
 the variance threshold is chosen to be 80\%.
 
 \[
 0.8 = \frac{\sum^k_{i=1} \lambda_i}{\sum^p_{j=1} \lambda_j}
-\] The number of principal components retained is based on the
+\] The number of principle components retained is based on the
 proportion of variance. If the contribution of the \(p\) variables were
-uniform, the expected value would be \(\dfrac{1}{\text{p}} =\) 0.03. For
-a given component, an observation with a contribution larger than this
-cutoff could be considered as important in contributing to the
-component.
+uniform, the expected value would be \(1/\text{p} =\) 0.03. For a given
+component, an observation with a contribution larger than this cutoff
+could be considered as important in contributing to the component.
+
+Variable selection is implemented using the \texttt{FactoMineR} package
 
 \newpage
 
@@ -897,19 +875,11 @@ vs 145 female). The distribution disease indication, \texttt{Indication}
 shows a majority are of level 2 and levels 3, 4, and 6 relatively rare
 occurances in this dataset.
 
-\begin{figure}[H]
-
-{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-4-1} 
-
-}
-
-\caption{\label{fig:violin-standardized}Violin plot of continuous variables.}\label{fig:unnamed-chunk-4}
-\end{figure}
-
 Many of the standardized continuous variables in Figure
 \ref{fig:violin-standardized} are highly skewed with a number of
-outliers. This can affect the performance of some classification methods
-that assume a distributional form for the data.
+outliers. This can affect the performance of discriminant analysis
+classification methods that assume a distributional form for the data
+\autocite{hastie_elements_2009}.
 
 The heatmap in Figure \ref{fig:heatmap-standardized} shows only a few
 variables with moderate to strong correlation. Only a few variables,
@@ -917,15 +887,6 @@ variables with moderate to strong correlation. Only a few variables,
 correlated with many other variable. Feature selection methods based on
 the correlation matrix may not show strong feature importance for a
 subset of the variables.
-
-\begin{figure}[H]
-
-{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-5-1} 
-
-}
-
-\caption{\label{fig:heatmap-standardized}Heatmap of standardized and transformed variables.}\label{fig:unnamed-chunk-5}
-\end{figure}
 
 \subsection{Missing Data Exploration}\label{missing-data-exploration}
 
@@ -944,11 +905,11 @@ more information, this analysis assumes the data is MCAR.}
 
 \begin{figure}[H]
 
-{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-6-1} 
+{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-4-1} 
 
 }
 
-\caption{\label{fig:missing-data}Visual representation of missing observations in the ARDS dataset.}\label{fig:unnamed-chunk-6}
+\caption{\label{fig:missing-data}Visual representation of missing observations in the ARDS dataset.}\label{fig:unnamed-chunk-4}
 \end{figure}
 
 From Figure \ref{fig:missing-data}, \texttt{PreECMO\_Albumin} is seen to
@@ -984,7 +945,7 @@ highly predictive variables is severely limited by a low outflux value
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-7}\label{tab:missing-statistics} Missing pattern statistics for variables in dataset.}
+\caption{\label{tab:unnamed-chunk-5}\label{tab:missing-statistics} Missing pattern statistics for variables in dataset.}
 \centering
 \fontsize{10}{12}\selectfont
 \begin{tabular}{lrrr}
@@ -1057,23 +1018,22 @@ LDA is the highest performer. While for predictive mean-matching with
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-8}\label{tab:cv-kappa} Averaged Cohen's Kappa for each model fitted in cross-validation.  The tuned parameters for KNN and RF on each imputation emthod are (a) K=5 and mtry=11(b) K=5 and mtry=11(c) K=5 and mtry=13 (d) K=13 and mtry=15, respectively.}
+\caption{\label{tab:unnamed-chunk-6}\label{tab:cv-kappa} Averaged Cohen's Kappa for each model fitted in cross-validation.  The tuned parameters for KNN and RF on each imputation emthod are (a) K=5 and mtry=11(b) K=5 and mtry=11(c) K=5 and mtry=13 (d) K=13 and mtry=15, respectively.}
 \centering
 \fontsize{10}{12}\selectfont
 \begin{tabular}{lrrrrr}
 \toprule
   & Logit & LDA & QDA & KNN & RF\\
 \midrule
-Complete Case & 0.139 & 0.205 & 0.038 & 0.053 & 0.035\\
-Mean & 0.191 & 0.220 & 0.040 & 0.136 & 0.085\\
-MI (m=9) & 0.179 & 0.124 & 0.106 & 0.088 & 0.136\\
-MI (m=99) & 0.185 & 0.158 & 0.037 & 0.127 & 0.177\\
+CC & 0.139 & 0.205 & 0.038 & 0.053 & 0.035\\
+SI1 & 0.191 & 0.220 & 0.040 & 0.136 & 0.085\\
+MI9 & 0.179 & 0.124 & 0.106 & 0.088 & 0.136\\
+MI99 & 0.185 & 0.158 & 0.037 & 0.127 & 0.177\\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsubsection{Validation on Test Set}\label{validation-on-test-set}
-
+\emph{Validation on Test Set:}\\
 Using the parameters values learned in cross-validation, models were fit
 on the full training set and validated against the test set. In complete
 case analysis, KNN with \(K=5\) performed the best with
@@ -1089,7 +1049,7 @@ non-survival was logistic regression on MI99.
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-9}\label{tab:metrics} Pooled performance results of trained models validated on test set.}
+\caption{\label{tab:unnamed-chunk-7}\label{tab:metrics} Pooled performance results of trained models validated on test set.}
 \centering
 \fontsize{10}{12}\selectfont
 \begin{tabular}{lccccc}
@@ -1104,7 +1064,7 @@ non-survival was logistic regression on MI99.
 
  & KNN & 0.300 & 0.847 & 0.709 & 0.161\\
 
-\multirow{-5}{*}{\raggedright\arraybackslash Complete Case} & RF & 0.050 & 0.966 & 0.734 & 0.022\\
+\multirow{-5}{*}{\raggedright\arraybackslash CC} & RF & 0.050 & 0.966 & 0.734 & 0.022\\
 \cmidrule{1-6}
  & Logit & 0.222 & 0.894 & 0.732 & 0.137\\
 
@@ -1114,7 +1074,7 @@ non-survival was logistic regression on MI99.
 
  & KNN & 0.222 & 0.824 & 0.679 & 0.050\\
 
-\multirow{-5}{*}{\raggedright\arraybackslash Mean} & RF & 0.185 & 0.965 & 0.777 & 0.197\\
+\multirow{-5}{*}{\raggedright\arraybackslash SI1} & RF & 0.185 & 0.965 & 0.777 & 0.197\\
 \cmidrule{1-6}
  & Logit & 0.222 & 0.906 & 0.741 & 0.153\\
 
@@ -1141,20 +1101,20 @@ non-survival was logistic regression on MI99.
 
 \subsection{Feature Selection}\label{feature-selection-1}
 
-At least 16 principal components are needed to explain 80\% of the
-variance in the imputed training data and at least 15 principal
+At least 16 principle components are needed to explain 80\% of the
+variance in the imputed training data and at least 15 principle
 components for the complete case analysis. The red dashed lines in
 Figure \ref{fig:feature-importance-pca} indicate the expected average
-contribution of each variable to the selected principal components if
-each variable contributed equally to each principal component.
+contribution of each variable to the selected principle components if
+each variable contributed equally to each principle component.
 
 \begin{figure}[H]
 
-{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-10-1} 
+{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-8-1} 
 
 }
 
-\caption{\label{fig:feature-importance-pca}Contribution of variables to the principal components whose cumulative sum explains >80\% of the variation in the data.}\label{fig:unnamed-chunk-10}
+\caption{\label{fig:feature-importance-pca}Contribution of variables to the principle components whose cumulative sum explains >80\% of the variation in the data.}\label{fig:unnamed-chunk-8}
 \end{figure}
 
 \newpage
@@ -1195,36 +1155,26 @@ problem eeven more difficult.
 
 A surprising result is that KNN performed the best in the complete case
 analysis, \(\kappa=0.161\) and also performed better than the best
-performing model on MI9 (Logit with \(\kappa=0.153\)). On the imputed
-datasets KNN performed relatively poorly but similarly to LDA. QDA
-consistently performed the worst, no better than random chance based on
-the class likelihoods (\(\kappa \approx 0\)), suggesting that the class
-distributions do not support a quadratic decision boundary.
+performing model on MI9 (Logit with \(\kappa=0.153\)). RF performed
+poorly on CC (\(\kappa=0.022\)) but was the best performer on SI1
+(\(\kappa=0.197\)) and second best on MI9 and MI99 (\(\kappa=0.116\) and
+\(\kappa=0.144\)). The inverse performance of KNN and RF may be
+surprising but Tang et al. show \textcite{tang_when_2018} trees datasets
+that work well for nearest-neighbor search problems can be bad
+candidates for forests without sufficient subsampling, due to a lack of
+diversity. On the imputed datasets KNN performed relatively poorly but
+similarly to LDA. It should be noted that KNN consistently was able to
+predict non-survival better than other methods, btu at the cost of lower
+accuracy in predicting survival. QDA consistently performed the worst,
+no better than random chance based on the class likelihoods
+(\(\kappa \approx 0\)), suggesting that the class distributions do not
+support a quadratic decision boundary.
 
-\textbf{Random Forests Fails}
-
-\begin{itemize}
-\item
-  Sparsity - When the data are very sparse, it's very plausible that for
-  some node, the bootstrapped sample and the random subset of features
-  will collaborate to produce an invariant feature space. There's no
-  productive split to be had, so it's unlikely that the children of this
-  node will be at all helpful.
-\item
-  One surprising consequence is that trees that work well for
-  nearest-neighbor search problems can be bad candidates for forests
-  without sufficient subsampling, due to a lack of diversity
-  \autocite{tang_when_2018}.
-\item
-  Data are not axis-aligned - Suppose that there is a diagonal decision
-  boundary in the space of two features, \(x_1\) or \(x_2\). Even if
-  this is the only relevant dimension to your data, it will take an
-  ordinary random forest model many splits to describes that diagonal
-  boundary. This is because each split is oriented perpendicular to the
-  axis of either \(x_1\) or \(x_2\).
-\end{itemize}
-
-\emph{Feature Importance:}
+\emph{Feature Importance:} The selected variables via PCA were the same
+for SI1, MI9, and MI99 with some variations in the order of importance.
+There were four selected variables in CC that were not selected in the
+imputed datasets: \texttt{PreECMO\_IL8}, \texttt{PreECMO\_Creatinine},
+\texttt{PreECMO\_Platelets}, and \texttt{PreECMO\_SiL2}.
 
 \subsection{Improvements}\label{improvements}
 
@@ -1250,14 +1200,16 @@ imputations and a grid search over \(p\) parameters would then be
 
 Variable selection via PCA is independent of the classification method
 and allows important variables to be identified outside of the
-classification analysis. Method dependent methods may better select
-variables \textbf{(Citation)}. Regularized logistic regression can
-select variables through use of the LASSO
+classification analysis. Embedded variable selection may select
+variables more pertinent to the classification method. Regularized
+logistic regression can select variables through use of the LASSO
 \autocite{tibshirani_regression_1996}. LASSO methods have also been
 developed for LDA and QDA Sparse Discriminant Analysis
 \autocite{clemmensen_sparse_2011} and DALASS
 \autocite{trendafilov_dalass:_2007}. Random forests naturally select
-important variables by \_\_\_\_ \textbf{(Citation)}.
+important variables by accumulating the improvement in the
+split-criterion over all the trees in the forest for each variable
+\autocite[pp.~593]{hastie_elements_2009}.
 
 \begin{itemize}
 \tightlist
@@ -1275,9 +1227,13 @@ important variables by \_\_\_\_ \textbf{(Citation)}.
   Summary of proceedure
 \item
   Summary of results
-\item
-  Possible improvements and future work
 \end{itemize}
+
+The CC has some distinctly different properties than the imputed
+datasets; the best classification method was KNN, which performed
+noteably worse in SI1, MI9, and MI99. The variables selected as
+important for the predictions also differed in CC compared to the
+imputed datasets.
 
 \newpage
 
@@ -1290,6 +1246,33 @@ Analysis}\label{a.-additional-exploratory-data-analysis}
 Analysis}
 
 \appendixA
+
+\begin{figure}[H]
+
+{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-9-1} 
+
+}
+
+\caption{\label{fig:violin-standardized}Violin plot of standardised continuous variables.}\label{fig:unnamed-chunk-9}
+\end{figure}
+
+\begin{figure}[H]
+
+{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-10-1} 
+
+}
+
+\caption{\label{fig:violin-transformed}Violin plot of standardised and transformed continuous variables.}\label{fig:unnamed-chunk-10}
+\end{figure}
+
+\begin{figure}[H]
+
+{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-11-1} 
+
+}
+
+\caption{\label{fig:heatmap-standardized}Heatmap of standardized and transformed variables.}\label{fig:unnamed-chunk-11}
+\end{figure}
 
 \subsection*{B. Algorithms}\label{b.-algorithms}
 \addcontentsline{toc}{subsection}{B. Algorithms}
@@ -1356,25 +1339,6 @@ The MICE algorithm is adapted from \autocite{van_buuren_flexible_2012}.
 
 \end{algorithm}
 
-\subsubsection{Majority Vote}\label{majority-vote}
-
-\textbf{(Alexandre et al. 2001)} There has been some interest on the
-comparative performance of the sum and product rules (or the arithmetic
-and geometric means) (Kittler et al., 1996; Tax et al., 1997; Kittler et
-al., 1998). The arithmetic mean is one of the most frequently used
-combination rules since it is easy to implement and normally produces
-good results.
-
-In (Kittler et al., 1998), the authors show that for combination rules
-based on the sum, such as the arithmetic mean, and for the case of
-classifiers working in different feature spaces, the arithmetic mean is
-less sensitive to errors than geometric mean.
-
-In fact (Alexandre et al. 2001) show that for classification problems
-with two classes, that give estimates of the a posteriori probabilities
-that sum to one the combination rules arithmetic mean (or the sum) and
-the geometric mean (or the product) are equivalent.
-
 \subsection*{C. Additional Missing Data
 Diagnostics}\label{c.-additional-missing-data-diagnostics}
 \addcontentsline{toc}{subsection}{C. Additional Missing Data
@@ -1387,20 +1351,20 @@ Imputations}\label{visual-insepction-of-imputations}
 
 \begin{figure}[H]
 
-{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-13-1} 
-
-}
-
-\caption{\label{fig:xyplot-mean}Scatterplot of each imputed dataset}\label{fig:unnamed-chunk-13}
-\end{figure}
-
-\begin{figure}[H]
-
 {\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-14-1} 
 
 }
 
-\caption{\label{fig:xyplot-pmm}Scatterplot of each imputed dataset}\label{fig:unnamed-chunk-14}
+\caption{\label{fig:xyplot-mean}Scatterplot of each imputed dataset}\label{fig:unnamed-chunk-14}
+\end{figure}
+
+\begin{figure}[H]
+
+{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-15-1} 
+
+}
+
+\caption{\label{fig:xyplot-pmm}Scatterplot of each imputed dataset}\label{fig:unnamed-chunk-15}
 \end{figure}
 
 \begin{itemize}
@@ -1430,11 +1394,11 @@ assumption.
 
 \begin{figure}[H]
 
-{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-15-1} 
+{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-16-1} 
 
 }
 
-\caption{\label{fig:rfe-logit}Ordered feature importance from Logit model}\label{fig:unnamed-chunk-15}
+\caption{\label{fig:rfe-logit}Ordered feature importance from Logit model}\label{fig:unnamed-chunk-16}
 \end{figure}
 
 \subsection*{E. Code Structure}\label{e.-code-structure}
@@ -1468,7 +1432,7 @@ set and the fitted models and performance metrics are saved to
 
 }
 
-\caption{\label{fig:r-code-chart}Flowchart of code structure.}\label{fig:unnamed-chunk-16}
+\caption{\label{fig:r-code-chart}Flowchart of code structure.}\label{fig:unnamed-chunk-17}
 \end{figure}
 
 \subsection*{F. OLD PLOTS \& FIGURES}\label{f.-old-plots-figures}
@@ -1476,7 +1440,7 @@ set and the fitted models and performance metrics are saved to
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-20}\label{tab:cc-metrics} Complete case analysis accuracy metrics.  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=11, respectively.}
+\caption{\label{tab:unnamed-chunk-21}\label{tab:cc-metrics} Complete case analysis accuracy metrics.  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=11, respectively.}
 \centering
 \fontsize{10}{12}\selectfont
 \begin{tabular}{lrrrr}
@@ -1494,7 +1458,7 @@ RF & 0.05 & 0.966 & 0.734 & 0.022\\
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-21}\label{tab:mean-metrics} Mean imputation accuracy metrics (m=1).  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=11, respectively.}
+\caption{\label{tab:unnamed-chunk-22}\label{tab:mean-metrics} Mean imputation accuracy metrics (m=1).  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=11, respectively.}
 \centering
 \fontsize{10}{12}\selectfont
 \begin{tabular}{lrrrr}
@@ -1512,7 +1476,7 @@ KNN & 0.222 & 0.824 & 0.679 & 0.050\\
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-22}\label{tab:pmm-metrics} MICE via predictive mean matching accuracy metrics (m=9).  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=13, respectively.}
+\caption{\label{tab:unnamed-chunk-23}\label{tab:pmm-metrics} MICE via predictive mean matching accuracy metrics (m=9).  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=13, respectively.}
 \centering
 \fontsize{10}{12}\selectfont
 \begin{tabular}{lrrrr}
@@ -1530,7 +1494,7 @@ RF & 0.148 & 0.941 & 0.750 & 0.116\\
 
 \begin{table}[!h]
 
-\caption{\label{tab:unnamed-chunk-23}\label{tab:pmm99-metrics} MICE via predictive mean matching accuracy metrics (m=99).  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=13 and mtry=15, respectively.}
+\caption{\label{tab:unnamed-chunk-24}\label{tab:pmm99-metrics} MICE via predictive mean matching accuracy metrics (m=99).  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=13 and mtry=15, respectively.}
 \centering
 \fontsize{10}{12}\selectfont
 \begin{tabular}{lrrrr}
