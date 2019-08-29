@@ -25,7 +25,7 @@
 \usepackage[left=1in,right=1in,top=1in,bottom=1in]{geometry}
 \usepackage{hyperref}
 \hypersetup{unicode=true,
-            pdftitle={Combinging Multiple Imputation and Cross-Validation for Predicting Survival of ECMO Treatment in ARDS Patients},
+            pdftitle={Survival Prediction: An Ensemble Approach to using Multiple Imputation and Cross-Validation},
             pdfborder={0 0 0},
             breaklinks=true}
 \urlstyle{same}  % don't use monospace font for urls
@@ -78,8 +78,8 @@
 
 \setlength{\droptitle}{-2em}
 
-  \title{Combinging Multiple Imputation and Cross-Validation for Predicting
-Survival of ECMO Treatment in ARDS Patients}
+  \title{Survival Prediction: An Ensemble Approach to using Multiple Imputation
+and Cross-Validation}
     \pretitle{\vspace{\droptitle}\centering\huge}
   \posttitle{\par}
     \author{}
@@ -130,7 +130,7 @@ Biostatistics
 Acknowledgements 
 
 \vspace{3cm}
-To my peers, alone we sink but together we swim.
+To my peers, alone we are biased, together we are unbiased.
 
 \vspace{1cm}
 To my family, for keeping me sane in the bipolar Scottish weather. 
@@ -139,7 +139,7 @@ To my family, for keeping me sane in the bipolar Scottish weather.
 To my friends, for your unbiased indulgence in my regressive statistical puns. 
 
 \vspace{1cm}
-To my weird friends, you provided much needed relief from the objectively Normal days. 
+To my non-Gaussian friends, you increased the variance on the objectively Normal days. 
 
 \end{center}
 
@@ -161,12 +161,12 @@ analysis even further and are often handled either by dropping missing
 observations or filling in the missing value by the mean. Both methods
 can be valid if certain assumptions hold, but useful information is lost
 and bias estimates of means, regression coefficients, and correlations
-{[}\textcite{van_buuren_flexible_2012}, pp.8; schafer\_missing\_2002{]}.
+\autocites[pp.8]{van_buuren_flexible_2012}{schafer_missing_2002}.
 Several statistical methods have been proposed for handling missing data
 \autocite{schafer_missing_2002}; simple proceedures include complete
 case analysis (CC) wherein all observations with missing data are
 excluded, single imputation methods that simply use the mean to replace
-the missing value (SIM), and more principled methods such as multiple
+the missing value, and more principled methods such as multiple
 imputation (MI). Multiple imputation is a widely used flexible method in
 datasets with missing values. MI is commonly used in medical studies
 \autocites{powney_review_2014}{karahalios_review_2012}{wood_are_2004}
@@ -178,17 +178,21 @@ Description}\label{study-population-data-description}
 
 This paper investigates predicting survival of patients diagnosed with
 Acute Respiratory Distress Syndrom (ARDS) after treatment with
-Extracorporeal Membrane Oxygenation (ECMO). ARDS is a common and often
+Extracorporeal Membrane Oxygenation (ECMO). It is a common and often
 fatal cause of respiratory failure among patients who are critically ill
 with an estimated global prevalence of 10\% and a mortality of 25-40\%
-\autocites{bellani_epidemiology_2016}{rubenfeld_epidemiology_2007}{fan_acute_2018}.
-ARDS is syndrome with many disease paths characterized by rapid onset of
-widespread inflammation in the lungs \autocite{fan_acute_2018}. ECMO is
-a treatment used in \_\_\_ that is thought to help patients with
-ARDS{[}@{]}. Studies have reported favorable outcome in young ARDS
-patients treated with ECMO but not older \autocite{Sahetya01052018}.
-ECMO treatment is a complicated and invasive proceedure with risks that
-lead to death \autocite{paolone_extracorporeal_2017}. Identifying
+{[}\textcite{bellani_epidemiology_2016};
+\textcite{rubenfeld_epidemiology_2007}; \textcite{fan_acute_2018};
+paolone\_extracorporeal\_2017{]}. ARDS has many disease paths and is
+characterized by rapid onset of widespread inflammation in the lungs
+\autocite{fan_acute_2018}. ECMO is a complicated and invasive proceedure
+intended as a supportive care treatment rather than a primary ARDS
+treatment yet is quickly being adopted for ARDS patients
+\autocite{park_extracorporeal_2011}. ARDS patients who have undergone
+ECMO treatment show lower morbidity and mortality rates
+\autocite{wallace_ave_2010}. Yet follow-up studies have reported
+favorable outcome in younger ARDS patients treated with ECMO with fewer
+comorbid conditions \autocite{sahetya_survival_2018}. Identifying the
 mortality risk of patients before treatment is crucial. Two ARDS
 subphenotypes have been identified with distinct clinical and biological
 features that are thought to support predictive strategies
@@ -223,8 +227,6 @@ The main questions of interest investigated in this paper are:
   Which biomedical markers are needed for accurate prediction and which
   can be dropped?
 \end{enumerate}
-
-\subsection{Layout}\label{layout}
 
 To further the goals of this paper multiple imputation is investigated
 for increasing prediction performance on ECMO treatment survival. This
@@ -312,7 +314,9 @@ variability. The five explored on the ARDS dataset in this paper are:
 Logistic Regression, Linear Discriminant Analysis, Quadratic
 Discriminant Analysis, K-Nearest Neighbors, and Random Forests.
 
-\emph{Logistic Regression:}\\
+\(~\)\\
+\emph{Logistic Regression}
+
 Logistic regression is a widely used approach in machine learning and
 medicine for binary classification. It is a generalisation of linear
 regression that models the posterior probabilities of the \(Y\) classes.
@@ -338,7 +342,9 @@ using the \texttt{"glmnet"} method in the \emph{caret} package. The
 parameters settings are \texttt{alpha\ =\ 1} and \texttt{lambda\ =\ 0}
 to suppress regularization.
 
-\emph{LDA and QDA:}\\
+\(~\)\\
+\emph{LDA and QDA}
+
 Discriminant Analysis is a widely used set of classification methods. A
 generlization of Fisher's Linear Discriminant
 \autocite{fisher_use_1936}, discriminant functions are created through a
@@ -412,7 +418,9 @@ even when the classes are not normally distributed.
 Logitistic Regression (Logit) is implemented using the \texttt{"lda"}
 and \texttt{"qda"} methods in the \emph{caret} package.
 
-\emph{K-Nearest Neighbors:}\\
+\(~\)\\
+\emph{K-Nearest Neighbors}
+
 \(K\)-Nearest Neighbors (KNN) is a commonly used non-parametric
 classification method. To predict the class of a new observation, a
 distance matrix is constructed between all observations and the K
@@ -424,16 +432,18 @@ a class can be chosen at random. Various distance metrics may be used
 but it is common to use Euclidean distance to determine the closest
 training points, though it is advisable to scale variables so that one
 direction does not dominate the classification
-\autocite[pp.456]{hastie_elements_2009}.
+\autocite[pp.456]{hastie_elements_2009}. KNN is sensitive to the local
+structure of the data. As \(K\) increases, the variability of the
+classification tends to decrease at the expense of increased bias.
 
-KNN is sensitive to the local structure of the data. As \(K\) increases,
-the variability of the classification tends to decrease at the expense
-of increased bias. KNN is implemented using the \texttt{"kknn"} method
-in the \emph{caret} package with a grid search over the number of
-observations considered in classifying a new observation,
-\(k=3,...,19\). A Gaussian kernel and Euclidean distances are used.
+KNN is implemented using the \texttt{"kknn"} method in the \emph{caret}
+package with a grid search over the number of observations considered in
+classifying a new observation, \(k=3,...,19\). A Gaussian kernel and
+Euclidean distances are used.
 
-\emph{Random Forests:}\\
+\(~\)\\
+\emph{Random Forests}
+
 Random Forests \autocite{breiman_random_2001} are one of the most
 successful general-purpose modern algorithms\autocite{biau_random_2016}.
 They are an ensemble learning method that can be applied to a wide range
@@ -444,7 +454,7 @@ classifying a new observation to the mode of the multiple decisions tree
 classifications. Random forests often make accurate and robust
 predictions, even for very high-dimensional
 problems\autocite{biau_analysis_2012}. See Figure
-\ref{fig:alg:random-forests-alg} in Appendix B for an explanation of the
+\ref{alg:random-forests-alg} in Appendix B for an explanation of the
 random forests algorithm. Random Forests (RF) are implemented using the
 \texttt{"rf"} method in the \emph{caret} package with a grid search over
 the number of variables considered at each split, \(mtry=3,...,15\).
@@ -505,11 +515,13 @@ if \texttt{ECMO\_Survival} is predicted to be ``Y'' for all cases, then
 the accuracy is 75\% but the prediction is no better than the baseline
 likelihood of the class proportions.
 
-\emph{Cohen's Kappa:} Kappa or Cohen's Kappa
-\autocite{cohen_coefficient_1960} is a classification performance metric
-that is normalized at the baseline of random chance on the dataset. It
-is a useful performance measure on problems with imbalanced classes.
-Kappa is defined as:
+\(~\)\\
+\emph{Cohen's Kappa}
+
+Kappa or Cohen's Kappa \autocite{cohen_coefficient_1960} is a
+classification performance metric that is normalized at the baseline of
+random chance on the dataset. It is a useful performance measure on
+problems with imbalanced classes. Kappa is defined as:
 
 \[
 \kappa = \frac{p_o - p_e}{1 - p_e}
@@ -520,11 +532,10 @@ p_o = \frac{a+d}{a+b+c+d}  ~~~~~\text{and}~~~~~ p_e = p_{o,Y} + p_{o,N}
 \]
 
 where \[
-p_{o,Y} = \frac{a+d}{a+b+c+d} ~\cdot~ \frac{a+c}{a+b+c+d}
-\]
-
-\[
-p_{o,N} = \frac{c+d}{a+b+c+d} ~\cdot~ \frac{b+d}{a+b+c+d}
+\begin{aligned}
+p_{o,Y} &= \frac{a+d}{a+b+c+d} ~\cdot~ \frac{a+c}{a+b+c+d} \\
+p_{o,N} &= \frac{c+d}{a+b+c+d} ~\cdot~ \frac{b+d}{a+b+c+d}
+\end{aligned}
 \]
 
 Kappa is used in this paper to compare the performance of different
@@ -562,19 +573,23 @@ MAR assumption.
 
 \subsection{Imputation Methods}\label{imputation-methods}
 
-\emph{Complete Case Analysis:} Complete case canalysis is a convenient
-method for handling missing data and is the default method in many
-statistical packages. If there is a missing value in an observation, it
-is dropped from the analysis. This is often a poor appraoch as complete
-cases analysis assumes MCAR. In sparse datasets a complete case analysis
-can cause an analysis to be underpowered and if MCAR does not hold, can
-severely bias estimates of means, regression coefficients, and
-correlations \autocite{van_buuren_flexible_2012}.
+\emph{Complete Case Analysis}
+
+Complete case canalysis is a convenient method for handling missing data
+and is the default method in many statistical packages. If there is a
+missing value in an observation, it is dropped from the analysis. This
+is often a poor appraoch as complete cases analysis assumes MCAR. In
+sparse datasets a complete case analysis can cause an analysis to be
+underpowered and if MCAR does not hold, can severely bias estimates of
+means, regression coefficients, and correlations
+\autocite{van_buuren_flexible_2012}.
 
 The ARDS dataset considered in this paper has 268 of 450 observations
 with missing data.
 
-\emph{Mean Imputation:}\\
+\(~\)\\
+\emph{Mean Imputation}
+
 Another common method for handling missing data is mean imputation; the
 missing value is replaced by the mean of the observed values (the mode
 for categorical data). This approach is satisfactory for a moderate
@@ -587,7 +602,9 @@ generally avoided \autocite{van_buuren_flexible_2012}. Mean imputation
 (SI1) is implemented using the \texttt{"mean"} method in the
 \emph{micemd} package with the number of imputations set as \(m=1\).
 
-\emph{Multiple Imputation:}\\
+\(~\)\\
+\emph{Multiple Imputation}
+
 Multiple imputation is a method that accounts for the uncertainty in the
 imputed values. The observed dataset is imputed multiple times to create
 \(m>1\) complete datasets. The imputed values are drawn from a
@@ -606,29 +623,84 @@ the analysis is conducted on each dataset, and the results are pooled.
 Details of the \emph{MICE} algorithm can be found in Algorithm
 \ref{alg:mice-alg}.
 
-\emph{Predictive Mean Matching:}\\
-Predictive Mean Matching (PMM) is a semi-parametric imputation approach
-to imputing missing values. It fills in a value randomly from among the
-a observed donor values from an observation whose regression-predicted
-values are closest to the regression-predicted value for the missing
-value from the simulated regression model \textbf{(Heitjan and Little
-1991; Schenker and Taylor 1996)}. PMM method ensures that imputed values
-are plausible; it might be more appropriate than the regression method
-(which assumes a joint multivariate normal distribution) if the
-normality assumption is violated \textbf{(Horton and Lipsitz 2001,
-p.~246)}. PMM is fairly robust to transformations of the target
-variables \autocite{van_buuren_flexible_2012}, yielding similar results
-for a Yeo-Johnson transformation or no transformation.
+\(~\)\\
+\emph{Predictive Mean Matching}
+
+Many methods can be used to predict the missing value in the \emph{MICE}
+algorithm (Algorithm \ref{alg:mice-alg}). Predictive Mean Matching
+\autocites{rubin_statistical_1986}{little_missing-data_1988} (PMM) is
+used as the imputation method for MI of the ARDS. It is a versatile
+method robust to transformations of the target variable
+\autocite[pp.~69]{van_buuren_flexible_2012}. PMM uses the observed
+values to make realistic imputations. Meaningless imputations are
+avoided because imputed values are always contained within the range of
+the observed data. PMM is also less vulnerable to model misspecification
+than other methods because the model is implicit, the distribution of
+missing values is based on the observed data rather than an explicit
+model \autocite{little_bayes_2014}. The algoritm as outlined by Van
+Buuren \textcite{van_buuren_flexible_2012} pp.~57-58, is defined in
+Algorithm \ref{alg:pmm-alg}.
+
+Let \(y\) be the vector of observed and imputed values where
+\(y_{\text{obs}}\) is the vector of \(n_1\) observed values and
+\(\dot{y}\) is the vector of \(n_0\) imputed values. Then let \(X\) be
+the design matrix of predictors where \(X_{\text{obs}}\) indicates the
+subset of \(n_1\) rows of \(X\) for which \(y\) is observed and
+\(X_{\text{mis}}\) is the subset of \(n_0\) rows for which \(y\) is
+missing. Then Bayesian multiple imputation is specified as
+
+\[
+\dot{y} = \dot{\beta}_0 + X_{\text{obs}}\dot{\beta}_1 + \dot{\epsilon} ~~~~~\text{where}~~~~~ \dot{\epsilon} \sim N(0, \dot{\sigma}^2)
+\] where \(\dot{\beta}_0\), \(\dot{\beta}_1\), and \(\dot{\sigma}\) are
+random draws from their posterior distribution, given the data.
+Imputations are drawn under the normal linear model using
+non-informative priors for each paramter. Given the priors, the required
+inputs are:
 
 \begin{itemize}
 \tightlist
 \item
-  \textbf{Equations for Predictive Mean Matching}
+  \(y_{\text{obs}}\), the \(n_1 \times 1\) vector of observed data in
+  the target variable \(y\);
+\item
+  \(X{\text{obs}}\), the \(n_1 \times q\) matrix of predictors of rows
+  with observed data in \(y\);
+\item
+  \(X{\text{mis}}\), the \(n_0 \times q\) matrix of predictors of rows
+  with missing data in \(y\).
 \end{itemize}
 
+\begin{algorithm}[H]
+\label{alg:pmm-alg}
+\caption{Imputation of $y$ by predictive mean matching}
+\DontPrintSemicolon
+\SetAlgoLined
+\BlankLine
+
+\begin{enumerate}
+  \item Caluculate the cross-product matrix $S=X_{\text{obs}}'X_{\text{obs}}$.
+  \item Calculate $V = (S + \text{diag}(S)\kappa)^{-1}$, with some small $\kappa$.
+  \item Calculate regression weights $\hat{\beta} = V X_{\text{obs}}' y_{\text{obs}}$.
+  \item Draw a random variable $\dot{g} \sim \chi^2_{\nu}$ with $\nu = n_1 - q$.
+  \item Calculate $\dot{\sigma}^2 = (y_{\text{obs}} - X_{\text{obs}} \hat{\beta})' (y_{\text{obs}} - X_{\text{obs}} \hat{\beta}) / \hat{g}$.
+  \item Draw $q$ independent $N(0,1)$ variate in vector $\dot{z}_1$.
+  \item Calculate $V^{1/2}$ by Cholesky decomposition.
+  \item Calculate $\dot{\beta} = \hat{\beta} + \dot{\sigma} \dot{z}_1 V^{1/2}$.
+  \item Calculate $\dot{\eta}(i,j) = \vert X_{\text{obs},[i]} \hat{\beta} - X_{\text{mis},[j]} \dot{\beta} \vert$ with $i=1,...,n_1$ and $j=1,...,n_0$; 
+  \item Construct $n_0$ sets $Z_j$, each containing $d$ candidate donors, from $Y_{\text{obs}}$ such that $\sum_d \dot{\eta}(i,j)$ is minimum for all $j=1,...,n_0$.  Break ties randomly;
+  \item Draw one donor $i_j$ from $Z_j$ randomly for $j=1,...,n_0$
+  \item Calculate imputations $\dot{y}_j - y_{i_j}$ for $j=1,...,n_0$.
+\end{enumerate}
+
+\BlankLine
+\end{algorithm}
+
+Where \(\kappa\) is a ridge parameter used to avoid problems with
+singular matrices.
+
 Multiple imputation is implemented using the \texttt{"pmm"} method in
-the \emph{micemd} package with the number of imputations set as \(m=9\)
-and \(m=99\).
+the \emph{micemd} package with the ridge parameter \(\kappa = 1e-05\)
+and with the number of imputations set as \(m=9\) and \(m=99\).
 
 \subsection{Ensemble Multiple
 Imputation}\label{ensemble-multiple-imputation}
@@ -637,19 +709,19 @@ While the topic of multiple imputation has been widely researched, how
 to best use multiple imputation in conjunction with cross-validation has
 not. Two approaches have been proposed for pooling results from several
 SVMs \autocite{belanche_handling_2014} and Cox regression
-\textbf{(Zavrakidis 2017)} from multiply imputed datasets. The method is
-to concatenate the \(m\) imputed datasets and fit a classifier, and
-optimize, to the resulting set; this accounts for the variability of the
-parameter estimates as well as the variability of the training
-observations in relation to the imputed values
+\autocite{zavrakidis_combining_2017} from multiply imputed datasets. The
+method is to concatenate the \(m\) imputed datasets and fit a
+classifier, and optimize, to the resulting set; this accounts for the
+variability of the parameter estimates as well as the variability of the
+training observations in relation to the imputed values
 \autocite{belanche_handling_2014}. The second proceedure fits separate
 classifiers to each imputed data set and get the pooled (i.e.~avereaged)
 performance of the \(m\) classifiers. Results from both studies either
-show similar results between appraoches \textbf{(Zavrakidis 2017)} or
-slightly better performance with the first approach
-\autocite{belanche_handling_2014}. For simplicity and the sake of
-computational costs, this paper, only considers the first approach as
-outlined in Figure \ref{fig:ensemble-imputation}.
+show similar results between appraoches
+\autocite{zavrakidis_combining_2017} or slightly better performance with
+the first approach \autocite{belanche_handling_2014}. For simplicity and
+the sake of computational costs, this paper, only considers the first
+approach as outlined in Figure \ref{fig:ensemble-imputation}.
 
 The following steps describe the ensemble approach for multiply imputed
 data in k-fold cross-validation:
@@ -740,7 +812,7 @@ each phase the data is first randomly stratified into 75\% training and
 25\% test sets, with the test set held-out. Five classification models
 are trained (Logit, KNN, LDA, QDA, RF) and tuned in 10-fold
 cross-validation using the ensemble imputation described in Figure
-\ref{figensemble-imputation}. To determine the expected performance of
+\ref{fig:ensemble-imputation}. To determine the expected performance of
 future predictions, one iteration of the ensemble imputation is
 conducted for the full training set, the held-out test set, and the
 tuned classification methods.
@@ -772,7 +844,7 @@ Discriminant Analysis \autocite{clemmensen_sparse_2011} are embedded
 feature selection methods that are dependent on the classification
 method.
 
-principle Component Analysis (PCA) \autocite{f.r.s_liii._1901} is a
+Principle Component Analysis (PCA) \autocite{f.r.s_liii._1901} is a
 feature extraction method that is independent of the classification
 method. The training set are orthogonally transformed into new
 uncorrelated variables called principle components that are linear
@@ -792,7 +864,7 @@ retained by \(k\) extracted features, \(\text{V}_1, ..., \text{V}_k\),
 is
 
 \[
-\text{C}_j = \sum^k_{i=1}\lambda_{ij} \text{C}_{ij} = \sum^k_{p=1} \vert \text{V}_{ij} \vert 
+\text{C}_j = \sum^k_{i=1} \vert \lambda_{ij} \text{C}_{ij} \vert = \sum^k_{p=1} \vert \text{V}_{ij} \vert 
 \]
 
 The \(\text{C}_j\) are sorted in descending order where \(\text{C}_1\)
@@ -800,18 +872,14 @@ contributes the most variation to the extracted principle components
 among all the \(\text{C}_j\) for \(j=1,2,...p\), variables. Variables at
 the beginning of the sorted list are considered more important for the
 analysis than variables at the end. Here, any variable that contributes
-more than the expected average contribution, if all variables
-contributed equally, is selected as important for the analysis.
+more than the expected average contribution -- that is if all variables
+contributed equally -- is selected as important for the analysis.
 
-\begin{itemize}
-\tightlist
-\item
-  \textbf{How are the top \(C_j's\) chosen?}
-\end{itemize}
-
-The number of principle components retained, \(k\), is based on the
-proportion of variance retained of the \(p\) principle components, where
-the variance threshold is chosen to be 80\%.
+Variable selection via PCA is independent of the classification method
+and allows important variables to be identified outside of the
+classification analysis. The number of principle components retained,
+\(k\), is based on the proportion of variance retained of the \(p\)
+principle components, where the variance threshold is chosen to be 80\%.
 
 \[
 0.8 = \frac{\sum^k_{i=1} \lambda_i}{\sum^p_{j=1} \lambda_j}
@@ -821,7 +889,7 @@ uniform, the expected value would be \(1/\text{p} =\) 0.03. For a given
 component, an observation with a contribution larger than this cutoff
 could be considered as important in contributing to the component.
 
-Variable selection is implemented using the \texttt{FactoMineR} package
+Variable selection is implemented using the \texttt{FactoMineR} package.
 
 \newpage
 
@@ -916,32 +984,29 @@ From Figure \ref{fig:missing-data}, \texttt{PreECMO\_Albumin} is seen to
 have 46.44\% missingness. To conserve more observations for the training
 set, \texttt{PreECMO\_Albumin} is dropped from the complete case
 analysis. Of the remaining variables only half contain missing values
-with moderate to low missingness up to 6\%. \textbf{An analysis into how
-difficult variables are to impute and how helpful variables are when
-imputing is beyond the scope of this paper but is provided in Appendix
-C.}
+with moderate to low missingness up to 6\%.
 
 Table \ref{tab:missing-statistics} provides some measures about variable
 dependence in the dataset. The first column shows the probability of
 observed values for each variable. The following are coefficients that
 give insight into how the variables are connected in terms of
-missingness. \(\mathbf{Influx}\) is the ratio of the number of variables
-pairs \((Y_j, ~Y_k)\) with \(Y_j\) missing and \(Y_k\) observed, divided
-by the total number of observed data. For a variable that is entirely
+missingness. \emph{Influx} is the ratio of the number of variables pairs
+\((Y_j, ~Y_k)\) with \(Y_j\) missing and \(Y_k\) observed, divided by
+the total number of observed data. For a variable that is entirely
 missing, influx is 1, and 0 for if the variable is complete.
-\(\mathbf{Outflux}\) is defined in the opposit manner, by dividing the
-number of pairs \((Y_j, ~Y_k)\) with \(Y_j\) observed and \(Y_k\)
-missing, by the total number of complete cells. For a completely
-observed variable, outflux will have a value of 1 and 0 if completely
-missing. Outflux gives an indication of how useful the variable will be
-for imputing other variables in the dataset, while influx is an
-indicator for how easily the variable can be imputed. Table
-\ref{tab:missing-statistics} shows that all variables will be useful
-during impuation except \texttt{PreECMO\_Albumin}. A high outflux
-variable might turn out to be useless for the imputation procedure if it
-is unrelated to the incomplete variables, while the usefulness of a
-highly predictive variables is severely limited by a low outflux value
-\autocite*{van_buuren_flexible_2012}.
+\emph{Outflux} is defined in the opposit manner, by dividing the number
+of pairs \((Y_j, ~Y_k)\) with \(Y_j\) observed and \(Y_k\) missing, by
+the total number of complete cells. For a completely observed variable,
+outflux will have a value of 1 and 0 if completely missing. Outflux
+gives an indication of how useful the variable will be for imputing
+other variables in the dataset, while influx is an indicator for how
+easily the variable can be imputed. Table \ref{tab:missing-statistics}
+shows that all variables will be useful during impuation with the
+exception of \texttt{PreECMO\_Albumin}. A high outflux variable might
+turn out to be useless for the imputation procedure if it is unrelated
+to the incomplete variables, while the usefulness of a highly predictive
+variables is severely limited by a low outflux value
+\autocite{van_buuren_flexible_2012}.
 
 \begin{table}[!h]
 
@@ -1033,7 +1098,8 @@ MI99 & 0.185 & 0.158 & 0.037 & 0.127 & 0.177\\
 \end{tabular}
 \end{table}
 
-\emph{Validation on Test Set:}\\
+\emph{Validation on Test Set}
+
 Using the parameters values learned in cross-validation, models were fit
 on the full training set and validated against the test set. In complete
 case analysis, KNN with \(K=5\) performed the best with
@@ -1170,10 +1236,13 @@ no better than random chance based on the class likelihoods
 (\(\kappa \approx 0\)), suggesting that the class distributions do not
 support a quadratic decision boundary.
 
-\emph{Feature Importance:} The selected variables via PCA were the same
-for SI1, MI9, and MI99 with some variations in the order of importance.
-There were four selected variables in CC that were not selected in the
-imputed datasets: \texttt{PreECMO\_IL8}, \texttt{PreECMO\_Creatinine},
+\(~\)\\
+\emph{Feature Importance}
+
+The selected variables via PCA were the same for SI1, MI9, and MI99 with
+some variations in the order of importance. There were four selected
+variables in CC that were not selected in the imputed datasets:
+\texttt{PreECMO\_IL8}, \texttt{PreECMO\_Creatinine},
 \texttt{PreECMO\_Platelets}, and \texttt{PreECMO\_SiL2}.
 
 \subsection{Improvements}\label{improvements}
@@ -1196,44 +1265,52 @@ expected test prediction since it averages over different training sets
 is that the time complexity scales from \(O(K_\text{i})\) to
 \(O(K_\text{o}K_\text{i})\). Indeed, the full time complexity for \(m\)
 imputations and a grid search over \(p\) parameters would then be
-\(O(K_\text{o}K_\text{i}mp)\).
+\(O(pK_\text{o}K_\text{i}m)\).
 
-Variable selection via PCA is independent of the classification method
-and allows important variables to be identified outside of the
-classification analysis. Embedded variable selection may select
-variables more pertinent to the classification method. Regularized
-logistic regression can select variables through use of the LASSO
+The selected variables considered important in the survival prediction
+of ARDS patients after ECMO treatment should be verified. A simple way
+this can be done is by using only the variables shown as important in
+Figure \ref{fig:feature-importance-pca} and conducting the ensemble
+imputation. Realistically, this can only be done for CC and SI1. For MI9
+and MI99, the important variables should be analysed for each imputed
+dataset in the ensemble imputation algorithm. However, this adds another
+layer of complexity and embedded variable selection methods would be a
+more suitable option. Regularized logistic regression could be used to
+select variables through use of the LASSO
 \autocite{tibshirani_regression_1996}. LASSO methods have also been
 developed for LDA and QDA Sparse Discriminant Analysis
 \autocite{clemmensen_sparse_2011} and DALASS
-\autocite{trendafilov_dalass:_2007}. Random forests naturally select
-important variables by accumulating the improvement in the
+\autocite{trendafilov_dalass:_2007}. Random forests also naturally
+select important variables by accumulating the improvement in the
 split-criterion over all the trees in the forest for each variable
 \autocite[pp.~593]{hastie_elements_2009}.
 
-\begin{itemize}
-\tightlist
-\item
-  Predict with selected features
-\item
-  Pool posterior probabilities of predictions
-\end{itemize}
+Weighted predictions can be used by pooling posterior probabilities of
+the predictions. More certain predictions (\emph{i.e.} near 0 or 1)
+weight the prediction more than uncertain predictions (near 0.5).
+Retaining posterior probabilities would allow different cutoffs for
+predictions and performance analysis using ROC.
 
 \subsection{Conclusion}\label{conclusion}
-
-\begin{itemize}
-\tightlist
-\item
-  Summary of proceedure
-\item
-  Summary of results
-\end{itemize}
 
 The CC has some distinctly different properties than the imputed
 datasets; the best classification method was KNN, which performed
 noteably worse in SI1, MI9, and MI99. The variables selected as
 important for the predictions also differed in CC compared to the
-imputed datasets.
+imputed datasets. For the ARDS dataset, complete case analysis may not
+be an appropriate method of handling the missing values and a more
+appropriate method such as mean imputation or multile imputation. ECMO
+treatment survival can be predicted slightly better than random chance,
+\(\kappa=0.274\), using logistic regression trained on MI99. Future
+expected prediction accuracy for survival and non-survival of ECMO
+treatment are 0.906 and 0.333, respectively. Variables deemed important
+for survival prediction are: \texttt{PreECMO\_PaCO2},
+\texttt{PreECMO\_pH}, \texttt{PreECMO\_Be}, \texttt{Age},
+\texttt{PreECMO\_PF}, \texttt{PreECMO\_PMean}, \texttt{PreECMO\_FiO2},
+\texttt{PreECMO\_Bilirubin}, \texttt{PreECMO\_Ddimer},
+\texttt{PreECMO\_IL6}, \texttt{PreECMO\_TNFa},
+\texttt{PreECMO\_Leukocytes}, \texttt{PreECMO\_CRP},
+\texttt{PreECMO\_MAP}, and \texttt{PreECMO\_ATIII}.
 
 \newpage
 
@@ -1249,7 +1326,7 @@ Analysis}
 
 \begin{figure}[H]
 
-{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-9-1} 
+{\centering \includegraphics[width=0.75\linewidth]{figure/graphics-unnamed-chunk-9-1} 
 
 }
 
@@ -1258,7 +1335,7 @@ Analysis}
 
 \begin{figure}[H]
 
-{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-10-1} 
+{\centering \includegraphics[width=0.75\linewidth]{figure/graphics-unnamed-chunk-10-1} 
 
 }
 
@@ -1273,6 +1350,8 @@ Analysis}
 
 \caption{\label{fig:heatmap-standardized}Heatmap of standardized and transformed variables.}\label{fig:unnamed-chunk-11}
 \end{figure}
+
+\newpage
 
 \subsection*{B. Algorithms}\label{b.-algorithms}
 \addcontentsline{toc}{subsection}{B. Algorithms}
@@ -1339,6 +1418,8 @@ The MICE algorithm is adapted from \autocite{van_buuren_flexible_2012}.
 
 \end{algorithm}
 
+\newpage
+
 \subsection*{C. Additional Missing Data
 Diagnostics}\label{c.-additional-missing-data-diagnostics}
 \addcontentsline{toc}{subsection}{C. Additional Missing Data
@@ -1351,58 +1432,79 @@ Imputations}\label{visual-insepction-of-imputations}
 
 \begin{figure}[H]
 
-{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-14-1} 
+{\centering \includegraphics[width=0.75\linewidth]{figure/graphics-unnamed-chunk-14-1} 
 
 }
 
-\caption{\label{fig:xyplot-mean}Scatterplot of each imputed dataset}\label{fig:unnamed-chunk-14}
+\caption{\label{fig:xyplot-mean}Scatterplot of 9 mean imputed datasets.}\label{fig:unnamed-chunk-14}
 \end{figure}
 
 \begin{figure}[H]
 
-{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-15-1} 
+{\centering \includegraphics[width=0.75\linewidth]{figure/graphics-unnamed-chunk-15-1} 
 
 }
 
-\caption{\label{fig:xyplot-pmm}Scatterplot of each imputed dataset}\label{fig:unnamed-chunk-15}
+\caption{\label{fig:xyplot-pmm}Scatterplot of the $m=9$ imputed datasets for MI9.  Can be extended to show similar results for MI99.}\label{fig:unnamed-chunk-15}
 \end{figure}
-
-\begin{itemize}
-\tightlist
-\item
-  \textbf{density plot of original and imputed data for MEAN imputation}
-\item
-  \textbf{density plot of original and imputed data for PMM imputation}
-\end{itemize}
-
-This plot compares the density of observed data with the ones of imputed
-data. We expect them to be similar (though not identical) under MAR
-assumption.
 
 \subsubsection{Convergence Monitoring}\label{convergence-monitoring}
 
-\begin{itemize}
-\tightlist
-\item
-  \textbf{Plot of convergence}
-\end{itemize}
-
-\subsection*{D. Feature Selection}\label{d.-feature-selection}
-\addcontentsline{toc}{subsection}{D. Feature Selection}
-
-\appendixD
-
 \begin{figure}[H]
 
-{\centering \includegraphics[width=1\linewidth]{figure/graphics-unnamed-chunk-16-1} 
+{\centering \includegraphics[width=0.75\linewidth]{figure/graphics-unnamed-chunk-16-1} 
 
 }
 
-\caption{\label{fig:rfe-logit}Ordered feature importance from Logit model}\label{fig:unnamed-chunk-16}
+\caption{\label{fig:converge-mean}Mean and standard deviation of the synthetic values plotted against iteration number for SI1.  The $m$ streams should intermingle with one another in convergence, without showing any definite trends.  Convergence occurs when the variance between different sequences is no larger than the variance within each individual sequence.}\label{fig:unnamed-chunk-161}
+\end{figure}\begin{figure}[H]
+
+{\centering \includegraphics[width=0.75\linewidth]{figure/graphics-unnamed-chunk-16-2} 
+
+}
+
+\caption{\label{fig:converge-mean}Mean and standard deviation of the synthetic values plotted against iteration number for SI1.  The $m$ streams should intermingle with one another in convergence, without showing any definite trends.  Convergence occurs when the variance between different sequences is no larger than the variance within each individual sequence.}\label{fig:unnamed-chunk-162}
+\end{figure}\begin{figure}[H]
+
+{\centering \includegraphics[width=0.75\linewidth]{figure/graphics-unnamed-chunk-16-3} 
+
+}
+
+\caption{\label{fig:converge-mean}Mean and standard deviation of the synthetic values plotted against iteration number for SI1.  The $m$ streams should intermingle with one another in convergence, without showing any definite trends.  Convergence occurs when the variance between different sequences is no larger than the variance within each individual sequence.}\label{fig:unnamed-chunk-163}
+\end{figure}\begin{figure}[H]
+
+{\centering \includegraphics[width=0.75\linewidth]{figure/graphics-unnamed-chunk-16-4} 
+
+}
+
+\caption{\label{fig:converge-mean}Mean and standard deviation of the synthetic values plotted against iteration number for SI1.  The $m$ streams should intermingle with one another in convergence, without showing any definite trends.  Convergence occurs when the variance between different sequences is no larger than the variance within each individual sequence.}\label{fig:unnamed-chunk-164}
+\end{figure}\begin{figure}[H]
+
+{\centering \includegraphics[width=0.75\linewidth]{figure/graphics-unnamed-chunk-16-5} 
+
+}
+
+\caption{\label{fig:converge-mean}Mean and standard deviation of the synthetic values plotted against iteration number for SI1.  The $m$ streams should intermingle with one another in convergence, without showing any definite trends.  Convergence occurs when the variance between different sequences is no larger than the variance within each individual sequence.}\label{fig:unnamed-chunk-165}
+\end{figure}\begin{figure}[H]
+
+{\centering \includegraphics[width=0.75\linewidth]{figure/graphics-unnamed-chunk-16-6} 
+
+}
+
+\caption{\label{fig:converge-mean}Mean and standard deviation of the synthetic values plotted against iteration number for SI1.  The $m$ streams should intermingle with one another in convergence, without showing any definite trends.  Convergence occurs when the variance between different sequences is no larger than the variance within each individual sequence.}\label{fig:unnamed-chunk-166}
+\end{figure}\begin{figure}[H]
+
+{\centering \includegraphics[width=0.75\linewidth]{figure/graphics-unnamed-chunk-16-7} 
+
+}
+
+\caption{\label{fig:converge-mean}Mean and standard deviation of the synthetic values plotted against iteration number for SI1.  The $m$ streams should intermingle with one another in convergence, without showing any definite trends.  Convergence occurs when the variance between different sequences is no larger than the variance within each individual sequence.}\label{fig:unnamed-chunk-167}
 \end{figure}
 
-\subsection*{E. Code Structure}\label{e.-code-structure}
-\addcontentsline{toc}{subsection}{E. Code Structure}
+\newpage
+
+\subsection*{D. Code Structure}\label{d.-code-structure}
+\addcontentsline{toc}{subsection}{D. Code Structure}
 
 \appendixE
 
@@ -1434,81 +1536,6 @@ set and the fitted models and performance metrics are saved to
 
 \caption{\label{fig:r-code-chart}Flowchart of code structure.}\label{fig:unnamed-chunk-17}
 \end{figure}
-
-\subsection*{F. OLD PLOTS \& FIGURES}\label{f.-old-plots-figures}
-\addcontentsline{toc}{subsection}{F. OLD PLOTS \& FIGURES}
-
-\begin{table}[!h]
-
-\caption{\label{tab:unnamed-chunk-21}\label{tab:cc-metrics} Complete case analysis accuracy metrics.  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=11, respectively.}
-\centering
-\fontsize{10}{12}\selectfont
-\begin{tabular}{lrrrr}
-\toprule
-  & Sensitivity & Specificity & Accuracy & Kappa\\
-\midrule
-Logit & 0.20 & 0.814 & 0.658 & 0.015\\
-LDA & 0.20 & 0.847 & 0.684 & 0.054\\
-QDA & 0.00 & 0.966 & 0.722 & -0.048\\
-\textbf{KNN} & \textbf{0.30} & \textbf{0.847} & \textbf{0.709} & \textbf{0.161}\\
-RF & 0.05 & 0.966 & 0.734 & 0.022\\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\begin{table}[!h]
-
-\caption{\label{tab:unnamed-chunk-22}\label{tab:mean-metrics} Mean imputation accuracy metrics (m=1).  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=11, respectively.}
-\centering
-\fontsize{10}{12}\selectfont
-\begin{tabular}{lrrrr}
-\toprule
-  & Sensitivity & Specificity & Accuracy & Kappa\\
-\midrule
-Logit & 0.222 & 0.894 & 0.732 & 0.137\\
-LDA & 0.148 & 0.894 & 0.714 & 0.051\\
-QDA & 0.111 & 0.882 & 0.696 & -0.008\\
-KNN & 0.222 & 0.824 & 0.679 & 0.050\\
-\textbf{RF} & \textbf{0.185} & \textbf{0.965} & \textbf{0.777} & \textbf{0.197}\\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\begin{table}[!h]
-
-\caption{\label{tab:unnamed-chunk-23}\label{tab:pmm-metrics} MICE via predictive mean matching accuracy metrics (m=9).  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=5 and mtry=13, respectively.}
-\centering
-\fontsize{10}{12}\selectfont
-\begin{tabular}{lrrrr}
-\toprule
-  & Sensitivity & Specificity & Accuracy & Kappa\\
-\midrule
-\textbf{Logit} & \textbf{0.222} & \textbf{0.906} & \textbf{0.741} & \textbf{0.153}\\
-LDA & 0.148 & 0.906 & 0.723 & 0.067\\
-QDA & 0.111 & 0.882 & 0.696 & -0.008\\
-KNN & 0.222 & 0.847 & 0.696 & 0.077\\
-RF & 0.148 & 0.941 & 0.750 & 0.116\\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\begin{table}[!h]
-
-\caption{\label{tab:unnamed-chunk-24}\label{tab:pmm99-metrics} MICE via predictive mean matching accuracy metrics (m=99).  The tuned hyperparameters for K-Nearest Neighbors and Random Forests are K=13 and mtry=15, respectively.}
-\centering
-\fontsize{10}{12}\selectfont
-\begin{tabular}{lrrrr}
-\toprule
-  & Sensitivity & Specificity & Accuracy & Kappa\\
-\midrule
-\textbf{Logit} & \textbf{0.333} & \textbf{0.906} & \textbf{0.768} & \textbf{0.274}\\
-LDA & 0.185 & 0.906 & 0.732 & 0.111\\
-QDA & 0.111 & 0.894 & 0.705 & 0.006\\
-KNN & 0.185 & 0.882 & 0.714 & 0.080\\
-RF & 0.185 & 0.929 & 0.750 & 0.144\\
-\bottomrule
-\end{tabular}
-\end{table}
 
 \newpage
 

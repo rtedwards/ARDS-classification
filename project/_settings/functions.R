@@ -355,7 +355,24 @@ createTable <- function(xtab) {
 } ## end createTable()
 
 
-
+theme_pca <- function() {
+  theme(axis.text.x = element_text(vjust=1, angle=0, size=6),
+        axis.text.y = element_text(vjust=1, angle=0, size=6),
+        axis.title.y = element_text(size = 7),
+        title = element_text(size = 8),
+        plot.margin = margin(0.25, 0.5, 0.125, 0.75, "cm"), #top, right, bottom, lefta
+        # white background and dark border
+        panel.background = element_rect(fill = "white", colour = NA),
+        panel.border     = element_rect(fill = NA, colour = "grey20"),
+        # make gridlines dark, same contrast with white as in theme_grey
+        panel.grid = element_line(colour = "grey92"),
+        panel.grid.minor = element_line(size = rel(0.5)),
+        # contour strips to match panel contour
+        strip.background = element_rect(fill = "grey85", colour = "grey20"),
+        # match legend key to background
+        legend.key       = element_rect(fill = "white", colour = NA),
+  )
+} ## end theme_pca()
 
 
 
