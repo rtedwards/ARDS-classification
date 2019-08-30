@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2018.4.16)  29 AUG 2019 16:23
+This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2018.4.16)  30 AUG 2019 00:59
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -448,230 +448,22 @@ Now handling font encoding PU ...
 ... no UTF-8 mapping file for font encoding PU
 )
 Package hyperref Info: Option `breaklinks' set `true' on input line 30.
-(/usr/local/texlive/2018/texmf-dist/tex/latex/biblatex/biblatex.sty
-Package: biblatex 2018/03/04 v3.11 programmable bibliographies (PK/MW)
-(/usr/local/texlive/2018/texmf-dist/tex/latex/etoolbox/etoolbox.sty
-Package: etoolbox 2018/02/11 v2.5e e-TeX tools for LaTeX (JAW)
-\etb@tempcnta=\count115
-) (/usr/local/texlive/2018/texmf-dist/tex/latex/logreq/logreq.sty
-Package: logreq 2010/08/04 v1.0 xml request logger
-\lrq@indent=\count116
-(/usr/local/texlive/2018/texmf-dist/tex/latex/logreq/logreq.def
-File: logreq.def 2010/08/04 v1.0 logreq spec v1.0
-)) (/usr/local/texlive/2018/texmf-dist/tex/latex/base/ifthen.sty
-Package: ifthen 2014/09/29 v1.1c Standard LaTeX ifthen package (DPC)
-) (/usr/local/texlive/2018/texmf-dist/tex/generic/xstring/xstring.sty (/usr/loc
-al/texlive/2018/texmf-dist/tex/generic/xstring/xstring.tex
-\@xs@message=\write3
-\integerpart=\count117
-\decimalpart=\count118
-)
-Package: xstring 2013/10/13  v1.7c  String manipulations (C Tellechea)
-)
-\c@tabx@nest=\count119
-\c@listtotal=\count120
-\c@listcount=\count121
-\c@liststart=\count122
-\c@liststop=\count123
-\c@citecount=\count124
-\c@citetotal=\count125
-\c@multicitecount=\count126
-\c@multicitetotal=\count127
-\c@instcount=\count128
-\c@maxnames=\count129
-\c@minnames=\count130
-\c@maxitems=\count131
-\c@minitems=\count132
-\c@citecounter=\count133
-\c@savedcitecounter=\count134
-\c@uniquelist=\count135
-\c@uniquename=\count136
-\c@refsection=\count137
-\c@refsegment=\count138
-\c@maxextratitle=\count139
-\c@maxextratitleyear=\count140
-\c@maxextradate=\count141
-\c@maxextraalpha=\count142
-\c@abbrvpenalty=\count143
-\c@highnamepenalty=\count144
-\c@lownamepenalty=\count145
-\c@maxparens=\count146
-\c@parenlevel=\count147
-\blx@tempcnta=\count148
-\blx@tempcntb=\count149
-\blx@tempcntc=\count150
-\blx@maxsection=\count151
-\blx@maxsegment@0=\count152
-\blx@notetype=\count153
-\blx@parenlevel@text=\count154
-\blx@parenlevel@foot=\count155
-\blx@sectionciteorder@0=\count156
-\labelnumberwidth=\skip48
-\labelalphawidth=\skip49
-\biblabelsep=\skip50
-\bibitemsep=\skip51
-\bibnamesep=\skip52
-\bibinitsep=\skip53
-\bibparsep=\skip54
-\bibhang=\skip55
-\blx@bcfin=\read1
-\blx@bcfout=\write4
-\c@mincomprange=\count157
-\c@maxcomprange=\count158
-\c@mincompwidth=\count159
-Package biblatex Info: Trying to load biblatex default data model...
-Package biblatex Info: ... file 'blx-dm.def' found.
-(/usr/local/texlive/2018/texmf-dist/tex/latex/biblatex/blx-dm.def
-File: blx-dm.def 2018/03/04 v3.11 biblatex localization (PK/MW)
-)
-Package biblatex Info: Trying to load biblatex custom data model...
-Package biblatex Info: ... file 'biblatex-dm.cfg' not found.
-\c@afterword=\count160
-\c@savedafterword=\count161
-\c@annotator=\count162
-\c@savedannotator=\count163
-\c@author=\count164
-\c@savedauthor=\count165
-\c@bookauthor=\count166
-\c@savedbookauthor=\count167
-\c@commentator=\count168
-\c@savedcommentator=\count169
-\c@editor=\count170
-\c@savededitor=\count171
-\c@editora=\count172
-\c@savededitora=\count173
-\c@editorb=\count174
-\c@savededitorb=\count175
-\c@editorc=\count176
-\c@savededitorc=\count177
-\c@foreword=\count178
-\c@savedforeword=\count179
-\c@holder=\count180
-\c@savedholder=\count181
-\c@introduction=\count182
-\c@savedintroduction=\count183
-\c@namea=\count184
-\c@savednamea=\count185
-\c@nameb=\count186
-\c@savednameb=\count187
-\c@namec=\count188
-\c@savednamec=\count189
-\c@translator=\count190
-\c@savedtranslator=\count191
-\c@shortauthor=\count192
-\c@savedshortauthor=\count193
-\c@shorteditor=\count194
-\c@savedshorteditor=\count195
-\c@labelname=\count196
-\c@savedlabelname=\count197
-\c@institution=\count198
-\c@savedinstitution=\count199
-\c@lista=\count266
-\c@savedlista=\count267
-\c@listb=\count268
-\c@savedlistb=\count269
-\c@listc=\count270
-\c@savedlistc=\count271
-\c@listd=\count272
-\c@savedlistd=\count273
-\c@liste=\count274
-\c@savedliste=\count275
-\c@listf=\count276
-\c@savedlistf=\count277
-\c@location=\count278
-\c@savedlocation=\count279
-\c@organization=\count280
-\c@savedorganization=\count281
-\c@origlocation=\count282
-\c@savedoriglocation=\count283
-\c@origpublisher=\count284
-\c@savedorigpublisher=\count285
-\c@publisher=\count286
-\c@savedpublisher=\count287
-\c@language=\count288
-\c@savedlanguage=\count289
-\c@origlanguage=\count290
-\c@savedoriglanguage=\count291
-\c@pageref=\count292
-\c@savedpageref=\count293
-\shorthandwidth=\skip56
-\shortjournalwidth=\skip57
-\shortserieswidth=\skip58
-\shorttitlewidth=\skip59
-\shortauthorwidth=\skip60
-\shorteditorwidth=\skip61
-\locallabelnumberwidth=\skip62
-\locallabelalphawidth=\skip63
-\localshorthandwidth=\skip64
-\localshortjournalwidth=\skip65
-\localshortserieswidth=\skip66
-\localshorttitlewidth=\skip67
-\localshortauthorwidth=\skip68
-\localshorteditorwidth=\skip69
-Package biblatex Info: Trying to load compatibility code...
-Package biblatex Info: ... file 'blx-compat.def' found.
-(/usr/local/texlive/2018/texmf-dist/tex/latex/biblatex/blx-compat.def
-File: blx-compat.def 2018/03/04 v3.11 biblatex compatibility (PK/MW)
-)
-Package biblatex Info: Trying to load generic definitions...
-Package biblatex Info: ... file 'biblatex.def' found.
-(/usr/local/texlive/2018/texmf-dist/tex/latex/biblatex/biblatex.def
-File: biblatex.def 2018/03/04 v3.11 biblatex compatibility (PK/MW)
-\c@textcitecount=\count294
-\c@textcitetotal=\count295
-\c@textcitemaxnames=\count296
-\c@biburlnumpenalty=\count297
-\c@biburlucpenalty=\count298
-\c@biburllcpenalty=\count299
-\c@smartand=\count300
-)
-Package biblatex Info: Trying to load bibliography style 'numeric'...
-Package biblatex Info: ... file 'numeric.bbx' found.
-(/usr/local/texlive/2018/texmf-dist/tex/latex/biblatex/bbx/numeric.bbx
-File: numeric.bbx 2018/03/04 v3.11 biblatex bibliography style (PK/MW)
-Package biblatex Info: Trying to load bibliography style 'standard'...
-Package biblatex Info: ... file 'standard.bbx' found.
-(/usr/local/texlive/2018/texmf-dist/tex/latex/biblatex/bbx/standard.bbx
-File: standard.bbx 2018/03/04 v3.11 biblatex bibliography style (PK/MW)
-\c@bbx:relatedcount=\count301
-\c@bbx:relatedtotal=\count302
-))
-Package biblatex Info: Trying to load citation style 'numeric'...
-Package biblatex Info: ... file 'numeric.cbx' found.
-(/usr/local/texlive/2018/texmf-dist/tex/latex/biblatex/cbx/numeric.cbx
-File: numeric.cbx 2018/03/04 v3.11 biblatex citation style (PK/MW)
-Package biblatex Info: Redefining '\cite'.
-Package biblatex Info: Redefining '\parencite'.
-Package biblatex Info: Redefining '\footcite'.
-Package biblatex Info: Redefining '\footcitetext'.
-Package biblatex Info: Redefining '\smartcite'.
-Package biblatex Info: Redefining '\supercite'.
-Package biblatex Info: Redefining '\textcite'.
-Package biblatex Info: Redefining '\textcites'.
-Package biblatex Info: Redefining '\cites'.
-Package biblatex Info: Redefining '\parencites'.
-Package biblatex Info: Redefining '\smartcites'.
-)
-Package biblatex Info: Trying to load configuration file...
-Package biblatex Info: ... file 'biblatex.cfg' found.
-(/usr/local/texlive/2018/texmf-dist/tex/latex/biblatex/biblatex.cfg
-File: biblatex.cfg 
-)) (/Users/Berto/Library/texmf/tex/latex/local/tools/longtable.sty
+(/Users/Berto/Library/texmf/tex/latex/local/tools/longtable.sty
 Package: longtable 2014/10/28 v4.11 Multi-page Table package (DPC)+ FMi change
-\LTleft=\skip70
-\LTright=\skip71
-\LTpre=\skip72
-\LTpost=\skip73
-\LTchunksize=\count303
+\LTleft=\skip48
+\LTright=\skip49
+\LTpre=\skip50
+\LTpost=\skip51
+\LTchunksize=\count115
 \LTcapwidth=\dimen125
 \LT@head=\box28
 \LT@firsthead=\box29
 \LT@foot=\box30
 \LT@lastfoot=\box31
-\LT@cols=\count304
-\LT@rows=\count305
-\c@LT@tables=\count306
-\c@LT@chunks=\count307
+\LT@cols=\count116
+\LT@rows=\count117
+\c@LT@tables=\count118
+\c@LT@chunks=\count119
 \LT@p@ftn=\toks25
 ) (/usr/local/texlive/2018/texmf-dist/tex/latex/booktabs/booktabs.sty
 Package: booktabs 2016/04/27 v1.618033 publication quality tables
@@ -685,12 +477,12 @@ Package: booktabs 2016/04/27 v1.618033 publication quality tables
 \cmidrulesep=\dimen133
 \cmidrulekern=\dimen134
 \defaultaddspace=\dimen135
-\@cmidla=\count308
-\@cmidlb=\count309
+\@cmidla=\count120
+\@cmidlb=\count121
 \@aboverulesep=\dimen136
 \@belowrulesep=\dimen137
-\@thisruleclass=\count310
-\@lastruleclass=\count311
+\@thisruleclass=\count122
+\@lastruleclass=\count123
 \@thisrulewidth=\dimen138
 ) (/usr/local/texlive/2018/texmf-dist/tex/latex/graphics/graphicx.sty
 Package: graphicx 2017/06/01 v1.1a Enhanced LaTeX Graphics (DPC,SPQR)
@@ -717,14 +509,14 @@ Package grffile Info: \Gin@ii of package `graphicx' fixed on input line 494.
 Package: parskip 2001/04/09 non-zero parskip adjustments
 ) (/usr/local/texlive/2018/texmf-dist/tex/latex/titling/titling.sty
 Package: titling 2009/09/04 v2.1d maketitle typesetting
-\thanksmarkwidth=\skip74
-\thanksmargin=\skip75
-\droptitle=\skip76
+\thanksmarkwidth=\skip52
+\thanksmargin=\skip53
+\droptitle=\skip54
 ) (/usr/local/texlive/2018/texmf-dist/tex/latex/footmisc/footmisc.sty
 Package: footmisc 2011/06/06 v5.5b a miscellany of footnote facilities
 \FN@temptoken=\toks26
 \footnotemargin=\dimen141
-\c@pp@next@reset=\count312
+\c@pp@next@reset=\count124
 Package footmisc Info: Declaring symbol style bringhurst on input line 855.
 Package footmisc Info: Declaring symbol style chicago on input line 863.
 Package footmisc Info: Declaring symbol style wiley on input line 872.
@@ -735,7 +527,7 @@ Package footmisc Info: Declaring symbol style lamport*-robust on input line 924
 .
 ) (/usr/local/texlive/2018/texmf-dist/tex/latex/float/float.sty
 Package: float 2001/11/08 v1.3d Float enhancements (AL)
-\c@float@type=\count313
+\c@float@type=\count125
 \float@exts=\toks27
 \float@box=\box32
 \@float@everytoks=\toks28
@@ -760,15 +552,15 @@ Package: array 2018/12/30 v2.4k Tabular extension package (FMi)
 \ar@mcellbox=\box34
 \extrarowheight=\dimen143
 \NC@list=\toks29
-\extratabsurround=\skip77
-\backup@length=\skip78
+\extratabsurround=\skip55
+\backup@length=\skip56
 \ar@cellbox=\box35
 )
 \everycr=\toks30
-\minrowclearance=\skip79
+\minrowclearance=\skip57
 )
 LaTeX Info: Redefining \color on input line 709.
-\rownum=\count314
+\rownum=\count126
 Package xcolor Info: Model `cmy' substituted by `cmy0' on input line 1348.
 Package xcolor Info: Model `hsb' substituted by `rgb' on input line 1352.
 Package xcolor Info: Model `RGB' extended on input line 1364.
@@ -780,9 +572,9 @@ Package xcolor Info: Model `Gray' substituted by `gray' on input line 1370.
 Package xcolor Info: Model `wave' substituted by `hsb' on input line 1371.
 ) (/usr/local/texlive/2018/texmf-dist/tex/latex/multirow/multirow.sty
 Package: multirow 2016/11/25 v2.2 Span multiple rows of a table
-\multirow@colwidth=\skip80
-\multirow@cntb=\count315
-\multirow@dima=\skip81
+\multirow@colwidth=\skip58
+\multirow@cntb=\count127
+\multirow@dima=\skip59
 \bigstrutjot=\dimen144
 ) (/usr/local/texlive/2018/texmf-dist/tex/latex/caption/caption.sty
 Package: caption 2016/02/21 v3.3-144 Customizing captions (AR)
@@ -797,7 +589,7 @@ Package caption3 Info: TeX engine: e-TeX on input line 67.
 \caption@parindent=\dimen150
 \caption@hangindent=\dimen151
 )
-\c@ContinuedFloat=\count316
+\c@ContinuedFloat=\count128
 Package caption Info: float package is loaded.
 Package caption Info: hyperref package is loaded.
 Package caption Info: longtable package is loaded.
@@ -805,60 +597,55 @@ Package caption Info: longtable package is loaded.
 Package: ltcaption 2013/06/09 v1.4-94 longtable captions (AR)
 )) (/usr/local/texlive/2018/texmf-dist/tex/latex/algorithm2e/algorithm2e.sty
 Package: algorithm2e 2017/07/18 v5.2 algorithms environments
-\c@AlgoLine=\count317
-\algocf@hangindent=\skip82
+\c@AlgoLine=\count129
+(/usr/local/texlive/2018/texmf-dist/tex/latex/base/ifthen.sty
+Package: ifthen 2014/09/29 v1.1c Standard LaTeX ifthen package (DPC)
+)
+\algocf@hangindent=\skip60
 (/usr/local/texlive/2018/texmf-dist/tex/latex/ifoddpage/ifoddpage.sty
 Package: ifoddpage 2016/04/23 v1.1 Conditionals for odd/even page detection
-\c@checkoddpage=\count318
+\c@checkoddpage=\count130
 ) (/Users/Berto/Library/texmf/tex/latex/local/tools/xspace.sty
 Package: xspace 2014/10/28 v1.13 Space after command names (DPC,MH)
 ) (/usr/local/texlive/2018/texmf-dist/tex/latex/relsize/relsize.sty
 Package: relsize 2013/03/29 ver 4.1
 )
-\skiptotal=\skip83
-\skiplinenumber=\skip84
-\skiprule=\skip85
-\skiphlne=\skip86
-\skiptext=\skip87
-\skiplength=\skip88
-\algomargin=\skip89
-\skipalgocfslide=\skip90
+\skiptotal=\skip61
+\skiplinenumber=\skip62
+\skiprule=\skip63
+\skiphlne=\skip64
+\skiptext=\skip65
+\skiplength=\skip66
+\algomargin=\skip67
+\skipalgocfslide=\skip68
 \algowidth=\dimen152
 \inoutsize=\dimen153
 \inoutindent=\dimen154
 \interspacetitleruled=\dimen155
 \interspacealgoruled=\dimen156
 \interspacetitleboxruled=\dimen157
-\algocf@ruledwidth=\skip91
+\algocf@ruledwidth=\skip69
 \algocf@inoutbox=\box36
 \algocf@inputbox=\box37
-\AlCapSkip=\skip92
-\AlCapHSkip=\skip93
-\algoskipindent=\skip94
+\AlCapSkip=\skip70
+\AlCapHSkip=\skip71
+\algoskipindent=\skip72
 \algocf@nlbox=\box38
 \algocf@hangingbox=\box39
 \algocf@untilbox=\box40
-\algocf@skipuntil=\skip95
+\algocf@skipuntil=\skip73
 \algocf@capbox=\box41
-\algocf@lcaptionbox=\skip96
-\algoheightruledefault=\skip97
-\algoheightrule=\skip98
-\algotitleheightruledefault=\skip99
-\algotitleheightrule=\skip100
-\c@algocfline=\count319
-\c@algocfproc=\count320
-\c@algocf=\count321
+\algocf@lcaptionbox=\skip74
+\algoheightruledefault=\skip75
+\algoheightrule=\skip76
+\algotitleheightruledefault=\skip77
+\algotitleheightrule=\skip78
+\c@algocfline=\count131
+\c@algocfproc=\count132
+\c@algocf=\count133
 \algocf@algoframe=\box42
 \algocf@algobox=\box43
-)
-Package biblatex Info: Trying to load language 'english'...
-Package biblatex Info: ... file 'english.lbx' found.
-(/usr/local/texlive/2018/texmf-dist/tex/latex/biblatex/lbx/english.lbx
-File: english.lbx 2018/03/04 v3.11 biblatex localization (PK/MW)
-)
-\@quotelevel=\count322
-\@quotereset=\count323
-(./thesis.aux
+) (./thesis.aux
 
 LaTeX Warning: Label `fig:converge-mean' multiply defined.
 
@@ -880,34 +667,33 @@ LaTeX Warning: Label `fig:converge-mean' multiply defined.
 )
 \openout1 = `thesis.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 102.
-LaTeX Font Info:    ... okay on input line 102.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 102.
-LaTeX Font Info:    ... okay on input line 102.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 102.
-LaTeX Font Info:    ... okay on input line 102.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 102.
-LaTeX Font Info:    ... okay on input line 102.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 102.
-LaTeX Font Info:    ... okay on input line 102.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 102.
-LaTeX Font Info:    ... okay on input line 102.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 102.
-LaTeX Font Info:    Try loading font information for TS1+cmr on input line 102.
-
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 99.
+LaTeX Font Info:    ... okay on input line 99.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 99.
+LaTeX Font Info:    ... okay on input line 99.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 99.
+LaTeX Font Info:    ... okay on input line 99.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 99.
+LaTeX Font Info:    ... okay on input line 99.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 99.
+LaTeX Font Info:    ... okay on input line 99.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 99.
+LaTeX Font Info:    ... okay on input line 99.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 99.
+LaTeX Font Info:    Try loading font information for TS1+cmr on input line 99.
 (/usr/local/texlive/2018/texmf-dist/tex/latex/base/ts1cmr.fd
 File: ts1cmr.fd 2014/09/29 v2.5h Standard LaTeX font definitions
 )
-LaTeX Font Info:    ... okay on input line 102.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 102.
-LaTeX Font Info:    ... okay on input line 102.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 102.
-LaTeX Font Info:    ... okay on input line 102.
-LaTeX Font Info:    Try loading font information for T1+lmr on input line 102.
+LaTeX Font Info:    ... okay on input line 99.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 99.
+LaTeX Font Info:    ... okay on input line 99.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 99.
+LaTeX Font Info:    ... okay on input line 99.
+LaTeX Font Info:    Try loading font information for T1+lmr on input line 99.
 (/usr/local/texlive/2018/texmf-dist/tex/latex/lm/t1lmr.fd
 File: t1lmr.fd 2009/10/30 v1.6 Font defs for Latin Modern
 )
-LaTeX Info: Redefining \microtypecontext on input line 102.
+LaTeX Info: Redefining \microtypecontext on input line 99.
 Package microtype Info: Generating PDF output.
 Package microtype Info: Character protrusion enabled (level 2).
 Package microtype Info: Using protrusion set `basicmath'.
@@ -956,43 +742,33 @@ File: mt-cmr.cfg 2013/05/19 v2.2 microtype config. file: Computer Modern Roman
 * (1in=72.27pt=25.4mm, 1cm=28.453pt)
 
 \AtBeginShipoutBox=\box44
-Package hyperref Info: Link coloring OFF on input line 102.
+Package hyperref Info: Link coloring OFF on input line 99.
 (/usr/local/texlive/2018/texmf-dist/tex/latex/hyperref/nameref.sty
 Package: nameref 2016/05/21 v2.44 Cross-referencing by name of section
 (/usr/local/texlive/2018/texmf-dist/tex/generic/oberdiek/gettitlestring.sty
 Package: gettitlestring 2016/05/16 v1.5 Cleanup title references (HO)
 )
-\c@section@level=\count324
+\c@section@level=\count134
 )
-LaTeX Info: Redefining \ref on input line 102.
-LaTeX Info: Redefining \pageref on input line 102.
-LaTeX Info: Redefining \nameref on input line 102.
+LaTeX Info: Redefining \ref on input line 99.
+LaTeX Info: Redefining \pageref on input line 99.
+LaTeX Info: Redefining \nameref on input line 99.
 (./thesis.out) (./thesis.out)
-\@outlinefile=\write5
-\openout5 = `thesis.out'.
+\@outlinefile=\write3
+\openout3 = `thesis.out'.
 
-Package biblatex Info: Input encoding 'utf8' detected.
-Package biblatex Info: Automatic encoding selection.
-(biblatex)             Assuming data encoding 'utf8'.
-\openout4 = `thesis.bcf'.
-
-Package biblatex Info: Trying to load bibliographic data...
-Package biblatex Info: ... file 'thesis.bbl' found.
-(./thesis.bbl)
-Package biblatex Info: Reference section=0 on input line 102.
-Package biblatex Info: Reference segment=0 on input line 102.
 (/usr/local/texlive/2018/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count325
+\scratchcounter=\count135
 \scratchdimen=\dimen158
 \scratchbox=\box45
-\nofMPsegments=\count326
-\nofMParguments=\count327
+\nofMPsegments=\count136
+\nofMParguments=\count137
 \everyMPshowfont=\toks31
-\MPscratchCnt=\count328
+\MPscratchCnt=\count138
 \MPscratchDim=\dimen159
-\MPnumerator=\count329
-\makeMPintoPDFobject=\count330
+\MPnumerator=\count139
+\makeMPintoPDFobject=\count140
 \everyMPtoPDFconversion=\toks32
 ) (/usr/local/texlive/2018/texmf-dist/tex/latex/oberdiek/epstopdf-base.sty
 Package: epstopdf-base 2016/05/15 v2.6 Base part for package epstopdf
@@ -1011,84 +787,79 @@ e
 ))
 Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: End \AtBeginDocument code.
-<images/GUlogo.png, id=104, 405.515pt x 125.46875pt>
+<images/GUlogo.png, id=108, 405.515pt x 125.46875pt>
 File: images/GUlogo.png Graphic file (type png)
 <use images/GUlogo.png>
-Package pdftex.def Info: images/GUlogo.png  used on input line 121.
+Package pdftex.def Info: images/GUlogo.png  used on input line 118.
 (pdftex.def)             Requested size: 137.94133pt x 42.67986pt.
 [1
 
 {/usr/local/texlive/2018/texmf-var/fonts/map/pdftex/updmap/pdftex.map} <./image
 s/GUlogo.png>] [2] (./thesis.toc
-LaTeX Font Info:    Try loading font information for OT1+lmr on input line 5.
+LaTeX Font Info:    Try loading font information for OT1+lmr on input line 2.
 (/usr/local/texlive/2018/texmf-dist/tex/latex/lm/ot1lmr.fd
 File: ot1lmr.fd 2009/10/30 v1.6 Font defs for Latin Modern
 )
-LaTeX Font Info:    Try loading font information for OML+lmm on input line 5.
+LaTeX Font Info:    Try loading font information for OML+lmm on input line 2.
 (/usr/local/texlive/2018/texmf-dist/tex/latex/lm/omllmm.fd
 File: omllmm.fd 2009/10/30 v1.6 Font defs for Latin Modern
 )
-LaTeX Font Info:    Try loading font information for OMS+lmsy on input line 5.
+LaTeX Font Info:    Try loading font information for OMS+lmsy on input line 2.
 (/usr/local/texlive/2018/texmf-dist/tex/latex/lm/omslmsy.fd
 File: omslmsy.fd 2009/10/30 v1.6 Font defs for Latin Modern
 )
-LaTeX Font Info:    Try loading font information for OMX+lmex on input line 5.
+LaTeX Font Info:    Try loading font information for OMX+lmex on input line 2.
 (/usr/local/texlive/2018/texmf-dist/tex/latex/lm/omxlmex.fd
 File: omxlmex.fd 2009/10/30 v1.6 Font defs for Latin Modern
 )
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <12> on input line 5.
+(Font)              <12> on input line 2.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <8> on input line 5.
+(Font)              <8> on input line 2.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <6> on input line 5.
-LaTeX Font Info:    Try loading font information for U+msa on input line 5.
+(Font)              <6> on input line 2.
+LaTeX Font Info:    Try loading font information for U+msa on input line 2.
 (/usr/local/texlive/2018/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 ) (/usr/local/texlive/2018/texmf-dist/tex/latex/microtype/mt-msa.cfg
 File: mt-msa.cfg 2006/02/04 v1.1 microtype config. file: AMS symbols (a) (RS)
 )
-LaTeX Font Info:    Try loading font information for U+msb on input line 5.
+LaTeX Font Info:    Try loading font information for U+msb on input line 2.
 (/usr/local/texlive/2018/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 ) (/usr/local/texlive/2018/texmf-dist/tex/latex/microtype/mt-msb.cfg
 File: mt-msb.cfg 2005/06/01 v1.0 microtype config. file: AMS symbols (b) (RS)
 ))
-\tf@toc=\write6
-\openout6 = `thesis.toc'.
+\tf@toc=\write4
+\openout4 = `thesis.toc'.
 
 [3]
-LaTeX Font Info:    Try loading font information for T1+lmtt on input line 203.
+LaTeX Font Info:    Try loading font information for T1+lmtt on input line 206.
 
 (/usr/local/texlive/2018/texmf-dist/tex/latex/lm/t1lmtt.fd
 File: t1lmtt.fd 2009/10/30 v1.6 Font defs for Latin Modern
-) [4] [5] [6] [7] [8] [9] [10] [11]
-LaTeX Font Info:    Try loading font information for TS1+lmr on input line 663.
-
-(/usr/local/texlive/2018/texmf-dist/tex/latex/lm/ts1lmr.fd
-File: ts1lmr.fd 2009/10/30 v1.6 Font defs for Latin Modern
-) [12] [13]
-<images/ensemble-imputation.png, id=324, 1004.75375pt x 1055.945pt>
+) [4] [5] [6] [7] [8] [9] [10] [11] [12]
+<images/ensemble-imputation.png, id=306, 1004.75375pt x 1055.945pt>
 File: images/ensemble-imputation.png Graphic file (type png)
 <use images/ensemble-imputation.png>
-Package pdftex.def Info: images/ensemble-imputation.png  used on input line 774
+Package pdftex.def Info: images/ensemble-imputation.png  used on input line 729
 .
 (pdftex.def)             Requested size: 469.75067pt x 493.68402pt.
-[14] [15 <./images/ensemble-imputation.png>] [16] [17]
+[13] [14 <./images/ensemble-imputation.png>] [15] [16]
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10> on input line 908.
+(Font)              <10> on input line 874.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <7> on input line 908.
+(Font)              <7> on input line 874.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <5> on input line 908.
+(Font)              <5> on input line 874.
 <figure/graphics-unnamed-chunk-4-1.pdf, id=387, 469.755pt x 325.215pt>
 File: figure/graphics-unnamed-chunk-4-1.pdf Graphic file (type pdf)
 <use figure/graphics-unnamed-chunk-4-1.pdf>
 Package pdftex.def Info: figure/graphics-unnamed-chunk-4-1.pdf  used on input l
-ine 976.
+ine 942.
 (pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
-[18] [19 <./figure/graphics-unnamed-chunk-4-1.pdf>] [20]
-Underfull \hbox (badness 2285) in paragraph at lines 1069--1075
+[17] [18 <./figure/graphics-unnamed-chunk-4-1.pdf>] [19]
+Underfull \hbox (badness 2285) in paragraph at lines 983--989
 \T1/lmr/m/n/12 (+20) This study in-volved four phases: (a) com-plete case anal-
 y-sis with the vari-able
  []
@@ -1096,171 +867,170 @@ y-sis with the vari-able
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
-<figure/graphics-unnamed-chunk-8-1.pdf, id=419, 469.755pt x 325.215pt>
+<figure/graphics-unnamed-chunk-7-1.pdf, id=421, 469.755pt x 325.215pt>
+File: figure/graphics-unnamed-chunk-7-1.pdf Graphic file (type pdf)
+<use figure/graphics-unnamed-chunk-7-1.pdf>
+Package pdftex.def Info: figure/graphics-unnamed-chunk-7-1.pdf  used on input l
+ine 1095.
+(pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
+[20]
+Overfull \vbox (24.42624pt too high) has occurred while \output is active []
+
+[21 <./figure/graphics-unnamed-chunk-7-1.pdf>] [22]
+Underfull \hbox (badness 1735) in paragraph at lines 1219--1237
+\T1/lmtt/m/n/12 PreECMO_PMean\T1/lmr/m/n/12 (+20) , \T1/lmtt/m/n/12 PreECMO_FiO
+2\T1/lmr/m/n/12 (+20) , \T1/lmtt/m/n/12 PreECMO_Bilirubin\T1/lmr/m/n/12 (+20) ,
+ \T1/lmtt/m/n/12 PreECMO_Ddimer\T1/lmr/m/n/12 (+20) , \T1/lmtt/m/n/12 PreECMO_I
+L6\T1/lmr/m/n/12 (+20) ,
+ []
+
+[23] [24]
+<figure/graphics-unnamed-chunk-8-1.pdf, id=466, 469.755pt x 325.215pt>
 File: figure/graphics-unnamed-chunk-8-1.pdf Graphic file (type pdf)
 <use figure/graphics-unnamed-chunk-8-1.pdf>
 Package pdftex.def Info: figure/graphics-unnamed-chunk-8-1.pdf  used on input l
-ine 1179.
-(pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
-[21]
-Overfull \vbox (24.42624pt too high) has occurred while \output is active []
-
-[22 <./figure/graphics-unnamed-chunk-8-1.pdf>] [23]
-Underfull \hbox (badness 1117) in paragraph at lines 1296--1314
-\T1/lmtt/m/n/12 PreECMO_IL6\T1/lmr/m/n/12 (+20) , \T1/lmtt/m/n/12 PreECMO_TNFa\
-T1/lmr/m/n/12 (+20) , \T1/lmtt/m/n/12 PreECMO_Leukocytes\T1/lmr/m/n/12 (+20) , 
-\T1/lmtt/m/n/12 PreECMO_CRP\T1/lmr/m/n/12 (+20) , \T1/lmtt/m/n/12 PreECMO_MAP\T
-1/lmr/m/n/12 (+20) , and
- []
-
-[24] [25]
-<figure/graphics-unnamed-chunk-9-1.pdf, id=464, 469.755pt x 325.215pt>
+ine 1252.
+(pdftex.def)             Requested size: 352.31538pt x 243.91064pt.
+<figure/graphics-unnamed-chunk-9-1.pdf, id=467, 469.755pt x 325.215pt>
 File: figure/graphics-unnamed-chunk-9-1.pdf Graphic file (type pdf)
 <use figure/graphics-unnamed-chunk-9-1.pdf>
 Package pdftex.def Info: figure/graphics-unnamed-chunk-9-1.pdf  used on input l
-ine 1329.
+ine 1261.
 (pdftex.def)             Requested size: 352.31538pt x 243.91064pt.
-<figure/graphics-unnamed-chunk-10-1.pdf, id=465, 469.755pt x 325.215pt>
+<figure/graphics-unnamed-chunk-10-1.pdf, id=468, 469.755pt x 325.215pt>
 File: figure/graphics-unnamed-chunk-10-1.pdf Graphic file (type pdf)
 <use figure/graphics-unnamed-chunk-10-1.pdf>
 Package pdftex.def Info: figure/graphics-unnamed-chunk-10-1.pdf  used on input 
-line 1338.
-(pdftex.def)             Requested size: 352.31538pt x 243.91064pt.
-<figure/graphics-unnamed-chunk-11-1.pdf, id=466, 469.755pt x 325.215pt>
-File: figure/graphics-unnamed-chunk-11-1.pdf Graphic file (type pdf)
-<use figure/graphics-unnamed-chunk-11-1.pdf>
-Package pdftex.def Info: figure/graphics-unnamed-chunk-11-1.pdf  used on input 
-line 1347.
+line 1270.
 (pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
-[26 <./figure/graphics-unnamed-chunk-9-1.pdf> <./figure/graphics-unnamed-chunk-
-10-1.pdf>] [27 <./figure/graphics-unnamed-chunk-11-1.pdf>] [28]
-<figure/graphics-unnamed-chunk-14-1.pdf, id=518, 469.755pt x 325.215pt>
+[25 <./figure/graphics-unnamed-chunk-8-1.pdf> <./figure/graphics-unnamed-chunk-
+9-1.pdf>]
+
+LaTeX Warning: `!h' float specifier changed to `!ht'.
+
+[26 <./figure/graphics-unnamed-chunk-10-1.pdf>]
+Overfull \vbox (139.30875pt too high) has occurred while \output is active []
+
+[27]
+LaTeX Font Info:    Try loading font information for TS1+lmr on input line 1426
+.
+(/usr/local/texlive/2018/texmf-dist/tex/latex/lm/ts1lmr.fd
+File: ts1lmr.fd 2009/10/30 v1.6 Font defs for Latin Modern
+) [28]
+<figure/graphics-unnamed-chunk-14-1.pdf, id=542, 469.755pt x 325.215pt>
 File: figure/graphics-unnamed-chunk-14-1.pdf Graphic file (type pdf)
 <use figure/graphics-unnamed-chunk-14-1.pdf>
 Package pdftex.def Info: figure/graphics-unnamed-chunk-14-1.pdf  used on input 
-line 1435.
+line 1479.
 (pdftex.def)             Requested size: 352.31538pt x 243.91064pt.
-<figure/graphics-unnamed-chunk-15-1.pdf, id=519, 469.755pt x 325.215pt>
+<figure/graphics-unnamed-chunk-15-1.pdf, id=543, 469.755pt x 325.215pt>
 File: figure/graphics-unnamed-chunk-15-1.pdf Graphic file (type pdf)
 <use figure/graphics-unnamed-chunk-15-1.pdf>
 Package pdftex.def Info: figure/graphics-unnamed-chunk-15-1.pdf  used on input 
-line 1444.
+line 1488.
 (pdftex.def)             Requested size: 352.31538pt x 243.91064pt.
-<figure/graphics-unnamed-chunk-16-1.pdf, id=520, 469.755pt x 325.215pt>
+<figure/graphics-unnamed-chunk-16-1.pdf, id=544, 469.755pt x 325.215pt>
 File: figure/graphics-unnamed-chunk-16-1.pdf Graphic file (type pdf)
 <use figure/graphics-unnamed-chunk-16-1.pdf>
 Package pdftex.def Info: figure/graphics-unnamed-chunk-16-1.pdf  used on input 
-line 1455.
+line 1499.
 (pdftex.def)             Requested size: 352.31538pt x 243.91064pt.
-<figure/graphics-unnamed-chunk-16-2.pdf, id=521, 469.755pt x 325.215pt>
+<figure/graphics-unnamed-chunk-16-2.pdf, id=545, 469.755pt x 325.215pt>
 File: figure/graphics-unnamed-chunk-16-2.pdf Graphic file (type pdf)
 <use figure/graphics-unnamed-chunk-16-2.pdf>
 Package pdftex.def Info: figure/graphics-unnamed-chunk-16-2.pdf  used on input 
-line 1462.
+line 1506.
 (pdftex.def)             Requested size: 352.31538pt x 243.91064pt.
 [29 <./figure/graphics-unnamed-chunk-14-1.pdf> <./figure/graphics-unnamed-chunk
 -15-1.pdf>]
-<figure/graphics-unnamed-chunk-16-3.pdf, id=549, 469.755pt x 325.215pt>
+<figure/graphics-unnamed-chunk-16-3.pdf, id=574, 469.755pt x 325.215pt>
 File: figure/graphics-unnamed-chunk-16-3.pdf Graphic file (type pdf)
 <use figure/graphics-unnamed-chunk-16-3.pdf>
 Package pdftex.def Info: figure/graphics-unnamed-chunk-16-3.pdf  used on input 
-line 1469.
+line 1513.
 (pdftex.def)             Requested size: 352.31538pt x 243.91064pt.
 [30 <./figure/graphics-unnamed-chunk-16-1.pdf>]
-<figure/graphics-unnamed-chunk-16-4.pdf, id=562, 469.755pt x 325.215pt>
+<figure/graphics-unnamed-chunk-16-4.pdf, id=586, 469.755pt x 325.215pt>
 File: figure/graphics-unnamed-chunk-16-4.pdf Graphic file (type pdf)
 <use figure/graphics-unnamed-chunk-16-4.pdf>
 Package pdftex.def Info: figure/graphics-unnamed-chunk-16-4.pdf  used on input 
-line 1476.
+line 1520.
 (pdftex.def)             Requested size: 352.31538pt x 243.91064pt.
-<figure/graphics-unnamed-chunk-16-5.pdf, id=563, 469.755pt x 325.215pt>
+<figure/graphics-unnamed-chunk-16-5.pdf, id=587, 469.755pt x 325.215pt>
 File: figure/graphics-unnamed-chunk-16-5.pdf Graphic file (type pdf)
 <use figure/graphics-unnamed-chunk-16-5.pdf>
 Package pdftex.def Info: figure/graphics-unnamed-chunk-16-5.pdf  used on input 
-line 1483.
+line 1527.
 (pdftex.def)             Requested size: 352.31538pt x 243.91064pt.
 [31 <./figure/graphics-unnamed-chunk-16-2.pdf> <./figure/graphics-unnamed-chunk
 -16-3.pdf>]
-<figure/graphics-unnamed-chunk-16-6.pdf, id=581, 469.755pt x 325.215pt>
+<figure/graphics-unnamed-chunk-16-6.pdf, id=605, 469.755pt x 325.215pt>
 File: figure/graphics-unnamed-chunk-16-6.pdf Graphic file (type pdf)
 <use figure/graphics-unnamed-chunk-16-6.pdf>
 Package pdftex.def Info: figure/graphics-unnamed-chunk-16-6.pdf  used on input 
-line 1490.
+line 1534.
 (pdftex.def)             Requested size: 352.31538pt x 243.91064pt.
-<figure/graphics-unnamed-chunk-16-7.pdf, id=582, 469.755pt x 325.215pt>
+<figure/graphics-unnamed-chunk-16-7.pdf, id=606, 469.755pt x 325.215pt>
 File: figure/graphics-unnamed-chunk-16-7.pdf Graphic file (type pdf)
 <use figure/graphics-unnamed-chunk-16-7.pdf>
 Package pdftex.def Info: figure/graphics-unnamed-chunk-16-7.pdf  used on input 
-line 1497.
+line 1541.
 (pdftex.def)             Requested size: 352.31538pt x 243.91064pt.
 [32 <./figure/graphics-unnamed-chunk-16-4.pdf> <./figure/graphics-unnamed-chunk
 -16-5.pdf>] [33 <./figure/graphics-unnamed-chunk-16-6.pdf> <./figure/graphics-u
 nnamed-chunk-16-7.pdf>]
-<images/r-code-chart.png, id=616, 926.46124pt x 490.83376pt>
+<images/r-code-chart.png, id=640, 926.46124pt x 490.83376pt>
 File: images/r-code-chart.png Graphic file (type png)
 <use images/r-code-chart.png>
-Package pdftex.def Info: images/r-code-chart.png  used on input line 1533.
+Package pdftex.def Info: images/r-code-chart.png  used on input line 1577.
 (pdftex.def)             Requested size: 469.7606pt x 248.87642pt.
-[34 <./images/r-code-chart.png>]
-Package microtype Info: Character `029' is missing
-(microtype)             in font `T1/lmr/m/sc/12'.
-(microtype)             Ignoring protrusion settings for this character.
-[35] [36] [37] [38]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 1545.
-[39]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 1545.
+[34 <./images/r-code-chart.png>] [35] [36] [37]
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 1836.
+[38]
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 1836.
 (./thesis.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 1545.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 1545.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 1836.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 1836.
 
 Package rerunfilecheck Info: File `thesis.out' has not changed.
-(rerunfilecheck)             Checksum: DB3198B5D81C05D936C57628E88C3860;3810.
-
-LaTeX Warning: There were undefined references.
-
+(rerunfilecheck)             Checksum: BE4165C6F867454390663C5DA6FDAFC2;3906.
 
 LaTeX Warning: There were multiply-defined labels.
 
-
-Package biblatex Warning: Please rerun LaTeX.
-
-Package logreq Info: Writing requests to 'thesis.run.xml'.
-\openout1 = `thesis.run.xml'.
-
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 1545.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 1836.
  ) 
 Here is how much of TeX's memory you used:
- 22391 strings out of 492649
- 365296 string characters out of 6129622
- 834577 words of memory out of 5000000
- 25576 multiletter control sequences out of 15000+600000
- 99885 words of font info for 180 fonts, out of 8000000 for 9000
+ 15522 strings out of 492649
+ 233631 string characters out of 6129622
+ 363959 words of memory out of 5000000
+ 18794 multiletter control sequences out of 15000+600000
+ 94700 words of font info for 157 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 44i,11n,49p,3285b,1717s stack positions out of 5000i,500n,10000p,200000b,80000s
-{/usr/local/texlive/2018/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc}{/usr/local/
-texlive/2018/texmf-dist/fonts/enc/dvips/lm/lm-rm.enc}{/usr/local/texlive/2018/t
-exmf-dist/fonts/enc/dvips/lm/lm-mathit.enc}{/usr/local/texlive/2018/texmf-dist/
-fonts/enc/dvips/lm/lm-ts1.enc}{/usr/local/texlive/2018/texmf-dist/fonts/enc/dvi
+ 41i,11n,41p,853b,456s stack positions out of 5000i,500n,10000p,200000b,80000s
+{/usr/local/texlive/2018/texmf-dist/fonts/enc/dvips/lm/lm-rm.enc}{/usr/local/
+texlive/2018/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc}{/usr/local/texlive/20
+18/texmf-dist/fonts/enc/dvips/lm/lm-ts1.enc}{/usr/local/texlive/2018/texmf-dist
+/fonts/enc/dvips/lm/lm-ec.enc}{/usr/local/texlive/2018/texmf-dist/fonts/enc/dvi
 ps/lm/lm-mathsy.enc}{/usr/local/texlive/2018/texmf-dist/fonts/enc/dvips/lm/lm-m
 athex.enc}</usr/local/texlive/2018/texmf-dist/fonts/type1/public/lm/lmbx10.pfb>
 </usr/local/texlive/2018/texmf-dist/fonts/type1/public/lm/lmbx12.pfb></usr/loca
-l/texlive/2018/texmf-dist/fonts/type1/public/lm/lmcsc10.pfb></usr/local/texlive
-/2018/texmf-dist/fonts/type1/public/lm/lmex10.pfb></usr/local/texlive/2018/texm
-f-dist/fonts/type1/public/lm/lmmi10.pfb></usr/local/texlive/2018/texmf-dist/fon
-ts/type1/public/lm/lmmi12.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/p
-ublic/lm/lmmi6.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/lm/lm
-mi8.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/lm/lmmib10.pfb><
-/usr/local/texlive/2018/texmf-dist/fonts/type1/public/lm/lmr10.pfb></usr/local/
-texlive/2018/texmf-dist/fonts/type1/public/lm/lmr12.pfb></usr/local/texlive/201
-8/texmf-dist/fonts/type1/public/lm/lmr17.pfb></usr/local/texlive/2018/texmf-dis
-t/fonts/type1/public/lm/lmr8.pfb></usr/local/texlive/2018/texmf-dist/fonts/type
-1/public/lm/lmri12.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/l
-m/lmsy10.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/lm/lmsy8.pf
-b></usr/local/texlive/2018/texmf-dist/fonts/type1/public/lm/lmtt12.pfb>
-Output written on thesis.pdf (39 pages, 1125789 bytes).
+l/texlive/2018/texmf-dist/fonts/type1/public/lm/lmex10.pfb></usr/local/texlive/
+2018/texmf-dist/fonts/type1/public/lm/lmmi10.pfb></usr/local/texlive/2018/texmf
+-dist/fonts/type1/public/lm/lmmi12.pfb></usr/local/texlive/2018/texmf-dist/font
+s/type1/public/lm/lmmi6.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/pub
+lic/lm/lmmi8.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/lm/lmmi
+b10.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/lm/lmr10.pfb></u
+sr/local/texlive/2018/texmf-dist/fonts/type1/public/lm/lmr12.pfb></usr/local/te
+xlive/2018/texmf-dist/fonts/type1/public/lm/lmr17.pfb></usr/local/texlive/2018/
+texmf-dist/fonts/type1/public/lm/lmr8.pfb></usr/local/texlive/2018/texmf-dist/f
+onts/type1/public/lm/lmri12.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1
+/public/lm/lmsy10.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/lm
+/lmsy8.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/lm/lmtt12.pfb
+>
+Output written on thesis.pdf (38 pages, 1096953 bytes).
 PDF statistics:
- 859 PDF objects out of 1000 (max. 8388607)
- 757 compressed objects within 8 object streams
- 194 named destinations out of 1000 (max. 500000)
- 14622 words of extra memory for PDF output out of 17280 (max. 10000000)
+ 783 PDF objects out of 1000 (max. 8388607)
+ 684 compressed objects within 7 object streams
+ 205 named destinations out of 1000 (max. 500000)
+ 12582 words of extra memory for PDF output out of 14400 (max. 10000000)
 
